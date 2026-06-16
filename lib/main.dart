@@ -98,10 +98,6 @@ class BackgroundComponent extends Component {
   void render(Canvas canvas) {
     if (!_isLoaded) return;
 
-    // Wir holen uns die Größe des Bildes
-    final textureWidth = _laminatSprite.srcSize.x;
-    final textureHeight = _laminatSprite.srcSize.y;
-
     // Hier bestimmen wir, wie groß die Kacheln gezeichnet werden sollen.
     // Wenn dein Bild z.B. 512x512 Pixel groß ist, kannst du es hier skalieren,
     // damit die Dielen im Spiel nicht zu riesig wirken.
@@ -175,7 +171,6 @@ class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHa
 
     // 2. UP Animation (Original Frame: 190 x 256)
     // Perfekte Breite: (190 / 256) * 75 = ca. 55.6
-    const double widthUp = (190 / 256) * targetHeight;
     final animUp = await gameRef.loadSpriteAnimation(
       'up.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(190, 256)),
@@ -183,7 +178,6 @@ class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHa
 
     // 3. LEFT Animation (Original Frame: 139 x 261)
     // Perfekte Breite: (139 / 261) * 75 = ca. 39.9
-    const double widthLeft = (139 / 261) * targetHeight;
     final animLeft = await gameRef.loadSpriteAnimation(
       'left.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(139, 261)),

@@ -1,6 +1,9 @@
 # the_office
 
 The Office
+ 
+
+![alt text](the_office.png "The Office") 
 
 ## Getting Started
 
