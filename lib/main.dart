@@ -147,7 +147,7 @@ enum Direction { left, right, up, down }
 /// Der Spieler (Flutter-Entwickler) nutzt jetzt Flame's fertige SpriteAnimationGroupComponent.
 /// Das ist der sauberste Weg für Richtungs-Animationen!
 /// Der Spieler (Flutter-Entwickler) nutzt jetzt Flame's fertige SpriteAnimationGroupComponent.
-class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHandler, HasGameRef<OfficeGame> {
+class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHandler, HasGameReference<OfficeGame> {
   DevPlayer({required super.position, required super.size});
 
   final Vector2 _velocity = Vector2.zero();
@@ -164,27 +164,27 @@ class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHa
     // 1. DOWN Animation (Original Frame: 206 x 229)
     // Wir berechnen die perfekte Breite: (206 / 229) * 75 = ca. 67.4
     const double widthDown = (206 / 229) * targetHeight;
-    final animDown = await gameRef.loadSpriteAnimation(
+    final animDown = await game.loadSpriteAnimation(
       'down.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(206, 229)),
     );
 
     // 2. UP Animation (Original Frame: 190 x 256)
     // Perfekte Breite: (190 / 256) * 75 = ca. 55.6
-    final animUp = await gameRef.loadSpriteAnimation(
+    final animUp = await game.loadSpriteAnimation(
       'up.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(190, 256)),
     );
 
     // 3. LEFT Animation (Original Frame: 139 x 261)
     // Perfekte Breite: (139 / 261) * 75 = ca. 39.9
-    final animLeft = await gameRef.loadSpriteAnimation(
+    final animLeft = await game.loadSpriteAnimation(
       'left.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(139, 261)),
     );
 
     // 4. RIGHT Animation (Identisch zu Left)
-    final animRight = await gameRef.loadSpriteAnimation(
+    final animRight = await game.loadSpriteAnimation(
       'right.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(139, 261)),
     );
@@ -247,7 +247,7 @@ class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHa
 
     // PC sperren mit Leertaste
     if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.space)) {
-      gameRef.toggleScreenLock();
+      game.toggleScreenLock();
     }
 
     return false;
