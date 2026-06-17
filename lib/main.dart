@@ -9,6 +9,7 @@ import 'package:the_office/util.dart';
 import 'package:the_office/vertical_wall.dart';
 
 import 'default_component.dart';
+import 'desk_daniel.dart';
 
 void main() {
   // Startet das Spiel im Flutter-Framework
@@ -29,7 +30,10 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
 
     // 2. Schreibtisch erstellen
     final deskBottomLeft = DeskComponent(position: Vector2(300, 230), size: Vector2(100, 60))..angle = Units.degree90;
-    final deskTopRight = DeskComponent(position: Vector2(300, 220), size: Vector2(100, 60))..angle = Units.degree270;
+    final deskTopRight = DeskDaniel(
+      position: Vector2(300, 220),
+      size: Vector2(DeskDaniel.frameWidth * 0.28, DeskDaniel.pngHeight * 0.28),
+    )..angle = Units.degree270;
     final deskBottomRight = DeskComponent(position: Vector2(300, 380), size: Vector2(100, 60))..angle = Units.degree270;
     final deskTopLeft = DeskComponent(position: Vector2(300, 70), size: Vector2(100, 60))..angle = Units.degree90;
     final leftWall = VerticalWall(position: Vector2(0, -90), size: Vector2(10, 790));
@@ -106,7 +110,7 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     world.add(player);
 
     //npcs
-    world.add(Tobi(position: Vector2(520, 100), size: Vector2(40, 75)));
+    world.add(Tobi(position: Vector2(520, 100), size: Vector2(Tobi.frameWidth * 0.15, Tobi.pngHeight * 0.15)));
 
     // Die Kamera heftet sich an die Fersen des Spielers
     camera.follow(player);

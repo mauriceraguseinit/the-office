@@ -3,14 +3,14 @@ import 'package:flame/components.dart';
 
 import 'main.dart';
 
-class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame> {
-  Tobi({required super.position, required super.size, this.hitBox = true});
+class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame> {
+  DeskDaniel({required super.position, required super.size, this.hitBox = true});
 
   final bool hitBox;
 
-  static double pngWidth = 1488;
+  static double pngWidth = 2152;
   static double frame = 4;
-  static double pngHeight = 495;
+  static double pngHeight = 404;
   static double get frameWidth => pngWidth / frame;
 
   @override
@@ -18,8 +18,8 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
     super.onLoad();
     priority = 10;
     final anim = await game.loadSpriteAnimation(
-      'tobi_idle.png',
-      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(frameWidth, pngHeight)),
+      'desk_daniel.png',
+      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.915, textureSize: Vector2(frameWidth, pngHeight)),
     );
 
     // Jetzt übergeben wir die Animationen an die Komponente
