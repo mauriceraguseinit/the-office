@@ -35,6 +35,12 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
       hitBox: false,
       wallElement: WallElement.window,
     );
+    final window2 = WallComponent(
+      position: Vector2(95 * 4, -100),
+      size: Vector2(100, 100),
+      hitBox: false,
+      wallElement: WallElement.window,
+    );
 
     List<WallComponent> walls = List.generate(
       10,
@@ -71,6 +77,7 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
       world.add(wall);
     }
     world.add(window);
+    world.add(window2);
     world.add(player);
     world.add(Tobi(position: Vector2(520, 100), size: Vector2(40, 75)));
 
