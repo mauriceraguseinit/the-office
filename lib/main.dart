@@ -12,9 +12,6 @@ void main() {
 }
 
 /// Das Hauptspiel-Objekt managt die Welt und die Events
-/// Das Hauptspiel-Objekt managt die Welt und die Events
-/// Das Hauptspiel-Objekt managt die Welt und die Events
-/// Das Hauptspiel-Objekt managt die Welt und die Events
 class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDetection {
   late TextComponent statusText;
   bool isDeskLocked = false;
@@ -32,6 +29,11 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     final desk3 = DeskComponent(position: Vector2(200, 380), size: Vector2(100, 60))..angle = Units.degree270;
     final desk4 = DeskComponent(position: Vector2(200, 70), size: Vector2(100, 60))..angle = Units.degree90;
 
+    List<WallComponent> walls = List.generate(
+      10,
+      (index) => WallComponent(position: Vector2(0 + index * 95, -100), size: Vector2(100, 100)),
+    );
+
     // 3. Spieler erstellen (Dev) - ca. 50% größer
     final player = DevPlayer(position: Vector2(320, 300), size: Vector2(40, 75));
 
@@ -41,6 +43,10 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     world.add(desk2);
     world.add(desk3);
     world.add(desk4);
+    for (var wall in walls) {
+      world.add(wall);
+    }
+
     world.add(player);
 
     // Die Kamera heftet sich an die Fersen des Spielers
@@ -131,6 +137,21 @@ class DeskComponent extends SpriteComponent {
   }
 }
 
+class WallComponent extends SpriteComponent {
+  WallComponent({required super.position, required super.size});
+
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+
+    sprite = await Sprite.load('wall.png');
+    final original = sprite!.srcSize;
+    size = Vector2(original.x * 1, original.y * 1);
+
+    add(RectangleHitbox());
+  }
+}
+
 enum Direction { left, right, up, down }
 
 /// Der Spieler (Flutter-Entwickler) mit Tastatur-Steuerung
@@ -151,7 +172,7 @@ class DevPlayer extends SpriteAnimationGroupComponent<Direction>
     super.onCollision(intersectionPoints, other);
 
     // Prüfen, ob das andere Objekt eine Wand ist
-    if (other is DeskComponent) {
+    if (other.children.any((component) => component is RectangleHitbox)) {
       // Hier stoppst du die Bewegung des Spielers
       // Beispiel: Position auf den vorherigen Frame zurücksetzen
       position -= _velocity * _speed * _currentDt;
@@ -257,15 +278,5 @@ class DevPlayer extends SpriteAnimationGroupComponent<Direction>
     }
 
     return false;
-  }
-}
-
-class WallComponent extends PositionComponent {
-  WallComponent({required Vector2 position, required Vector2 size}) : super(position: position, size: size);
-
-  @override
-  Future<void> onLoad() async {
-    // Aktiviert die Kollisionsbox für die Wand
-    add(RectangleHitbox());
   }
 }
