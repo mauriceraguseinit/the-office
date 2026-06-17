@@ -1,3 +1,4 @@
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
@@ -14,7 +15,7 @@ void main() {
 /// Das Hauptspiel-Objekt managt die Welt und die Events
 /// Das Hauptspiel-Objekt managt die Welt und die Events
 /// Das Hauptspiel-Objekt managt die Welt und die Events
-class OfficeGame extends FlameGame with HasKeyboardHandlerComponents {
+class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDetection {
   late TextComponent statusText;
   bool isDeskLocked = false;
 
@@ -26,13 +27,13 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents {
     final background = BackgroundComponent();
 
     // 2. Schreibtisch erstellen
-    final desk = DeskComponent(position: Vector2(200, 200), size: Vector2(100, 60))..angle = Units.degree90;
-    final desk2 = DeskComponent(position: Vector2(200, 200), size: Vector2(100, 60))..angle = Units.degree270;
-    final desk3 = DeskComponent(position: Vector2(200, 330), size: Vector2(100, 60))..angle = Units.degree270;
+    final desk = DeskComponent(position: Vector2(200, 230), size: Vector2(100, 60))..angle = Units.degree90;
+    final desk2 = DeskComponent(position: Vector2(200, 220), size: Vector2(100, 60))..angle = Units.degree270;
+    final desk3 = DeskComponent(position: Vector2(200, 380), size: Vector2(100, 60))..angle = Units.degree270;
     final desk4 = DeskComponent(position: Vector2(200, 70), size: Vector2(100, 60))..angle = Units.degree90;
 
     // 3. Spieler erstellen (Dev) - ca. 50% größer
-    final player = DevPlayer(position: Vector2(220, 300), size: Vector2(40, 75));
+    final player = DevPlayer(position: Vector2(320, 300), size: Vector2(40, 75));
 
     // Alles zur World hinzufügen
     world.add(background);
@@ -115,28 +116,18 @@ class BackgroundComponent extends Component {
 }
 
 /// Der Schreibtisch (Desk)
-class DeskComponent extends PositionComponent {
+class DeskComponent extends SpriteComponent {
   DeskComponent({required super.position, required super.size});
-  bool _isLoaded = false;
-  late Sprite _deskSprite;
+
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
-    _deskSprite = await Sprite.load('desk.png');
-    _isLoaded = true;
-  }
+    sprite = await Sprite.load('desk.png');
+    final original = sprite!.srcSize;
+    size = Vector2(original.x * 0.5, original.y * 0.5);
 
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-
-    if (!_isLoaded) return;
-    final double scaleFactor = 0.4;
-    _deskSprite.render(
-      canvas,
-      size: Vector2(_deskSprite.originalSize.x * scaleFactor, _deskSprite.originalSize.y * scaleFactor),
-    );
+    add(RectangleHitbox());
   }
 }
 
@@ -147,13 +138,26 @@ enum Direction { left, right, up, down }
 /// Der Spieler (Flutter-Entwickler) nutzt jetzt Flame's fertige SpriteAnimationGroupComponent.
 /// Das ist der sauberste Weg für Richtungs-Animationen!
 /// Der Spieler (Flutter-Entwickler) nutzt jetzt Flame's fertige SpriteAnimationGroupComponent.
-class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHandler, HasGameReference<OfficeGame> {
+class DevPlayer extends SpriteAnimationGroupComponent<Direction>
+    with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks {
   DevPlayer({required super.position, required super.size});
 
   final Vector2 _velocity = Vector2.zero();
   final double _speed = 200.0;
+  double _currentDt = 0.0;
 
   @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+
+    // Prüfen, ob das andere Objekt eine Wand ist
+    if (other is DeskComponent) {
+      // Hier stoppst du die Bewegung des Spielers
+      // Beispiel: Position auf den vorherigen Frame zurücksetzen
+      position -= _velocity * _speed * _currentDt;
+    }
+  }
+
   @override
   Future<void> onLoad() async {
     super.onLoad();
@@ -195,11 +199,13 @@ class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHa
     // WICHTIG: Wir setzen die Standard-Größe beim Start auf die Down-Maße
     size = Vector2(widthDown, targetHeight);
     current = Direction.down;
+    add(RectangleHitbox());
   }
 
   @override
   void update(double dt) {
     const double targetHeight = 75.0;
+    _currentDt = dt;
 
     // Wir passen die hitbox/Größe des Players dynamisch an die aktuelle Richtung an
     if (current == Direction.down) {
@@ -251,5 +257,15 @@ class DevPlayer extends SpriteAnimationGroupComponent<Direction> with KeyboardHa
     }
 
     return false;
+  }
+}
+
+class WallComponent extends PositionComponent {
+  WallComponent({required Vector2 position, required Vector2 size}) : super(position: position, size: size);
+
+  @override
+  Future<void> onLoad() async {
+    // Aktiviert die Kollisionsbox für die Wand
+    add(RectangleHitbox());
   }
 }
