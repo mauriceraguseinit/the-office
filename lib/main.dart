@@ -28,10 +28,26 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     final desk2 = DeskComponent(position: Vector2(200, 220), size: Vector2(100, 60))..angle = Units.degree270;
     final desk3 = DeskComponent(position: Vector2(200, 380), size: Vector2(100, 60))..angle = Units.degree270;
     final desk4 = DeskComponent(position: Vector2(200, 70), size: Vector2(100, 60))..angle = Units.degree90;
+    final door = DoorComponent(position: Vector2(380, 600), size: Vector2(100, 100), hitBox: false);
+    final window = WallComponent(
+      position: Vector2(95 * 2, -100),
+      size: Vector2(100, 100),
+      hitBox: false,
+      wallElement: WallElement.window,
+    );
 
     List<WallComponent> walls = List.generate(
       10,
       (index) => WallComponent(position: Vector2(0 + index * 95, -100), size: Vector2(100, 100)),
+    );
+
+    List<WallComponent> walls2 = List.generate(
+      4,
+      (index) => WallComponent(position: Vector2(0 + index * 95, 600), size: Vector2(100, 100)),
+    );
+    List<WallComponent> walls3 = List.generate(
+      5,
+      (index) => WallComponent(position: Vector2(475 + index * 95, 600), size: Vector2(100, 100)),
     );
 
     // 3. Spieler erstellen (Dev) - ca. 50% größer
@@ -43,11 +59,20 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     world.add(desk2);
     world.add(desk3);
     world.add(desk4);
+
+    world.add(door);
     for (var wall in walls) {
       world.add(wall);
     }
-
+    for (var wall in walls2) {
+      world.add(wall);
+    }
+    for (var wall in walls3) {
+      world.add(wall);
+    }
+    world.add(window);
     world.add(player);
+    world.add(Tobi(position: Vector2(520, 100), size: Vector2(40, 75)));
 
     // Die Kamera heftet sich an die Fersen des Spielers
     camera.follow(player);
@@ -86,7 +111,6 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
   }
 }
 
-/// Der Hintergrund des Büros
 /// Der Hintergrund des Büros mit gekachelter Laminat-Textur
 class BackgroundComponent extends Component {
   late Sprite _laminatSprite;
@@ -137,18 +161,74 @@ class DeskComponent extends SpriteComponent {
   }
 }
 
+enum WallElement { wall, window }
+
 class WallComponent extends SpriteComponent {
-  WallComponent({required super.position, required super.size});
+  WallComponent({
+    required super.position,
+    required super.size,
+    this.hitBox = true,
+    this.wallElement = WallElement.wall,
+  });
+
+  final bool hitBox;
+  final WallElement wallElement;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
-    sprite = await Sprite.load('wall.png');
+    sprite = await Sprite.load(switch (wallElement) {
+      WallElement.wall => 'wall.png',
+      WallElement.window => 'window.png',
+    });
     final original = sprite!.srcSize;
     size = Vector2(original.x * 1, original.y * 1);
+    if (hitBox) {
+      add(RectangleHitbox());
+    }
+  }
+}
 
-    add(RectangleHitbox());
+class DoorComponent extends SpriteComponent {
+  DoorComponent({required super.position, required super.size, this.hitBox = true});
+
+  final bool hitBox;
+
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+    priority = 10;
+    sprite = await Sprite.load('door.png');
+    final original = sprite!.srcSize;
+    size = Vector2(original.x * 1, original.y * 1);
+    if (hitBox) {
+      add(RectangleHitbox());
+    }
+  }
+}
+
+class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame> {
+  Tobi({required super.position, required super.size, this.hitBox = true});
+
+  final bool hitBox;
+
+  @override
+  Future<void> onLoad() async {
+    super.onLoad();
+    priority = 10;
+    final anim = await game.loadSpriteAnimation(
+      'tobi_idle.png',
+      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(1488 / 4, 495)),
+    );
+
+    // Jetzt übergeben wir die Animationen an die Komponente
+    animations = {'idle': anim};
+    current = 'idle';
+
+    if (hitBox) {
+      add(RectangleHitbox());
+    }
   }
 }
 
