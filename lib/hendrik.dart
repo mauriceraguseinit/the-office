@@ -19,14 +19,16 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   final double _speed = 200.0;
   double _currentDt = 0.0;
 
+  // Referenz auf die Hitbox, damit wir sie später anpassen können
+  late RectangleHitbox _hitbox;
+
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
 
     // Prüfen, ob das andere Objekt eine Wand ist
     if (other.children.any((component) => component is RectangleHitbox)) {
-      // Hier stoppst du die Bewegung des Spielers
-      // Beispiel: Position auf den vorherigen Frame zurücksetzen
+      // Bewegung stoppen
       position -= _velocity * _speed * _currentDt;
     }
   }
@@ -35,44 +37,45 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Wir definieren die gewünschte Ziel-Höhe des Spielers im Spiel (ca. 50% größer als vorher)
+    // Ziel-Höhe des Spielers
     const double targetHeight = 75.0;
 
-    // 1. DOWN Animation (Original Frame: 206 x 229)
-    // Wir berechnen die perfekte Breite: (206 / 229) * 75 = ca. 67.4
+    // Animationen laden (wie gehabt)
     const double widthDown = (206 / 229) * targetHeight;
     final animDown = await game.loadSpriteAnimation(
       'down.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(206, 229)),
     );
 
-    // 2. UP Animation (Original Frame: 190 x 256)
-    // Perfekte Breite: (190 / 256) * 75 = ca. 55.6
     final animUp = await game.loadSpriteAnimation(
       'up.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(190, 256)),
     );
 
-    // 3. LEFT Animation (Original Frame: 139 x 261)
-    // Perfekte Breite: (139 / 261) * 75 = ca. 39.9
     final animLeft = await game.loadSpriteAnimation(
       'left.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(139, 261)),
     );
 
-    // 4. RIGHT Animation (Identisch zu Left)
     final animRight = await game.loadSpriteAnimation(
       'right.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(139, 261)),
     );
 
-    // Jetzt übergeben wir die Animationen an die Komponente
+    // Animationen zuweisen
     animations = {Direction.down: animDown, Direction.up: animUp, Direction.left: animLeft, Direction.right: animRight};
 
-    // WICHTIG: Wir setzen die Standard-Größe beim Start auf die Down-Maße
+    // Standard-Größe setzen
     size = Vector2(widthDown, targetHeight);
     current = Direction.down;
-    add(RectangleHitbox());
+
+    // --- HITBOX ANPASSEN ---
+    // Wir erstellen eine Hitbox, die nur 50% der Höhe hat.
+    // Die Position ist relativ zur oberen linken Ecke des Spielers.
+    // Ein y-Offset von targetHeight / 2 verschiebt die Hitbox nach unten.
+    _hitbox = RectangleHitbox(size: Vector2(widthDown, targetHeight / 2), position: Vector2(0, targetHeight / 2));
+    add(_hitbox);
+    priority = 11;
   }
 
   @override
@@ -80,13 +83,19 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     const double targetHeight = 75.0;
     _currentDt = dt;
 
-    // Wir passen die hitbox/Größe des Players dynamisch an die aktuelle Richtung an
+    // Wir passen die Größe des Players und der Hitbox dynamisch an
     if (current == Direction.down) {
-      size = Vector2((206 / 229) * targetHeight, targetHeight);
+      double width = (206 / 229) * targetHeight;
+      size = Vector2(width, targetHeight);
+      _hitbox.size.x = width; // Breite der Hitbox anpassen
     } else if (current == Direction.up) {
-      size = Vector2((190 / 256) * targetHeight, targetHeight);
+      double width = (190 / 256) * targetHeight;
+      size = Vector2(width, targetHeight);
+      _hitbox.size.x = width; // Breite der Hitbox anpassen
     } else if (current == Direction.left || current == Direction.right) {
-      size = Vector2((139 / 261) * targetHeight, targetHeight);
+      double width = (139 / 261) * targetHeight;
+      size = Vector2(width, targetHeight);
+      _hitbox.size.x = width; // Breite der Hitbox anpassen
     }
 
     if (_velocity.length > 0) {

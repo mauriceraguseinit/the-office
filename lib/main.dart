@@ -43,7 +43,7 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
       size: Vector2(100, 100),
       hitBox: false,
       wallElement: WallElement.door,
-    )..priority = 10;
+    )..priority = 12;
     final window = DefaultComponent(
       position: Vector2(95 * 2, -100),
       size: Vector2(100, 100),
