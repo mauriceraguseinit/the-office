@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:the_office/hendrik.dart';
 import 'package:the_office/tobi.dart';
 import 'package:the_office/util.dart';
+import 'package:the_office/vertical_wall.dart';
 
 import 'default_component.dart';
 
@@ -27,10 +28,12 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     final background = BackgroundComponent();
 
     // 2. Schreibtisch erstellen
-    final deskBottomLeft = DeskComponent(position: Vector2(200, 230), size: Vector2(100, 60))..angle = Units.degree90;
-    final deskTopRight = DeskComponent(position: Vector2(200, 220), size: Vector2(100, 60))..angle = Units.degree270;
-    final deskBottomRight = DeskComponent(position: Vector2(200, 380), size: Vector2(100, 60))..angle = Units.degree270;
-    final deskTopLeft = DeskComponent(position: Vector2(200, 70), size: Vector2(100, 60))..angle = Units.degree90;
+    final deskBottomLeft = DeskComponent(position: Vector2(300, 230), size: Vector2(100, 60))..angle = Units.degree90;
+    final deskTopRight = DeskComponent(position: Vector2(300, 220), size: Vector2(100, 60))..angle = Units.degree270;
+    final deskBottomRight = DeskComponent(position: Vector2(300, 380), size: Vector2(100, 60))..angle = Units.degree270;
+    final deskTopLeft = DeskComponent(position: Vector2(300, 70), size: Vector2(100, 60))..angle = Units.degree90;
+    final leftWall = VerticalWall(position: Vector2(0, -90), size: Vector2(10, 790));
+    final rightWall = VerticalWall(position: Vector2(600, -90), size: Vector2(10, 790));
     final door = DefaultComponent(
       position: Vector2(380, 600),
       size: Vector2(100, 100),
@@ -65,33 +68,63 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     );
 
     // 3. Spieler erstellen (Dev) - ca. 50% größer
-    final player = Hendrik(position: Vector2(320, 300), size: Vector2(40, 75));
+    final player = Hendrik(position: Vector2(320, 400), size: Vector2(40, 75));
 
     // Alles zur World hinzufügen
+    //Ground
     world.add(background);
+
+    //desks
     world.add(deskBottomLeft);
     world.add(deskTopRight);
     world.add(deskBottomRight);
     world.add(deskTopLeft);
 
+    //door
     world.add(door);
+
+    //walls
     for (var wall in wallsTop) {
       world.add(wall);
     }
+
+    world.add(leftWall);
+    world.add(rightWall);
+
     for (var wall in wallsBottomLeft) {
       world.add(wall);
     }
     for (var wall in wallsBottomRight) {
       world.add(wall);
     }
+
+    //windows
     world.add(window);
     world.add(window2);
+
+    //player
     world.add(player);
+
+    //npcs
     world.add(Tobi(position: Vector2(520, 100), size: Vector2(40, 75)));
 
     // Die Kamera heftet sich an die Fersen des Spielers
     camera.follow(player);
 
+    _buildHud();
+  }
+
+  // Methode um den PC-Status zu toggeln
+  void toggleScreenLock() {
+    isDeskLocked = !isDeskLocked;
+    if (isDeskLocked) {
+      statusText.text = 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)';
+    } else {
+      statusText.text = 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)';
+    }
+  }
+
+  void _buildHud() {
     // 4. UI-Texte erstellen
     statusText = TextComponent(
       text: 'PC-Status: Entsperrt (Gefahr!)',
@@ -113,16 +146,6 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     // Dadurch wandern sie garantiert in den absoluten Vordergrund (HUD)
     camera.viewport.add(statusText);
     camera.viewport.add(infoText);
-  }
-
-  // Methode um den PC-Status zu toggeln
-  void toggleScreenLock() {
-    isDeskLocked = !isDeskLocked;
-    if (isDeskLocked) {
-      statusText.text = 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)';
-    } else {
-      statusText.text = 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)';
-    }
   }
 }
 
