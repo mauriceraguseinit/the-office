@@ -111,18 +111,18 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   // In hendrik.dart:
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    if (game.overlays.activeOverlays.isNotEmpty) {
+      _velocity.setZero();
+      return false;
+    }
+
     if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.keyE)) {
       final zones = game.world.children.whereType<TriggerZone>();
       for (final zone in zones) {
         if (zone.checkInteraction(this)) {
-          return true;
+          return false;
         }
       }
-    }
-
-    if (game.overlays.activeOverlays.isNotEmpty) {
-      _velocity.setZero();
-      return false;
     }
 
     _velocity.setZero();
