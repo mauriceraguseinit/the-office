@@ -15,17 +15,14 @@ class InventoryOverlay extends StatefulWidget {
 class _InventoryOverlayState extends State<InventoryOverlay> {
   String _hoverText = "";
 
-  @override
-  @override
+  @override // Der doppelte `@override` wurde hier entfernt!
   Widget build(BuildContext context) {
     final items = widget.game.ownedItems;
     final selectedItem = widget.game.selectedItem;
 
     return MouseRegion(
       onHover: (event) {
-        // Wir aktualisieren die Position im Spiel
         widget.game.mousePosition = Vector2(event.position.dx, event.position.dy);
-        // WICHTIG: setState aufrufen, damit das Flutter-Cursorbild hier flüssig mitwandert!
         setState(() {});
       },
       child: Stack(
@@ -35,13 +32,17 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
             child: Container(
               width: 450,
               height: 350,
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(color: Color(0xFF1E1E1E)),
+              padding: const EdgeInsets.all(6), // Etwas dickerer Retro-Rahmen
+              decoration: const BoxDecoration(
+                color: Color(0xFF1E1E1E),
+                // Keine runden Ecken! Echte Pixel-Games sind eckig.
+              ),
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF5F5F5),
-                  border: Border.all(color: const Color(0xFF1E1E1E), width: 4),
+                  // Fetter, klobiger Innenrahmen für den CRT/NES-Look
+                  border: Border.all(color: const Color(0xFF1E1E1E), width: 6),
                 ),
                 child: Stack(
                   children: [
@@ -52,12 +53,12 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                           'INVENTAR',
                           style: TextStyle(
                             fontFamily: 'Courier New',
-                            fontSize: 20,
+                            fontSize: 24, // Größer und wuchtiger
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF1E1E1E),
                           ),
                         ),
-                        const Divider(color: Color(0xFF1E1E1E), thickness: 2),
+                        const Divider(color: Color(0xFF1E1E1E), thickness: 4), // Dickere Trennlinie
 
                         Expanded(
                           child: GridView.builder(
@@ -65,8 +66,8 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                             physics: const BouncingScrollPhysics(),
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 4,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
                             ),
                             itemBuilder: (context, index) {
                               final item = items[index];
@@ -77,18 +78,19 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                   setState(() {
                                     if (widget.game.selectedItem != null) {
                                       if (widget.game.selectedItem!.id == item.id) {
-                                        _hoverText = "Benutze ${item.name}";
+                                        _hoverText = "BENUTZE ${item.name.toUpperCase()}";
                                       } else {
-                                        _hoverText = "Benutze ${widget.game.selectedItem!.name} mit ${item.name}";
+                                        _hoverText =
+                                            "BENUTZE ${widget.game.selectedItem!.name.toUpperCase()} MIT ${item.name.toUpperCase()}";
                                       }
                                     } else {
-                                      _hoverText = "Benutze ${item.name} mit...";
+                                      _hoverText = "BENUTZE ${item.name.toUpperCase()} MIT...";
                                     }
                                   });
                                 },
                                 onExit: (_) => setState(
                                   () => _hoverText = widget.game.selectedItem != null
-                                      ? "Benutze ${widget.game.selectedItem!.name} mit..."
+                                      ? "BENUTZE ${widget.game.selectedItem!.name.toUpperCase()} MIT..."
                                       : "",
                                 ),
                                 child: GestureDetector(
@@ -96,15 +98,20 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: isCurrentlySelected
-                                          ? Colors.orange.withValues(alpha: 0.4)
+                                          ? Colors.orange.withValues(alpha: 0.5)
                                           : const Color(0xFF1E1E1E).withValues(alpha: 0.1),
                                       border: Border.all(
                                         color: isCurrentlySelected ? Colors.orange : const Color(0xFF1E1E1E),
-                                        width: isCurrentlySelected ? 3 : 2,
+                                        width: 4, // Schön klobige Item-Ränder
                                       ),
                                     ),
-                                    padding: const EdgeInsets.all(8),
-                                    child: Image.asset(item.assetPath, fit: BoxFit.contain),
+                                    padding: const EdgeInsets.all(6),
+                                    // TRICK 1: FilterQuality.none zwingt Flutter dazu, das Bild PIXELIG zu skalieren!
+                                    child: Image.asset(
+                                      item.assetPath,
+                                      fit: BoxFit.contain,
+                                      filterQuality: FilterQuality.none,
+                                    ),
                                   ),
                                 ),
                               );
@@ -113,7 +120,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                         ),
 
                         Container(
-                          height: 30,
+                          height: 40,
                           width: double.infinity,
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -129,24 +136,25 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                       ],
                     ),
 
+                    // Schließen-Button (X) im Arcade-Look
                     Positioned(
                       top: 0,
                       right: 0,
                       child: GestureDetector(
                         onTap: () => widget.game.overlays.remove('inventory'),
                         child: Container(
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: const Color(0xFF1E1E1E),
-                            border: Border.all(color: const Color(0xFFF5F5F5), width: 1),
+                            border: Border.all(color: const Color(0xFFF5F5F5), width: 2),
                           ),
                           child: const Text(
-                            ' X ',
+                            'X',
                             style: TextStyle(
                               color: Color(0xFFF5F5F5),
                               fontFamily: 'Courier New',
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -158,16 +166,16 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
             ),
           ),
 
-          // 2. TRICK: Wenn im Overlay ein Item aktiv ist, zeichnen wir es direkt in FLUTTER on top!
+          // 2. Das an der Maus klebende Item
           if (selectedItem != null)
             Positioned(
-              left: widget.game.mousePosition.x - 16, // Mittig auf der Maus (32 / 2)
-              top: widget.game.mousePosition.y - 16,
-              width: 32,
-              height: 32,
+              left: widget.game.mousePosition.x - 24, // Größeres Sprite an der Maus (48 / 2)
+              top: widget.game.mousePosition.y - 24,
+              width: 48,
+              height: 48,
               child: IgnorePointer(
-                // Verhindert, dass das Bild Klicks blockiert
-                child: Image.asset(selectedItem.assetPath, fit: BoxFit.contain),
+                // TRICK 2: Auch hier FilterQuality.none für knackige Retro-Pixel an der Maus
+                child: Image.asset(selectedItem.assetPath, fit: BoxFit.contain, filterQuality: FilterQuality.none),
               ),
             ),
         ],
@@ -179,28 +187,22 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
     final activeSelection = widget.game.selectedItem;
 
     if (activeSelection == null) {
-      // 1. Fall: Kein Item ausgewählt -> Dieses Item auswählen
       widget.game.selectItem(item);
       setState(() {});
     } else if (activeSelection.id == item.id) {
-      // 2. Fall: Dasselbe Item noch mal anklicken -> Abwählen
       widget.game.resetSelection();
       setState(() {});
     } else {
-      // 3. Fall: Ein anderes Item ist bereits ausgewählt -> Kombinieren prüfen!
       if (activeSelection.combinesWith == item.id || item.combinesWith == activeSelection.id) {
-        // Kombination erfolgreich!
         if (activeSelection.onCombineSuccess != null) activeSelection.onCombineSuccess!(context);
         if (item.onCombineSuccess != null) item.onCombineSuccess!(context);
 
-        // Items aus dem Inventar löschen (Beispiel)
         widget.game.ownedItems.remove(activeSelection);
         widget.game.ownedItems.remove(item);
         widget.game.resetSelection();
         widget.game.overlays.remove('inventory');
       } else {
-        // Kombination nicht möglich -> Sound oder Text "Das geht so nicht!"
-        setState(() => _hoverText = "Das kann ich nicht miteinander kombinieren!");
+        setState(() => _hoverText = "DAS GEHT SO NICHT!"); // Schön in Retro-Schreibweise (Caps)
       }
     }
   }

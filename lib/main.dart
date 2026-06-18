@@ -46,11 +46,8 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
                 game: _game,
                 overlayBuilderMap: {
                   ...Tobi.dialogs,
-                  'daniel': (context, OfficeGame game) => RetroSpeechBubble(
-                    text:
-                        '[b]Daniel:[/b]\n\nHmm...\n\nIrgendwie habe ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch finde, die ich zu meinem Joghurt essen kann.',
-                    onClose: () => game.overlays.remove('daniel'),
-                  ),
+                  ...DeskDaniel.dialogs,
+
                   'inventory': (context, OfficeGame game) => InventoryOverlay(game: game),
                   'intro': (context, OfficeGame game) => RetroSpeechBubble(
                     actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
@@ -286,7 +283,7 @@ class OfficeGame extends FlameGame
       target: tobiNpc,
       padding: 25.0,
       onAction: () {
-        overlays.add(TobiDialogs.normalAction.name);
+        overlays.add(TobiDialogs.normalAction.toString());
       },
     );
     world.add(tobiTrigger);
@@ -303,7 +300,7 @@ class OfficeGame extends FlameGame
       target: deskTopRight,
       padding: 35.0, // Bei Tischen gerne etwas mehr Padding, da sie breiter sind
       onAction: () {
-        overlays.add('daniel'); // Oder dein Daniel-Overlay
+        overlays.add(DanielDialogs.normalAction.toString());
       },
     );
     world.add(danielTrigger);

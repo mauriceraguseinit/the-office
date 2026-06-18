@@ -11,17 +11,17 @@ enum TobiDialogs { normalAction, tooFar, thanks }
 
 class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, TapCallbacks {
   static Map<String, OverlayWidgetBuilder<OfficeGame>> dialogs = {
-    TobiDialogs.normalAction.name: (context, OfficeGame game) => RetroSpeechBubble(
+    TobiDialogs.normalAction.toString(): (context, OfficeGame game) => RetroSpeechBubble(
       text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
-      onClose: () => game.overlays.remove(TobiDialogs.normalAction.name),
+      onClose: () => game.overlays.remove(TobiDialogs.normalAction.toString()),
     ),
-    TobiDialogs.tooFar.name: (context, OfficeGame game) => RetroSpeechBubble(
-      text: '[b]Tobias:[/b]\n\nIch bin zu weit weg, um Tobi zu erreichen.',
-      onClose: () => game.overlays.remove(TobiDialogs.tooFar.name),
+    TobiDialogs.tooFar.toString(): (context, OfficeGame game) => RetroSpeechBubble(
+      text: 'Ich bin zu weit weg, um Tobi zu erreichen.',
+      onClose: () => game.overlays.remove(TobiDialogs.tooFar.toString()),
     ),
-    TobiDialogs.thanks.name: (context, OfficeGame game) => RetroSpeechBubble(
+    TobiDialogs.thanks.toString(): (context, OfficeGame game) => RetroSpeechBubble(
       text: '[b]Tobias:[/b]\n\nDanke',
-      onClose: () => game.overlays.remove(TobiDialogs.thanks.name),
+      onClose: () => game.overlays.remove(TobiDialogs.thanks.toString()),
     ),
   };
   Tobi({required super.position, required super.size, this.hitBox = true});
@@ -57,7 +57,7 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
     // (Misst den Abstand zwischen der Spielerposition und Tobis Position)
     final distance = game.player.position.distanceTo(position);
     if (distance > 120) {
-      game.overlays.add(TobiDialogs.tooFar.name);
+      game.overlays.add(TobiDialogs.tooFar.toString());
       return;
     }
 
@@ -83,7 +83,7 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
       }
     } else {
       // 4. Fall: Klick auf Tobi OHNE Item (Normales Ansprechen)
-      game.overlays.add(TobiDialogs.normalAction.name);
+      game.overlays.add(TobiDialogs.normalAction.toString());
     }
   }
 }
