@@ -16,6 +16,7 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
   @override
   Future<void> onLoad() async {
     super.onLoad();
+
     priority = 10;
     final anim = await game.loadSpriteAnimation(
       'desk_daniel.png',

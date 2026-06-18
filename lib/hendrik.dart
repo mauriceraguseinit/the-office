@@ -1,6 +1,7 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
+import 'package:the_office/trigger_zone.dart';
 
 import 'main.dart';
 
@@ -26,9 +27,10 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
 
-    // Prüfen, ob das andere Objekt eine Wand ist
-    if (other.children.any((component) => component is RectangleHitbox)) {
-      // Bewegung stoppen
+    final hitboxes = other.children.whereType<ShapeHitbox>();
+    final hasActiveCollision = hitboxes.any((hitbox) => hitbox.collisionType == CollisionType.active);
+
+    if (hasActiveCollision) {
       position -= _velocity * _speed * _currentDt;
     }
   }
@@ -106,12 +108,20 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     }
   }
 
+  // In hendrik.dart:
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    // Bewegung zurücksetzen
+    if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.keyE)) {
+      final zones = game.world.children.whereType<TriggerZone>();
+      for (final zone in zones) {
+        if (zone.checkInteraction(this)) {
+          return true;
+        }
+      }
+    }
+
     _velocity.setZero();
 
-    // Tasten abfragen und den 'current'-Zustand der Komponente ändern
     if (keysPressed.contains(LogicalKeyboardKey.keyW) || keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
       _velocity.y = -1;
       current = Direction.up;
@@ -136,6 +146,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     // PC sperren mit Leertaste
     if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.space)) {
       game.toggleScreenLock();
+      return true;
     }
 
     return false;

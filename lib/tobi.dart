@@ -1,3 +1,4 @@
+// tobi.dart
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
@@ -7,7 +8,6 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   Tobi({required super.position, required super.size, this.hitBox = true});
 
   final bool hitBox;
-
   static double pngWidth = 1488;
   static double frame = 4;
   static double pngHeight = 495;
@@ -17,12 +17,11 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   Future<void> onLoad() async {
     super.onLoad();
     priority = 10;
+
     final anim = await game.loadSpriteAnimation(
       'tobi_idle.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(frameWidth, pngHeight)),
     );
-
-    // Jetzt übergeben wir die Animationen an die Komponente
     animations = {'idle': anim};
     current = 'idle';
 
