@@ -4,6 +4,7 @@ import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/hendrik.dart';
+import 'package:the_office/speech_bubble.dart';
 import 'package:the_office/tobi.dart';
 import 'package:the_office/util.dart';
 import 'package:the_office/vertical_wall.dart';
@@ -12,8 +13,22 @@ import 'default_component.dart';
 import 'desk_daniel.dart';
 
 void main() {
-  // Startet das Spiel im Flutter-Framework
-  runApp(GameWidget(game: OfficeGame()));
+  runApp(
+    GameWidget(
+      game: OfficeGame(),
+      overlayBuilderMap: {
+        'intro': (context, OfficeGame game) => RetroSpeechBubble(
+          actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
+          text:
+              'Willkommen im Büro.\n\nHeute wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
+          onClose: () {
+            game.overlays.remove('intro');
+          },
+        ),
+      },
+      initialActiveOverlays: const ['intro'],
+    ),
+  );
 }
 
 /// Das Hauptspiel-Objekt managt die Welt und die Events
