@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class RetroSpeechBubble extends StatefulWidget {
   final String text;
   final VoidCallback? onClose;
-  final List<RetroAction> actions; // Die neue optionale Liste
+  final List<RetroAction> actions;
   final Duration speed;
 
   const RetroSpeechBubble({
@@ -13,7 +13,7 @@ class RetroSpeechBubble extends StatefulWidget {
     required this.text,
     this.onClose,
     this.actions = const [],
-    this.speed = const Duration(milliseconds: 50),
+    this.speed = const Duration(milliseconds: 30), // Etwas schneller, da Formatierung Rechenzeit braucht
   });
 
   @override
@@ -21,16 +21,28 @@ class RetroSpeechBubble extends StatefulWidget {
 }
 
 class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
-  String _displayedText = "";
+  // Enthält am Ende alle fertig formatierten Einzelbuchstaben
+  List<TextSpan> _allCharacters = [];
+  // Die aktuell angezeigten Buchstaben im Typewriter
+  List<TextSpan> _displayedCharacters = [];
+
   int _currentIndex = 0;
   Timer? _timer;
   final ScrollController _scrollController = ScrollController();
-  bool _isTypewriterFinished = false; // Neu: Zeigt die Buttons erst nach dem Tippen an
+  bool _isTypewriterFinished = false;
 
   @override
   void initState() {
     super.initState();
-    _startTypewriterEffect();
+    // 1. Text parsen klappt sofort
+    _allCharacters = _parseCustomTags(widget.text);
+
+    // 2. Erst starten, wenn das Widget fertig auf dem Bildschirm gerendert wurde
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _startTypewriterEffect();
+      }
+    });
   }
 
   @override
@@ -40,11 +52,92 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
     super.dispose();
   }
 
+  // --- DER CUSTOM PARSER ---
+  List<TextSpan> _parseCustomTags(String rawText) {
+    List<TextSpan> characters = [];
+
+    bool isBold = false;
+    Color currentColor = const Color(0xFF1E1E1E); // Standard-Schriftfarbe
+
+    int i = 0;
+    while (i < rawText.length) {
+      // Wenn wir ein Tag öffnen
+      if (rawText[i] == '[') {
+        // 1. Check für Schließende Tags
+        if (rawText.startsWith('[/b]', i)) {
+          isBold = false;
+          i += 4;
+          continue;
+        } else if (rawText.startsWith('[/color]', i)) {
+          currentColor = const Color(0xFF1E1E1E); // Zurück auf Standard
+          i += 8;
+          continue;
+        }
+        // 2. Check für Öffnende Tags
+        else if (rawText.startsWith('[b]', i)) {
+          isBold = true;
+          i += 3;
+          continue;
+        } else if (rawText.startsWith('[color=', i)) {
+          // Wir suchen das schließende ']' des Color-Tags
+          int closeBracket = rawText.indexOf(']', i);
+          if (closeBracket != -1) {
+            String colorStr = rawText.substring(i + 7, closeBracket);
+
+            // Farbe zuweisen
+            if (colorStr == 'red') {
+              currentColor = Colors.red;
+            } else if (colorStr == 'orange') {
+              currentColor = Colors.orange;
+            } else if (colorStr == 'blue') {
+              currentColor = Colors.blue;
+            } else if (colorStr == 'green') {
+              currentColor = Colors.green;
+            } else if (colorStr.startsWith('#')) {
+              currentColor = Color(int.parse(colorStr.replaceFirst('#', '0xFF')));
+            }
+
+            i = closeBracket + 1;
+            continue;
+          }
+        }
+      }
+
+      // Wenn es ein ganz normaler Buchstabe (oder \n) ist, fügen wir ihn mit dem aktuellen Zustand hinzu
+      characters.add(
+        TextSpan(
+          text: rawText[i],
+          style: TextStyle(
+            fontFamily: 'Courier New', // Garantiert die Retro-Schrift für JEDEN Buchstaben
+            fontSize: 18,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: currentColor,
+          ),
+        ),
+      );
+
+      i++;
+    }
+
+    return characters;
+  }
+
   void _startTypewriterEffect() {
+    if (_allCharacters.isEmpty) {
+      setState(() => _isTypewriterFinished = true);
+      return;
+    }
+
+    // Wir stellen sicher, dass die Liste beim Start wirklich leer ist
+    _displayedCharacters.clear();
+    _currentIndex = 0;
+
     _timer = Timer.periodic(widget.speed, (timer) {
-      if (_currentIndex < widget.text.length) {
+      if (_currentIndex < _allCharacters.length) {
         setState(() {
-          _displayedText += widget.text[_currentIndex];
+          // DER TRICK: Wir erstellen eine brandneue Instanz der Liste.
+          // Das triggert das UI-Rendering in Flutter garantiert!
+          _displayedCharacters = [..._displayedCharacters, _allCharacters[_currentIndex]];
           _currentIndex++;
         });
         _scrollToBottom();
@@ -53,7 +146,6 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
           _isTypewriterFinished = true;
         });
         _timer?.cancel();
-
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       }
     });
@@ -64,7 +156,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 100),
+          duration: const Duration(milliseconds: 50),
           curve: Curves.easeOut,
         );
       }
@@ -78,7 +170,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
         width: 450,
         height: 220,
         padding: const EdgeInsets.all(4),
-        decoration: const BoxDecoration(color: Color(0xFF1E1E1E), borderRadius: BorderRadius.zero),
+        decoration: const BoxDecoration(color: Color(0xFF1E1E1E)),
         child: Container(
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
@@ -93,35 +185,36 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
                 right: 12,
                 bottom: 12,
                 child: Column(
-                  // NEU: Zwingt den Text (und die Buttons), linksbündig zu starten
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Textbereich
                     Expanded(
                       child: SizedBox(
-                        width: double.infinity, // Zwingt die Box, die volle Breite zu nutzen
+                        width: double.infinity,
                         child: SingleChildScrollView(
                           controller: _scrollController,
                           physics: const BouncingScrollPhysics(),
-                          child: Text(
-                            _displayedText,
-                            textAlign: TextAlign.left, // Text explizit linksbündig
-                            style: const TextStyle(
-                              fontFamily: 'Courier New',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E1E1E),
-                              height: 1.4,
+
+                          // WICHTIG: Text.rich verwenden statt normalem Text!
+                          // In deiner speech_bubble.dart beim Erstellen des Text.rich:
+                          child: Text.rich(
+                            TextSpan(
+                              children: _displayedCharacters,
+                              // HIER: Der Style muss direkt auf die Kinder vererbt werden
+                              style: const TextStyle(
+                                fontFamily: 'Courier New',
+                                fontSize: 18,
+                                fontWeight: FontWeight.normal,
+                                color: Color(0xFF1E1E1E), // Zwingt alle normalen Buchstaben, dunkelgrau zu sein!
+                                height: 1.4,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
 
-                    // Buttons anzeigen
                     if (widget.actions.isNotEmpty && _isTypewriterFinished) ...[
                       const SizedBox(height: 12),
-                      // Centered, damit die Buttons schön in der Mitte der Box sitzen
                       Center(
                         child: Wrap(
                           spacing: 10,
@@ -137,7 +230,6 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
                 ),
               ),
 
-              // Schließen-Button oben rechts
               Positioned(
                 top: 0,
                 right: 0,
@@ -169,43 +261,35 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
   }
 }
 
+// Die Klassen RetroAction, RetroButton und _RetroButtonState bleiben exakt unverändert!
 class RetroAction {
   final String title;
   final VoidCallback onTap;
-
   RetroAction({required this.title, required this.onTap});
 }
 
 class RetroButton extends StatefulWidget {
   final String title;
   final VoidCallback onTap;
-
   const RetroButton({super.key, required this.title, required this.onTap});
-
   @override
   State<RetroButton> createState() => _RetroButtonState();
 }
 
 class _RetroButtonState extends State<RetroButton> {
   bool _isPressed = false;
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      // Registriert den Moment des Drückens
       onTapDown: (_) => setState(() => _isPressed = true),
-      // Registriert das Loslassen (Erfolg)
       onTapUp: (_) => setState(() => _isPressed = false),
-      // Falls der Finger vom Button runtergezogen wird, ohne loszulassen
       onTapCancel: () => setState(() => _isPressed = false),
       onTap: widget.onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 30), // Extrem schnelle Reaktion für den "Knackig"-Effekt
-        // Trick: Wenn gedrückt, verschieben wir den Button per Margin 2 Pixel nach unten
+        duration: const Duration(milliseconds: 30),
         margin: EdgeInsets.only(top: _isPressed ? 4 : 0, bottom: _isPressed ? 0 : 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          // Invertiert die Farben beim Drücken (wird hellgrau mit dunkler Schrift)
           color: _isPressed ? const Color(0xFFF5F5F5) : const Color(0xFF1E1E1E),
           border: Border.all(color: _isPressed ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5), width: 2),
         ),

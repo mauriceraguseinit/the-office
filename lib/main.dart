@@ -19,14 +19,14 @@ void main() {
       game: OfficeGame(),
       overlayBuilderMap: {
         'tobi': (context, OfficeGame game) => RetroSpeechBubble(
-          text: 'Nerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
+          text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
           onClose: () {
             game.overlays.remove('tobi');
           },
         ),
         'daniel': (context, OfficeGame game) => RetroSpeechBubble(
           text:
-              'Irgendwie hab ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch habe, die ich zu meinem Joghurt essen kann.',
+              '[b]Daniel:[/db]\n\nHmm...\n\nIrgendwie habe ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch finde, die ich zu meinem Joghurt essen kann.',
           onClose: () {
             game.overlays.remove('daniel');
           },
