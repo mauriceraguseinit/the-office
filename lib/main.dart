@@ -1,5 +1,6 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
@@ -12,47 +13,91 @@ import 'package:the_office/vertical_wall.dart';
 
 import 'default_component.dart';
 import 'desk_daniel.dart';
+import 'inventory_cursor.dart';
+import 'inventory_item.dart';
+import 'inventory_overlay.dart';
 
 void main() {
-  runApp(
-    GameWidget(
-      game: OfficeGame(),
-      overlayBuilderMap: {
-        'tobi': (context, OfficeGame game) => RetroSpeechBubble(
-          text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
-          onClose: () {
-            game.overlays.remove('tobi');
+  runApp(const TheOfficeApp());
+}
+
+class TheOfficeApp extends StatefulWidget {
+  const TheOfficeApp({super.key});
+
+  @override
+  State<TheOfficeApp> createState() => _TheOfficeAppState();
+}
+
+class _TheOfficeAppState extends State<TheOfficeApp> {
+  // Wir erstellen das Spiel-Objekt einmalig im State
+  final OfficeGame _game = OfficeGame();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: ListenableBuilder(
+          listenable: _game.overlayChangeNotifier, // Reagiert, wenn sich im Spiel was tut
+          builder: (context, child) {
+            return MouseRegion(
+              // TRICK: Wenn ein Item aktiv ist, blenden wir den System-Cursor komplett aus!
+              cursor: _game.selectedItem != null ? SystemMouseCursors.none : SystemMouseCursors.basic,
+              child: GameWidget(
+                game: _game,
+                overlayBuilderMap: {
+                  'tobi': (context, OfficeGame game) => RetroSpeechBubble(
+                    text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
+                    onClose: () => game.overlays.remove('tobi'),
+                  ),
+                  'daniel': (context, OfficeGame game) => RetroSpeechBubble(
+                    text:
+                        '[b]Daniel:[/b]\n\nHmm...\n\nIrgendwie habe ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch finde, die ich zu meinem Joghurt essen kann.',
+                    onClose: () => game.overlays.remove('daniel'),
+                  ),
+                  'inventory': (context, OfficeGame game) => InventoryOverlay(game: game),
+                  'intro': (context, OfficeGame game) => RetroSpeechBubble(
+                    actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
+                    text:
+                        'Willkommen im Büro.\n\nHente wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
+                    onClose: () => game.overlays.remove('intro'),
+                  ),
+                },
+              ),
+            );
           },
         ),
-        'daniel': (context, OfficeGame game) => RetroSpeechBubble(
-          text:
-              '[b]Daniel:[/db]\n\nHmm...\n\nIrgendwie habe ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch finde, die ich zu meinem Joghurt essen kann.',
-          onClose: () {
-            game.overlays.remove('daniel');
-          },
-        ),
-        'intro': (context, OfficeGame game) => RetroSpeechBubble(
-          actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
-          text:
-              'Willkommen im Büro.\n\nHeute wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
-          onClose: () {
-            game.overlays.remove('intro');
-          },
-        ),
-      },
-      initialActiveOverlays: const ['intro'],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 /// Das Hauptspiel-Objekt managt die Welt und die Events
-class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDetection {
+class OfficeGame extends FlameGame
+    with HasKeyboardHandlerComponents, HasCollisionDetection, MouseMovementDetector, SecondaryTapCallbacks {
+  List<InventoryItem> ownedItems = [];
+  InventoryItem? selectedItem;
+  Vector2 mousePosition = Vector2.zero();
   late TextComponent statusText;
   bool isDeskLocked = false;
+
+  final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
+
+    overlays.add('intro');
+
+    ownedItems.add(
+      InventoryItem(
+        id: 'mate',
+        name: 'Mate',
+        assetPath: 'assets/images/mate_full.png',
+        combinesWith: 'koffein_pulver',
+        onCombineSuccess: (context) {},
+      ),
+    );
+    ownedItems.add(InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'));
 
     // 1. Hintergrund erstellen
     final background = BackgroundComponent();
@@ -144,6 +189,37 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     _buildHud();
   }
 
+  @override
+  void onMouseMove(PointerHoverInfo info) {
+    super.onMouseMove(info);
+    // Wir holen uns die exakten Pixel-Koordinaten direkt aus Flutter.
+    // Das klappt garantiert in jeder Flame-Version!
+    mousePosition = Vector2(info.raw.localPosition.dx, info.raw.localPosition.dy);
+  }
+
+  void selectItem(InventoryItem item) {
+    selectedItem = item;
+    overlayChangeNotifier.notifyListeners();
+  }
+
+  void resetSelection() {
+    selectedItem = null;
+    overlayChangeNotifier.notifyListeners();
+  }
+
+  void _setSystemCursorVisible(bool visible) {
+    if (visible) {
+      // Wenn du das Spiel im Web/Desktop testest, schaltet das den Zeiger wieder ein
+      // Erfordert Flutter-Imports
+    }
+  }
+
+  @override
+  void onSecondaryTapDown(SecondaryTapDownEvent event) {
+    super.onSecondaryTapDown(event);
+    resetSelection(); // Löscht die Auswahl sofort bei Rechtsklick
+  }
+
   // Methode um den PC-Status zu toggeln
   void toggleScreenLock() {
     isDeskLocked = !isDeskLocked;
@@ -160,15 +236,38 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
       text: 'PC-Status: Entsperrt (Gefahr!)',
       position: Vector2(20, 20),
       textRenderer: TextPaint(
-        style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          shadows: [
+            Shadow(
+              color: Colors.black, // Dunkler Schatten für maximalen Kontrast
+              offset: Offset(2.0, 2.0), // Versatz um 2 Pixel nach rechts und unten
+              blurRadius: 2.0, // Leicht weichgezeichnete Kante
+            ),
+          ],
+        ),
       ),
     );
 
     final infoText = TextComponent(
-      text: 'BEWEGUNG: WASD/Pfeiltasten | LEERTASTE: PC Sperren/Entsperren\nAKTION: Taste E',
+      text: 'BEWEGUNG: WASD/Pfeiltasten | LEERTASTE: PC Sperren/Entsperren\nAKTION: Taste E\nINVENTAR: Taste I',
       position: Vector2(20, 60),
       textRenderer: TextPaint(
-        style: const TextStyle(color: Colors.orange, fontSize: 16, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          color: Colors.orange,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          // HIER FÜGEN WIR DIE SCHATTEN HINZU:
+          shadows: [
+            Shadow(
+              color: Colors.black, // Dunkler Schatten für maximalen Kontrast
+              offset: Offset(2.0, 2.0), // Versatz um 2 Pixel nach rechts und unten
+              blurRadius: 2.0, // Leicht weichgezeichnete Kante
+            ),
+          ],
+        ),
       ),
     );
 
@@ -176,6 +275,7 @@ class OfficeGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisi
     // Dadurch wandern sie garantiert in den absoluten Vordergrund (HUD)
     camera.viewport.add(statusText);
     camera.viewport.add(infoText);
+    camera.viewport.add(InventoryCursor());
   }
 
   void _buildNpcs() {

@@ -127,6 +127,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     _velocity.setZero();
 
+    if (keysPressed.contains(LogicalKeyboardKey.keyI)) {
+      game.overlays.add('inventory');
+    }
     if (keysPressed.contains(LogicalKeyboardKey.keyW) || keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
       _velocity.y = -1;
       current = Direction.up;
