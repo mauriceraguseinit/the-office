@@ -120,6 +120,11 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       }
     }
 
+    if (game.overlays.activeOverlays.isNotEmpty) {
+      _velocity.setZero();
+      return false;
+    }
+
     _velocity.setZero();
 
     if (keysPressed.contains(LogicalKeyboardKey.keyW) || keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
