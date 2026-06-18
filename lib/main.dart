@@ -45,10 +45,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
               child: GameWidget(
                 game: _game,
                 overlayBuilderMap: {
-                  'tobi': (context, OfficeGame game) => RetroSpeechBubble(
-                    text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
-                    onClose: () => game.overlays.remove('tobi'),
-                  ),
+                  ...Tobi.dialogs,
                   'daniel': (context, OfficeGame game) => RetroSpeechBubble(
                     text:
                         '[b]Daniel:[/b]\n\nHmm...\n\nIrgendwie habe ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch finde, die ich zu meinem Joghurt essen kann.',
@@ -79,6 +76,7 @@ class OfficeGame extends FlameGame
   Vector2 mousePosition = Vector2.zero();
   late TextComponent statusText;
   bool isDeskLocked = false;
+  late Hendrik player;
 
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
 
@@ -143,7 +141,7 @@ class OfficeGame extends FlameGame
     );
 
     // 3. Spieler erstellen (Dev) - ca. 50% größer
-    final player = Hendrik(position: Vector2(320, 400), size: Vector2(40, 75));
+    player = Hendrik(position: Vector2(320, 400), size: Vector2(40, 75));
 
     // Alles zur World hinzufügen
     //Ground
@@ -288,7 +286,7 @@ class OfficeGame extends FlameGame
       target: tobiNpc,
       padding: 25.0,
       onAction: () {
-        overlays.add('tobi');
+        overlays.add(TobiDialogs.normalAction.name);
       },
     );
     world.add(tobiTrigger);

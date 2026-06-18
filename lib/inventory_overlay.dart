@@ -82,7 +82,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                         _hoverText = "Benutze ${widget.game.selectedItem!.name} mit ${item.name}";
                                       }
                                     } else {
-                                      _hoverText = "Benutze ${item.name} with...";
+                                      _hoverText = "Benutze ${item.name} mit...";
                                     }
                                   });
                                 },
@@ -96,8 +96,8 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: isCurrentlySelected
-                                          ? Colors.orange.withOpacity(0.4)
-                                          : const Color(0xFF1E1E1E).withOpacity(0.1),
+                                          ? Colors.orange.withValues(alpha: 0.4)
+                                          : const Color(0xFF1E1E1E).withValues(alpha: 0.1),
                                       border: Border.all(
                                         color: isCurrentlySelected ? Colors.orange : const Color(0xFF1E1E1E),
                                         width: isCurrentlySelected ? 3 : 2,
