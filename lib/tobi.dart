@@ -4,21 +4,19 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:the_office/speech_bubble.dart';
+import 'package:the_office/trigger_zone.dart';
 
-import 'main.dart';
+import 'office_game.dart';
 
-enum TobiDialogs { normalAction, tooFar, thanks }
+enum TobiDialogs { normalAction, thanks }
 
-class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, TapCallbacks {
+class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, Interactable {
   static Map<String, OverlayWidgetBuilder<OfficeGame>> dialogs = {
     TobiDialogs.normalAction.toString(): (context, OfficeGame game) => RetroSpeechBubble(
       text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
       onClose: () => game.overlays.remove(TobiDialogs.normalAction.toString()),
     ),
-    TobiDialogs.tooFar.toString(): (context, OfficeGame game) => RetroSpeechBubble(
-      text: 'Ich bin zu weit weg, um Tobi zu erreichen.',
-      onClose: () => game.overlays.remove(TobiDialogs.tooFar.toString()),
-    ),
+
     TobiDialogs.thanks.toString(): (context, OfficeGame game) => RetroSpeechBubble(
       text: '[b]Tobias:[/b]\n\nDanke',
       onClose: () => game.overlays.remove(TobiDialogs.thanks.toString()),
@@ -51,16 +49,6 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
 
   @override
   void onTapDown(TapDownEvent event) {
-    super.onTapDown(event);
-
-    // 1. Reichweiten-Check: Ist der Spieler nah genug an Tobi dran?
-    // (Misst den Abstand zwischen der Spielerposition und Tobis Position)
-    final distance = game.player.position.distanceTo(position);
-    if (distance > 120) {
-      game.overlays.add(TobiDialogs.tooFar.toString());
-      return;
-    }
-
     // 2. Welches Item hat der Spieler an der Maus ausgewählt?
     final activeItem = game.selectedItem;
 

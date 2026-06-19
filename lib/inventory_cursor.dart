@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-import 'main.dart'; // Import für dein OfficeGame
+import 'office_game.dart';
 
 class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame> {
   // Wir verwalten das Sprite als interne Variable, nicht über die Vererbung

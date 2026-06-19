@@ -3,7 +3,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:the_office/trigger_zone.dart';
 
-import 'main.dart';
+import 'office_game.dart';
 
 enum Direction { left, right, up, down }
 

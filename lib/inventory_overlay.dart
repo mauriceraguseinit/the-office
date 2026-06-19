@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import 'inventory_item.dart';
-import 'main.dart'; // Importiere dein Hauptspiel für den Zugriff auf OfficeGame
+import 'office_game.dart'; // Importiere dein Hauptspiel für den Zugriff auf OfficeGame
 
 class InventoryOverlay extends StatefulWidget {
   final OfficeGame game;

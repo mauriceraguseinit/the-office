@@ -1,10 +1,23 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
+import 'package:flame/game.dart';
 import 'package:flutter/services.dart';
+import 'package:the_office/speech_bubble.dart';
 
 import 'hendrik.dart';
+import 'office_game.dart';
 
-class TriggerZone extends PositionComponent with CollisionCallbacks {
+enum TriggerZoneDialogs { tooFar }
+
+class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallbacks, HasGameReference<OfficeGame> {
+  static Map<String, OverlayWidgetBuilder<OfficeGame>> dialogs = {
+    TriggerZoneDialogs.tooFar.toString(): (context, OfficeGame game) => RetroSpeechBubble(
+      text: 'Dafür bin ich zu weit weg.',
+      onClose: () => game.overlays.remove(TriggerZoneDialogs.tooFar.toString()),
+    ),
+  };
+
   final PositionComponent target;
   final double padding;
   final VoidCallback onAction;
@@ -70,4 +83,22 @@ class TriggerZone extends PositionComponent with CollisionCallbacks {
     onAction();
     return true;
   }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    final distance = game.player.absoluteCenter.distanceTo(absoluteCenter);
+    if (distance > 120) {
+      game.overlays.add(TriggerZoneDialogs.tooFar.toString());
+      return;
+    }
+
+    // Hier prüfen wir, ob das Target unser Mixin nutzt
+    if (target is Interactable) {
+      (target as Interactable).onTapDown(event);
+    }
+  }
+}
+
+mixin Interactable on PositionComponent {
+  void onTapDown(TapDownEvent event);
 }
