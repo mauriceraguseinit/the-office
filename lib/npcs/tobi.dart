@@ -79,14 +79,12 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
 
         // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);
-        game.resetSelection();
       } else if (activeItem.id == 'mate') {
         game.overlays.add(TobiDialogs.noMate.toString());
-
-        game.resetSelection();
       } else {
         game.overlays.add(TobiDialogs.wrongItem.toString());
       }
+      game.resetSelection();
     } else {
       // 4. Fall: Klick auf Tobi OHNE Item (Normales Ansprechen)
       game.overlays.add(TobiDialogs.normalAction.toString());

@@ -80,11 +80,11 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
         game.overlays.add(DanielDialogs.mate.toString());
 
         // game.ownedItems.remove(activeItem);
-        game.resetSelection();
       } else {
         // Falsches Item erwischt
         print("Daniel schaut das Item an: 'Was soll ich damit?'");
       }
+      game.resetSelection();
     } else {
       // 4. Fall: Klick auf Tobi OHNE Item (Normales Ansprechen)
       game.overlays.add(DanielDialogs.normalAction.toString());
