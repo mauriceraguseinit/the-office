@@ -6,31 +6,42 @@ import 'package:flame/game.dart';
 import 'package:the_office/speech_bubble.dart';
 import 'package:the_office/trigger_zone.dart';
 
-import 'office_game.dart';
+import '../office_game.dart';
 
 enum TobiDialogs { normalAction, thanks, wrongItem, noMate }
 
 class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
-  static Map<String, OverlayWidgetBuilder<OfficeGame>> dialogs = {
-    TobiDialogs.normalAction.toString(): (context, OfficeGame game) => RetroSpeechBubble(
-      text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
-      onClose: () => game.overlays.remove(TobiDialogs.normalAction.toString()),
-    ),
-    TobiDialogs.wrongItem.toString(): (context, OfficeGame game) => RetroSpeechBubble(
-      text: '[b]Tobias:[/b]\n\n: Was soll ich damit?',
-      onClose: () => game.overlays.remove(TobiDialogs.wrongItem.toString()),
-    ),
-    TobiDialogs.noMate.toString(): (context, OfficeGame game) => RetroSpeechBubble(
-      text:
-          '[b]Tobias:[/b]\n\nIch trinke seit 345,3 Tagen keine Mate mehr und gehe regelmäßig in zum Treffen der anonymen Mateholiker.\n\nLass mich in Ruhe!',
-      onClose: () => game.overlays.remove(TobiDialogs.noMate.toString()),
-    ),
+  static Map<String, OverlayWidgetBuilder<OfficeGame>> get dialogs {
+    return {
+      for (final value in TobiDialogs.values)
+        value.toString(): (context, OfficeGame game) {
+          switch (value) {
+            case TobiDialogs.normalAction:
+              return RetroSpeechBubble(
+                text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
+            case TobiDialogs.wrongItem:
+              return RetroSpeechBubble(
+                text: '[b]Tobias:[/b]\n\nWas soll ich damit?',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
+            case TobiDialogs.noMate:
+              return RetroSpeechBubble(
+                text:
+                    '[b]Tobias:[/b]\n\nIch trinke seit 345,3 Tagen keine Mate mehr und gehe regelmäßig zu den Treffen der anonymen Mateholiker.\n\nLass mich in Ruhe!',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
+            case TobiDialogs.thanks:
+              return RetroSpeechBubble(
+                text: '[b]Tobias:[/b]\n\nDanke',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
+          }
+        },
+    };
+  }
 
-    TobiDialogs.thanks.toString(): (context, OfficeGame game) => RetroSpeechBubble(
-      text: '[b]Tobias:[/b]\n\nDanke',
-      onClose: () => game.overlays.remove(TobiDialogs.thanks.toString()),
-    ),
-  };
   Tobi({required super.position, required super.size, this.hitBox = true});
 
   final bool hitBox;

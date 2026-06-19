@@ -5,23 +5,37 @@ import 'package:flame/game.dart';
 import 'package:the_office/speech_bubble.dart';
 import 'package:the_office/trigger_zone.dart';
 
-import 'office_game.dart';
+import '../office_game.dart';
 
-enum DanielDialogs { normalAction, mate }
+enum DanielDialogs { normalAction, mate, wrongItem }
 
 class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
   DeskDaniel({required super.position, required super.size, this.hitBox = true});
-  static Map<String, OverlayWidgetBuilder<OfficeGame>> dialogs = {
-    DanielDialogs.normalAction.toString(): (context, OfficeGame game) => RetroSpeechBubble(
-      text:
-          '[b]Daniel:[/b]\n\nHmm...\n\nIrgendwie habe ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch finde, die ich zu meinem Joghurt essen kann.',
-      onClose: () => game.overlays.remove(DanielDialogs.normalAction.toString()),
-    ),
-    DanielDialogs.normalAction.toString(): (context, OfficeGame game) => RetroSpeechBubble(
-      text: '[b]Daniel:[/b]\n\nIch trinke eigentlich nur Fritz Cola und dann auch nur Zero.',
-      onClose: () => game.overlays.remove(DanielDialogs.normalAction.toString()),
-    ),
-  };
+  static Map<String, OverlayWidgetBuilder<OfficeGame>> get dialogs {
+    return {
+      for (final value in DanielDialogs.values)
+        value.toString(): (context, OfficeGame game) {
+          switch (value) {
+            case DanielDialogs.normalAction:
+              return RetroSpeechBubble(
+                text:
+                    '[b]Daniel:[/b]\n\nHmm...\n\nIrgendwie habe ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch finde, die ich zu meinem Joghurt essen kann.',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
+            case DanielDialogs.mate:
+              return RetroSpeechBubble(
+                text: '[b]Daniel:[/b]\n\nIch trinke eigentlich nur Fritz Cola und dann auch nur Zero.',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
+            case DanielDialogs.wrongItem:
+              return RetroSpeechBubble(
+                text: '[b]Daniel:[/b]\n\nWas soll ich damit?',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
+          }
+        },
+    };
+  }
 
   final bool hitBox;
 

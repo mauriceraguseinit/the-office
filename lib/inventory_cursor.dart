@@ -5,25 +5,21 @@ import 'package:flame/components.dart';
 import 'office_game.dart';
 
 class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame> {
-  // Wir verwalten das Sprite als interne Variable, nicht über die Vererbung
   Sprite? _cursorSprite;
   String? _currentLoadedPath;
 
   InventoryCursor() : super(priority: 9999) {
-    // Wir setzen die Größe direkt im Konstruktor fest
     size = Vector2(32, 32);
     anchor = Anchor.center;
   }
 
-  @override
-  @override
+  @override // HIER: Der doppelte `@override` wurde entfernt
   void update(double dt) {
     super.update(dt);
 
     final selectedItem = game.selectedItem;
 
     if (selectedItem != null) {
-      // Nimmt jetzt die korrekten Bildschirm-Koordinaten aus dem Spiel
       position = game.mousePosition;
 
       final filename = selectedItem.assetPath.split('/').last;
@@ -36,14 +32,17 @@ class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame
     }
   }
 
-  // Manuelles Zeichnen: Flame stürzt hier niemals ab, selbst wenn _cursorSprite null ist!
   @override
   void render(Canvas canvas) {
     super.render(canvas);
 
-    // Nur rendern, wenn ein Sprite existiert UND kein Flutter-Overlay aktiv ist
-    if (_cursorSprite != null && game.selectedItem != null && game.overlays.isActive('inventory') == false) {
-      _cursorSprite!.render(canvas, size: size);
+    // Wir prüfen, ob IRGENDEIN Overlay aktiv ist (z.B. 'inventory', 'intro', oder Dialog-Meldungen)
+    final isAnyOverlayOpen = game.overlays.activeOverlays.isNotEmpty;
+
+    // Nur rendern, wenn ein Sprite existiert UND gerade absolut kein Overlay/Dialog im Weg ist
+    if (_cursorSprite != null && game.selectedItem != null && !isAnyOverlayOpen) {
+      // TRICK: overridePaint mit FilterQuality.none sorgt für den perfekten, scharfen Pixel-Look in der Welt
+      _cursorSprite!.render(canvas, size: size, overridePaint: Paint()..filterQuality = FilterQuality.none);
     }
   }
 

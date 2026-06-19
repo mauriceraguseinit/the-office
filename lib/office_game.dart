@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:the_office/tobi.dart';
+import 'package:the_office/npcs/tobi.dart';
 import 'package:the_office/trigger_zone.dart';
 import 'package:the_office/util.dart';
 import 'package:the_office/vertical_wall.dart';
@@ -10,10 +10,10 @@ import 'package:the_office/vertical_wall.dart';
 import 'background_component.dart';
 import 'default_component.dart';
 import 'desk_component.dart';
-import 'desk_daniel.dart';
 import 'hendrik.dart';
 import 'inventory_cursor.dart';
 import 'inventory_item.dart';
+import 'npcs/desk_daniel.dart';
 
 class OfficeGame extends FlameGame
     with
