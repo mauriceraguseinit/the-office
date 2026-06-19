@@ -67,7 +67,12 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
 
 /// Das Hauptspiel-Objekt managt die Welt und die Events
 class OfficeGame extends FlameGame
-    with HasKeyboardHandlerComponents, HasCollisionDetection, MouseMovementDetector, SecondaryTapCallbacks {
+    with
+        ChangeNotifier,
+        HasKeyboardHandlerComponents,
+        HasCollisionDetection,
+        MouseMovementDetector,
+        SecondaryTapCallbacks {
   List<InventoryItem> ownedItems = [];
   InventoryItem? selectedItem;
   Vector2 mousePosition = Vector2.zero();
@@ -200,13 +205,6 @@ class OfficeGame extends FlameGame
   void resetSelection() {
     selectedItem = null;
     overlayChangeNotifier.notifyListeners();
-  }
-
-  void _setSystemCursorVisible(bool visible) {
-    if (visible) {
-      // Wenn du das Spiel im Web/Desktop testest, schaltet das den Zeiger wieder ein
-      // Erfordert Flutter-Imports
-    }
   }
 
   @override
