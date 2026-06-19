@@ -1,8 +1,9 @@
+import 'dart:ui';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:flutter/services.dart';
 import 'package:the_office/speech_bubble.dart';
 
 import 'hendrik.dart';
@@ -89,10 +90,10 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
     final distance = game.player.absoluteCenter.distanceTo(absoluteCenter);
     if (distance > 120) {
       game.overlays.add(TriggerZoneDialogs.tooFar.toString());
+      game.resetSelection();
       return;
     }
 
-    // Hier prüfen wir, ob das Target unser Mixin nutzt
     if (target is Interactable) {
       (target as Interactable).onTapDown(event);
     }
@@ -101,4 +102,60 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
 
 mixin Interactable on PositionComponent {
   void onTapDown(TapDownEvent event);
+
+  bool isHovered = false;
+
+  // Wir erstellen ein Paint-Objekt, das das Sprite komplett mit einer Farbe einfärbt
+  static final Paint _outlinePaint = Paint()
+    ..color =
+        const Color(0xFFFFFFAA) // Deine Leucht-Farbe (z.B. helles Gelb/Weiß)
+    ..colorFilter = const ColorFilter.mode(
+      Color(0xFFFFFFAA),
+      BlendMode.srcIn, // TRICK: Färbt alle deckenden Pixel des Sprites komplett ein
+    );
+
+  bool onHoverEnter() {
+    isHovered = true;
+    return true;
+  }
+
+  bool onHoverExit() {
+    isHovered = false;
+    return true;
+  }
+
+  @override
+  void render(Canvas canvas) {
+    if (isHovered) {
+      // 1. Wir holen uns das passende Sprite, je nachdem ob animiert oder statisch
+      Sprite? activeSprite;
+
+      if (this is SpriteAnimationGroupComponent) {
+        final group = this as SpriteAnimationGroupComponent;
+        final currentAnim = group.animations?[group.current];
+        if (currentAnim != null) {
+          final ticker = group.animationTickers?[group.current];
+          activeSprite = ticker?.getSprite() ?? currentAnim.frames.first.sprite;
+        }
+      } else if (this is SpriteComponent) {
+        activeSprite = (this as SpriteComponent).sprite;
+      }
+
+      // 2. Wenn wir ein Sprite haben, malen wir den Rand
+      if (activeSprite != null) {
+        // Die Dicke des Randes in Pixeln (2-3 Pixel sieht bei Pixel Art meist am besten aus)
+        final double thickness = 2.0;
+
+        // Wir zeichnen das eingefärbte Sprite leicht versetzt in alle 4 Richtungen
+        // (Für einen noch dickeren/runderen Rand kannst du auch die Diagonalen ergänzen)
+        activeSprite.render(canvas, position: Vector2(-thickness, 0), size: size, overridePaint: _outlinePaint);
+        activeSprite.render(canvas, position: Vector2(thickness, 0), size: size, overridePaint: _outlinePaint);
+        activeSprite.render(canvas, position: Vector2(0, -thickness), size: size, overridePaint: _outlinePaint);
+        activeSprite.render(canvas, position: Vector2(0, thickness), size: size, overridePaint: _outlinePaint);
+      }
+    }
+
+    // 3. Das originale, unveränderte Sprite im Vordergrund zeichnen
+    super.render(canvas);
+  }
 }

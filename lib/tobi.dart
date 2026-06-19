@@ -8,13 +8,22 @@ import 'package:the_office/trigger_zone.dart';
 
 import 'office_game.dart';
 
-enum TobiDialogs { normalAction, thanks }
+enum TobiDialogs { normalAction, thanks, wrongItem, noMate }
 
-class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, Interactable {
+class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
   static Map<String, OverlayWidgetBuilder<OfficeGame>> dialogs = {
     TobiDialogs.normalAction.toString(): (context, OfficeGame game) => RetroSpeechBubble(
       text: '[b]Tobias:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
       onClose: () => game.overlays.remove(TobiDialogs.normalAction.toString()),
+    ),
+    TobiDialogs.wrongItem.toString(): (context, OfficeGame game) => RetroSpeechBubble(
+      text: '[b]Tobias:[/b]\n\n: Was soll ich damit?',
+      onClose: () => game.overlays.remove(TobiDialogs.wrongItem.toString()),
+    ),
+    TobiDialogs.noMate.toString(): (context, OfficeGame game) => RetroSpeechBubble(
+      text:
+          '[b]Tobias:[/b]\n\nIch trinke seit 345,3 Tagen keine Mate mehr und gehe regelmäßig in zum Treffen der anonymen Mateholiker.\n\nLass mich in Ruhe!',
+      onClose: () => game.overlays.remove(TobiDialogs.noMate.toString()),
     ),
 
     TobiDialogs.thanks.toString(): (context, OfficeGame game) => RetroSpeechBubble(
@@ -60,14 +69,12 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
         // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);
         game.resetSelection();
-      } else if (activeItem.id == 'kuendigung') {
-        print("Tobi: 'Das ist jetzt ein schlechter Scherz, oder?!'");
+      } else if (activeItem.id == 'mate') {
+        game.overlays.add(TobiDialogs.noMate.toString());
 
-        game.ownedItems.remove(activeItem);
         game.resetSelection();
       } else {
-        // Falsches Item erwischt
-        print("Tobi schaut das Item an: 'Was soll ich damit?'");
+        game.overlays.add(TobiDialogs.wrongItem.toString());
       }
     } else {
       // 4. Fall: Klick auf Tobi OHNE Item (Normales Ansprechen)

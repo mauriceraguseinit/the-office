@@ -7,14 +7,18 @@ import 'package:the_office/trigger_zone.dart';
 
 import 'office_game.dart';
 
-enum DanielDialogs { normalAction }
+enum DanielDialogs { normalAction, mate }
 
-class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, Interactable {
+class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
   DeskDaniel({required super.position, required super.size, this.hitBox = true});
   static Map<String, OverlayWidgetBuilder<OfficeGame>> dialogs = {
     DanielDialogs.normalAction.toString(): (context, OfficeGame game) => RetroSpeechBubble(
       text:
           '[b]Daniel:[/b]\n\nHmm...\n\nIrgendwie habe ich hunger glaube ich. Mal sehen ob ich noch ne Dose Tuhnfisch finde, die ich zu meinem Joghurt essen kann.',
+      onClose: () => game.overlays.remove(DanielDialogs.normalAction.toString()),
+    ),
+    DanielDialogs.normalAction.toString(): (context, OfficeGame game) => RetroSpeechBubble(
+      text: '[b]Daniel:[/b]\n\nIch trinke eigentlich nur Fritz Cola und dann auch nur Zero.',
       onClose: () => game.overlays.remove(DanielDialogs.normalAction.toString()),
     ),
   };
@@ -58,10 +62,10 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
         // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);
         game.resetSelection();
-      } else if (activeItem.id == 'kuendigung') {
-        print("Daniel: 'Das ist jetzt ein schlechter Scherz, oder?!'");
+      } else if (activeItem.id == 'mate') {
+        game.overlays.add(DanielDialogs.mate.toString());
 
-        game.ownedItems.remove(activeItem);
+        // game.ownedItems.remove(activeItem);
         game.resetSelection();
       } else {
         // Falsches Item erwischt
