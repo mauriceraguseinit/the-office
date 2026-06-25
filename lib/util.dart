@@ -9,3 +9,14 @@ class Units {
     return degree * degreeOne;
   }
 }
+
+enum Layers {
+  floor(1),
+
+  stuff(2),
+  player(3),
+  dialogs(4);
+
+  final int value;
+  const Layers(this.value);
+}

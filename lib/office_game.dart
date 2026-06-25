@@ -1,15 +1,13 @@
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/npcs/tobi.dart';
 import 'package:the_office/trigger_zone.dart';
 import 'package:the_office/util.dart';
-import 'package:the_office/vertical_wall.dart';
 
-import 'background_component.dart';
-import 'default_component.dart';
-import 'desk_component.dart';
 import 'hendrik.dart';
 import 'inventory_cursor.dart';
 import 'inventory_item.dart';
@@ -28,6 +26,7 @@ class OfficeGame extends FlameGame
   late TextComponent statusText;
   bool isDeskLocked = false;
   late Hendrik player;
+  late TiledComponent mapComponent;
 
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
 
@@ -35,6 +34,80 @@ class OfficeGame extends FlameGame
   Future<void> onLoad() async {
     super.onLoad();
 
+    // 1. Map ganz normal laden und als EINZIGES Objekt zur World hinzufügen
+    mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
+    world.add(mapComponent);
+
+    // Wir geben der Map die Basis-Priorität 0, damit sie ganz unten liegt
+    mapComponent.priority = 0;
+
+    final tileMap = mapComponent.tileMap;
+
+    // 2. Schleife: Wir gehen durch alle Kachel-Layer für die Kollisionen
+    for (final renderableLayer in tileMap.renderableLayers) {
+      final layer = renderableLayer.layer;
+
+      if (layer is TileLayer) {
+        final tileLayer = layer;
+        final mapWidth = tileMap.map.width;
+        final mapHeight = tileMap.map.height;
+
+        for (int y = 0; y < mapHeight; y++) {
+          for (int x = 0; x < mapWidth; x++) {
+            // HIER wird tileData definiert!
+            final tileData = tileMap.getTileData(layerId: tileLayer.id!, x: x, y: y);
+
+            if (tileData != null && tileData.tile != 0) {
+              final tileDefinition = tileMap.map.tileByGid(tileData.tile);
+
+              if (tileDefinition != null && tileDefinition.objectGroup != null) {
+                final objectGroup = tileDefinition.objectGroup as ObjectGroup;
+
+                final tileX = x * 64.0;
+                final tileY = y * 64.0;
+
+                // Rotationszustände direkt aus tileData ablesen (korrekte Properties)
+                final bool flipX = tileData.flips.horizontally;
+                final bool flipY = tileData.flips.vertically;
+                final bool flipDiag = tileData.flips.diagonally;
+
+                for (final tiledObject in objectGroup.objects) {
+                  double objX = tiledObject.x;
+                  double objY = tiledObject.y;
+                  double objWidth = tiledObject.width;
+                  double objHeight = tiledObject.height;
+
+                  // Wenn die Kachel im Editor mit 'Z' rotiert wurde:
+                  if (flipDiag) {
+                    objX = 64.0 - tiledObject.y - tiledObject.height;
+                    objY = tiledObject.x;
+
+                    // Breite und Höhe tauschen durch die Drehung
+                    objWidth = tiledObject.height;
+                    objHeight = tiledObject.width;
+                  }
+
+                  // Zusätzliche Spiegelungen abfangen
+                  if (flipX && !flipDiag) objX = 64.0 - objX - objWidth;
+                  if (flipY) objY = 64.0 - objY - objHeight;
+
+                  final obstacle = TileObstacle(
+                    position: Vector2(tileX + objX, tileY + objY),
+                    size: Vector2(objWidth, objHeight),
+                  );
+
+                  // Hitboxen bekommen eine feste Priorität über dem Boden
+                  obstacle.priority = 1;
+                  world.add(obstacle..debugMode = true);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    ////// Ab hier folgt dein restlicher Code (Overlays, Items, Player-Spawn...)
     overlays.add('intro');
 
     ownedItems.add(
@@ -48,92 +121,18 @@ class OfficeGame extends FlameGame
     );
     ownedItems.add(InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'));
 
-    // 1. Hintergrund erstellen
-    final background = BackgroundComponent();
+    // Spawnpoint auslesen
+    final spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
+    TiledObject? playerObject = spawnPoints?.objects.firstWhere((element) => element.name == 'playerStart');
 
-    // 2. Schreibtisch erstellen
-    final deskBottomLeft = DeskComponent(position: Vector2(300, 230), size: Vector2(100, 60))..angle = Units.degree90;
+    // Spieler erstellen und ihm eine höhere Priorität als der Map geben
+    player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0), size: Vector2(40, 75));
+    player.priority = 2; // Läuft über dem Boden
 
-    final deskBottomRight = DeskComponent(position: Vector2(300, 380), size: Vector2(100, 60))..angle = Units.degree270;
-    final deskTopLeft = DeskComponent(position: Vector2(300, 70), size: Vector2(100, 60))..angle = Units.degree90;
-    final leftWall = VerticalWall(position: Vector2(0, -90), size: Vector2(10, 790));
-    final rightWall = VerticalWall(position: Vector2(600, -90), size: Vector2(10, 790));
-    final door = DefaultComponent(
-      position: Vector2(380, 600),
-      size: Vector2(100, 100),
-      hitBox: false,
-      wallElement: WallElement.door,
-    )..priority = 12;
-    final window = DefaultComponent(
-      position: Vector2(95 * 2, -100),
-      size: Vector2(100, 100),
-      hitBox: false,
-      wallElement: WallElement.window,
-    );
-    final window2 = DefaultComponent(
-      position: Vector2(95 * 4, -100),
-      size: Vector2(100, 100),
-      hitBox: false,
-      wallElement: WallElement.window,
-    );
-
-    List<DefaultComponent> wallsTop = List.generate(
-      10,
-      (index) => DefaultComponent(position: Vector2(0 + index * 95, -100), size: Vector2(100, 100)),
-    );
-
-    List<DefaultComponent> wallsBottomLeft = List.generate(
-      4,
-      (index) => DefaultComponent(position: Vector2(0 + index * 95, 600), size: Vector2(100, 100)),
-    );
-    List<DefaultComponent> wallsBottomRight = List.generate(
-      5,
-      (index) => DefaultComponent(position: Vector2(475 + index * 95, 600), size: Vector2(100, 100)),
-    );
-
-    // 3. Spieler erstellen (Dev) - ca. 50% größer
-    player = Hendrik(position: Vector2(320, 400), size: Vector2(40, 75));
-
-    // Alles zur World hinzufügen
-    //Ground
-    world.add(background);
-
-    //desks
-    world.add(deskBottomLeft);
-
-    world.add(deskBottomRight);
-    world.add(deskTopLeft);
-
-    //door
-    world.add(door);
-
-    //walls
-    for (var wall in wallsTop) {
-      world.add(wall);
-    }
-
-    world.add(leftWall);
-    world.add(rightWall);
-
-    for (var wall in wallsBottomLeft) {
-      world.add(wall);
-    }
-    for (var wall in wallsBottomRight) {
-      world.add(wall);
-    }
-
-    //windows
-    world.add(window);
-    world.add(window2);
-
-    //player
     world.add(player);
 
-    _buildNpcs();
-    //npcs
-
-    // Die Kamera heftet sich an die Fersen des Spielers
-    camera.follow(player);
+    // Kamera folgt dem Spieler
+    camera.follow(player, snap: true);
 
     _buildHud();
   }
@@ -251,5 +250,27 @@ class OfficeGame extends FlameGame
       },
     );
     world.add(danielTrigger);
+  }
+}
+
+class TileObstacle extends PositionComponent {
+  TileObstacle({required Vector2 position, required Vector2 size}) : super(position: position, size: size) {
+    // Das Aktiviert die Hitbox für diese Box
+    add(RectangleHitbox());
+  }
+}
+
+// Falls dein Editor 'RenderableLayer' nicht kennt, deklarieren wir den Parameter
+// in der Komponente einfach als 'dynamic' oder nutzen den exakten Typ aus der Schleife.
+class MyTiledLayerComponent extends PositionComponent {
+  final dynamic renderLayer; // dynamic fängt alle internen Paket-Namensänderungen ab
+
+  MyTiledLayerComponent(this.renderLayer);
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    // Ruft die originale Render-Methode des flame_tiled Layers auf
+    renderLayer.render(canvas);
   }
 }
