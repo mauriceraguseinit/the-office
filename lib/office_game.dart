@@ -98,7 +98,7 @@ class OfficeGame extends FlameGame
 
                   // Hitboxen bekommen eine feste Priorität über dem Boden
                   obstacle.priority = 1;
-                  world.add(obstacle..debugMode = true);
+                  world.add(obstacle..debugMode = false);
                 }
               }
             }
@@ -121,8 +121,11 @@ class OfficeGame extends FlameGame
     );
     ownedItems.add(InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'));
 
-    // Spawnpoint auslesen
     final spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
+
+    _buildNpcs(spawnPoints);
+
+    // Spawnpoint auslesen
     TiledObject? playerObject = spawnPoints?.objects.firstWhere((element) => element.name == 'playerStart');
 
     // Spieler erstellen und ihm eine höhere Priorität als der Map geben
@@ -219,9 +222,14 @@ class OfficeGame extends FlameGame
     camera.viewport.add(InventoryCursor());
   }
 
-  void _buildNpcs() {
+  void _buildNpcs(ObjectGroup? spawnPoints) {
+    TiledObject? positionTobi = spawnPoints?.objects.firstWhere((element) => element.name == 'tobi');
+
     // 1. Tobi ganz normal erstellen und zur World hinzufügen
-    final tobiNpc = Tobi(position: Vector2(520, 100), size: Vector2(Tobi.frameWidth * 0.15, Tobi.pngHeight * 0.15));
+    final tobiNpc = Tobi(
+      position: Vector2(positionTobi?.x ?? 0, positionTobi?.y ?? 0),
+      size: Vector2(Tobi.frameWidth * 0.13, Tobi.pngHeight * 0.13),
+    );
     world.add(tobiNpc);
 
     // TriggerZone als eigenständiges Objekt in die World legen
@@ -235,9 +243,11 @@ class OfficeGame extends FlameGame
     world.add(tobiTrigger);
 
     // 2. Daniels Tisch erstellen, rotieren und zur World hinzufügen
+    TiledObject? positionDaniel = spawnPoints?.objects.firstWhere((element) => element.name == 'daniel');
+
     final deskTopRight = DeskDaniel(
-      position: Vector2(300, 220),
-      size: Vector2(DeskDaniel.frameWidth * 0.28, DeskDaniel.pngHeight * 0.28),
+      position: Vector2(positionDaniel?.x ?? 0, positionDaniel?.y ?? 0),
+      size: Vector2(DeskDaniel.frameWidth * 0.24, DeskDaniel.pngHeight * 0.24),
     )..angle = Units.degree270;
     world.add(deskTopRight);
 
