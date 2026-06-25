@@ -25,13 +25,13 @@
   <tile id="14">
    <image source="../images/wall_vertical_L.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="0.5" y="0.5" width="11" height="63.5"/>
+    <object id="1" x="0.25" y="31.875" width="11" height="31.75"/>
    </objectgroup>
   </tile>
   <tile id="15">
    <image source="../images/wall_vertical_R.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="53.5" y="0.5" width="10" height="64"/>
+    <object id="1" x="53.375" y="30.75" width="10" height="32.75"/>
    </objectgroup>
   </tile>
   <tile id="43">

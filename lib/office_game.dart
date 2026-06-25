@@ -36,7 +36,14 @@ class OfficeGame extends FlameGame
 
     // 1. Map ganz normal laden und als EINZIGES Objekt zur World hinzufügen
     mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
-    world.add(mapComponent);
+    // world.add(mapComponent);
+
+    final List<TiledComponent> mapLayers = await MapSplitter.splitMapIntoLayers(
+      fileName: 'office.tmx',
+      destTileSize: Vector2.all(64),
+    );
+
+    world.addAll(mapLayers);
 
     // Wir geben der Map die Basis-Priorität 0, damit sie ganz unten liegt
     mapComponent.priority = 0;
@@ -130,7 +137,7 @@ class OfficeGame extends FlameGame
 
     // Spieler erstellen und ihm eine höhere Priorität als der Map geben
     player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0), size: Vector2(40, 75));
-    player.priority = 2; // Läuft über dem Boden
+    player.priority = 0; // Läuft über dem Boden
 
     world.add(player);
 
@@ -138,6 +145,20 @@ class OfficeGame extends FlameGame
     camera.follow(player, snap: true);
 
     _buildHud();
+  }
+
+  void _filterLayers(RenderableTiledMap tileMap, {required List<String> keep}) {
+    // Wir gehen durch alle renderbaren Layer der Map
+    for (var i = 0; i < tileMap.renderableLayers.length; i++) {
+      final layerName = tileMap.renderableLayers[i].layer.name;
+
+      // Wenn der Layer-Name nicht in unserer "keep"-Liste ist, schalten wir ihn unsichtbar
+      if (!keep.contains(layerName)) {
+        tileMap.setLayerVisibility(i, visible: false);
+      } else {
+        tileMap.setLayerVisibility(i, visible: true);
+      }
+    }
   }
 
   @override
@@ -282,5 +303,55 @@ class MyTiledLayerComponent extends PositionComponent {
     super.render(canvas);
     // Ruft die originale Render-Methode des flame_tiled Layers auf
     renderLayer.render(canvas);
+  }
+}
+
+class MapSplitter {
+  /// Lädt eine Tiled-Map und splittet sie in eine Liste von TiledComponents auf.
+  /// Jede Komponente enthält genau einen Layer und die Priorität entspricht dem Index.
+  static Future<List<TiledComponent>> splitMapIntoLayers({
+    required String fileName,
+    required Vector2 destTileSize,
+  }) async {
+    List<TiledComponent> splitComponents = [];
+
+    // 1. Wir laden eine temporäre Instanz, um die Anzahl und Namen der Layer zu ermitteln
+    final baseMap = await TiledComponent.load(fileName, destTileSize);
+    final totalLayers = baseMap.tileMap.renderableLayers.length;
+
+    // Wir merken uns die Namen der Layer in der korrekten Reihenfolge aus Tiled
+    List<String> layerNames = baseMap.tileMap.renderableLayers.map((renderable) => renderable.layer.name).toList();
+
+    // 2. Jetzt erstellen wir für jeden Layer eine eigene TiledComponent
+    for (int i = 0; i < totalLayers; i++) {
+      final currentLayerName = layerNames[i];
+      print(currentLayerName + ' ' + i.toString());
+
+      // Wir laden die Map erneut (Flame nutzt hier das Asset-Caching, das ist performant!)
+      final layerComponent = await TiledComponent.load(
+        fileName,
+        destTileSize,
+        priority: i, // Automatische Priorität nach Tiled-Reihenfolge (Index)
+      );
+
+      // Nur diesen einen spezifischen Layer sichtbar lassen
+      _isolateSingleLayer(layerComponent.tileMap, targetLayerName: currentLayerName);
+
+      splitComponents.add(layerComponent);
+    }
+
+    return splitComponents;
+  }
+
+  /// Schaltet alle Layer bis auf den Ziel-Layer unsichtbar
+  static void _isolateSingleLayer(RenderableTiledMap tileMap, {required String targetLayerName}) {
+    for (var i = 0; i < tileMap.renderableLayers.length; i++) {
+      final layerName = tileMap.renderableLayers[i].layer.name;
+      if (layerName == targetLayerName) {
+        tileMap.setLayerVisibility(i, visible: true);
+      } else {
+        tileMap.setLayerVisibility(i, visible: false);
+      }
+    }
   }
 }
