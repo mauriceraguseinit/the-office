@@ -1,7 +1,10 @@
+import 'package:flame/camera.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flame/input.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/npcs/tobi.dart';
@@ -20,6 +23,12 @@ class OfficeGame extends FlameGame
         HasCollisionDetection,
         MouseMovementDetector,
         SecondaryTapCallbacks {
+  bool _isZoomedOut = false;
+  final double _normalZoom = 3.0; // Deine aktuelle Zoomstufe
+  final double _mapViewZoom = 1.0; // Die herausgezoomte Übersicht
+
+  late CameraComponent minimapCamera;
+
   List<InventoryItem> ownedItems = [];
   InventoryItem? selectedItem;
   Vector2 mousePosition = Vector2.zero();
@@ -143,22 +152,24 @@ class OfficeGame extends FlameGame
 
     // Kamera folgt dem Spieler
     camera.follow(player, snap: true);
+    camera.viewfinder.zoom = 3;
+
+    // Am Ende deiner onLoad()-Methode:
+
+    final rawMinimapCamera = CameraComponent(world: world);
+    rawMinimapCamera.viewfinder.zoom = 0.2;
+    rawMinimapCamera.follow(player, snap: true);
+
+    final minimap = ClickableMinimap(
+      minimapCamera: rawMinimapCamera,
+      size: Vector2(200, 200),
+      position: Vector2(size.x - 220, size.y - 220),
+      onMinimapPressed: _toggleCameraZoom,
+    );
+
+    camera.viewport.add(minimap);
 
     _buildHud();
-  }
-
-  void _filterLayers(RenderableTiledMap tileMap, {required List<String> keep}) {
-    // Wir gehen durch alle renderbaren Layer der Map
-    for (var i = 0; i < tileMap.renderableLayers.length; i++) {
-      final layerName = tileMap.renderableLayers[i].layer.name;
-
-      // Wenn der Layer-Name nicht in unserer "keep"-Liste ist, schalten wir ihn unsichtbar
-      if (!keep.contains(layerName)) {
-        tileMap.setLayerVisibility(i, visible: false);
-      } else {
-        tileMap.setLayerVisibility(i, visible: true);
-      }
-    }
   }
 
   @override
@@ -193,6 +204,26 @@ class OfficeGame extends FlameGame
     } else {
       statusText.text = 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)';
     }
+  }
+
+  void _toggleCameraZoom() {
+    _isZoomedOut = !_isZoomedOut;
+    final targetZoom = _isZoomedOut ? _mapViewZoom : _normalZoom;
+
+    // Vorherige Skalierungs-Effekte vom Viewfinder entfernen
+    camera.viewfinder.removeAll(camera.viewfinder.children.whereType<ScaleEffect>());
+
+    // Da Zoom im Viewfinder über das 'scale'-Property gesteuert wird,
+    // übergeben wir den Zielwert als Vector2(zoom, zoom)
+    camera.viewfinder.add(
+      ScaleEffect.to(
+        Vector2.all(targetZoom),
+        EffectController(
+          duration: 0.4, // Animationsdauer in Sekunden
+          curve: Curves.easeInOut, // Sanfter Übergang
+        ),
+      ),
+    );
   }
 
   void _buildHud() {
@@ -325,7 +356,6 @@ class MapSplitter {
     // 2. Jetzt erstellen wir für jeden Layer eine eigene TiledComponent
     for (int i = 0; i < totalLayers; i++) {
       final currentLayerName = layerNames[i];
-      print(currentLayerName + ' ' + i.toString());
 
       // Wir laden die Map erneut (Flame nutzt hier das Asset-Caching, das ist performant!)
       final layerComponent = await TiledComponent.load(
@@ -353,5 +383,39 @@ class MapSplitter {
         tileMap.setLayerVisibility(i, visible: false);
       }
     }
+  }
+}
+
+class ClickableMinimap extends PositionComponent with TapCallbacks {
+  final CameraComponent minimapCamera;
+  final VoidCallback onMinimapPressed;
+
+  ClickableMinimap({
+    required this.minimapCamera,
+    required this.onMinimapPressed,
+    required Vector2 position,
+    required Vector2 size,
+  }) : super(position: position, size: size) {
+    // Die Minimap-Kamera wird als Kind dieser Komponente hinzugefügt
+    // und an deren Position/Größe angepasst
+    minimapCamera.viewport = FixedSizeViewport(size.x, size.y);
+    add(minimapCamera);
+
+    // Optionaler schicker Rahmen
+    final border = RectangleComponent(
+      size: size,
+      paint: Paint()
+        ..color = Colors.orange
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4,
+    );
+    add(border);
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    // Wenn auf die Minimap geklickt wird, führen wir die Zoom-Funktion aus
+    onMinimapPressed();
   }
 }

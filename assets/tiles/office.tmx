@@ -7,13 +7,13 @@
   <tile id="7">
    <image source="../images/wall.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="0.353331" y="21.1999" width="63.4818" height="42.753"/>
+    <object id="1" x="0.353331" y="0.4499" width="63.4818" height="31.503"/>
    </objectgroup>
   </tile>
   <tile id="8">
    <image source="../images/window.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="0.235554" y="25.0865" width="63.5996" height="39.102"/>
+    <object id="1" x="0.110554" y="-0.0385" width="63.5996" height="32.602"/>
    </objectgroup>
   </tile>
   <tile id="9">
@@ -25,25 +25,25 @@
   <tile id="14">
    <image source="../images/wall_vertical_L.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="0.25" y="31.875" width="11" height="31.75"/>
+    <object id="1" x="0.125" y="0.25" width="11" height="31.75"/>
    </objectgroup>
   </tile>
   <tile id="15">
    <image source="../images/wall_vertical_R.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="53.375" y="30.75" width="10" height="32.75"/>
+    <object id="1" x="53.25" y="0.25" width="10" height="32.75"/>
    </objectgroup>
   </tile>
   <tile id="43">
    <image source="../images/row-1-column-1.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="2" y="2" width="61.5" height="62.5"/>
+    <object id="1" x="2" y="2" width="61.5" height="32.125"/>
    </objectgroup>
   </tile>
   <tile id="44">
    <image source="../images/row-1-column-2.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="2" y="1.5" width="61" height="61"/>
+    <object id="1" x="2" y="1.5" width="61" height="32.25"/>
    </objectgroup>
   </tile>
   <tile id="45">

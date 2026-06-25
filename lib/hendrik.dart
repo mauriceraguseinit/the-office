@@ -75,9 +75,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     // Wir erstellen eine Hitbox, die nur 50% der Höhe hat.
     // Die Position ist relativ zur oberen linken Ecke des Spielers.
     // Ein y-Offset von targetHeight / 2 verschiebt die Hitbox nach unten.
-    _hitbox = RectangleHitbox(size: Vector2(widthDown, targetHeight), position: Vector2(0, 0))..debugMode = true;
+    _hitbox = RectangleHitbox(size: Vector2(widthDown, targetHeight), position: Vector2(0, 0));
     add(_hitbox);
-    // priority = 11;
+    priority = 11;
   }
 
   @override

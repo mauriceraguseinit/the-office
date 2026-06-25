@@ -53,7 +53,7 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    priority = 10;
+    priority = 4;
 
     final anim = await game.loadSpriteAnimation(
       'tobi_idle.png',
@@ -63,7 +63,7 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
     current = 'idle';
 
     if (hitBox) {
-      add(RectangleHitbox());
+      add(RectangleHitbox(size: Vector2(Tobi.frameWidth * 0.13, (Tobi.pngHeight * 0.13) / 2)));
     }
   }
 
