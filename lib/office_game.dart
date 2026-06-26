@@ -146,7 +146,7 @@ class OfficeGame extends FlameGame
     TiledObject? playerObject = spawnPoints?.objects.firstWhere((element) => element.name == 'playerStart');
 
     // Spieler erstellen und ihm eine höhere Priorität als der Map geben
-    player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0), size: Vector2(40, 75));
+    player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0));
     player.priority = 0; // Läuft über dem Boden
 
     world.add(player);

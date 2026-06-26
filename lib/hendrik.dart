@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
@@ -7,20 +9,29 @@ import 'office_game.dart';
 
 enum Direction { left, right, up, down }
 
-/// Der Spieler (Flutter-Entwickler) mit Tastatur-Steuerung
-/// Der Spieler mit echten Lauf-Animationen
-/// Der Spieler (Flutter-Entwickler) nutzt jetzt Flame's fertige SpriteAnimationGroupComponent.
-/// Das ist der sauberste Weg für Richtungs-Animationen!
-/// Der Spieler (Flutter-Entwickler) nutzt jetzt Flame's fertige SpriteAnimationGroupComponent.
 class Hendrik extends SpriteAnimationGroupComponent<Direction>
     with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks {
-  Hendrik({required super.position, required super.size});
+  // ==========================================
+  // ZENTRALE SKALIERUNGS-REGLER
+  // ==========================================
+  // Ändere NUR diese eine Zahl, um Hendrik insgesamt größer oder kleiner zu machen!
+  static const double boxSize = 70.0;
+
+  // Hitbox-Verhältnisse basierend auf deinen funktionierenden 60er-Werten:
+  // Breite: 32/60 ≈ 53.3% | Höhe: 40/60 ≈ 66.6%
+  // X-Pos:  14/60 ≈ 23.3% | Y-Pos:  18/60 ≈ 30.0%
+  static const double _hitboxWidthFactor = 32 / 60;
+  static const double _hitboxHeightFactor = 40 / 60;
+  static const double _hitboxXFactor = 14 / 60;
+  static const double _hitboxYFactor = 18 / 60;
+  // ==========================================
+
+  Hendrik({required Vector2 position}) : super(position: position, size: Vector2.all(boxSize));
 
   final Vector2 _velocity = Vector2.zero();
   final double _speed = 200.0;
   double _currentDt = 0.0;
 
-  // Referenz auf die Hitbox, damit wir sie später anpassen können
   late RectangleHitbox _hitbox;
 
   @override
@@ -39,11 +50,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Ziel-Höhe des Spielers
-    const double targetHeight = 60.0;
-
-    // Animationen laden (wie gehabt)
-    const double widthDown = (206 / 229) * targetHeight;
     final animDown = await game.loadSpriteAnimation(
       'down.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(206, 229)),
@@ -56,49 +62,68 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     final animLeft = await game.loadSpriteAnimation(
       'left.png',
-      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(139, 261)),
+      SpriteAnimationData.sequenced(amount: 7, stepTime: 0.15, textureSize: Vector2(286, 512)),
     );
 
     final animRight = await game.loadSpriteAnimation(
       'right.png',
-      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(139, 261)),
+      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(286, 512)),
     );
 
-    // Animationen zuweisen
     animations = {Direction.down: animDown, Direction.up: animUp, Direction.left: animLeft, Direction.right: animRight};
 
-    // Standard-Größe setzen
-    size = Vector2(widthDown, targetHeight);
+    anchor = Anchor.center;
     current = Direction.down;
 
-    // --- HITBOX ANPASSEN ---
-    // Wir erstellen eine Hitbox, die nur 50% der Höhe hat.
-    // Die Position ist relativ zur oberen linken Ecke des Spielers.
-    // Ein y-Offset von targetHeight / 2 verschiebt die Hitbox nach unten.
-    _hitbox = RectangleHitbox(size: Vector2(widthDown, targetHeight), position: Vector2(0, 0));
+    // --- AUTOMATISCHE HITBOX-SKALIERUNG ---
+    // Hier berechnen wir die Werte vollautomatisch über die Faktoren!
+    _hitbox = RectangleHitbox(
+      size: Vector2(boxSize * _hitboxWidthFactor, boxSize * _hitboxHeightFactor),
+      position: Vector2(boxSize * _hitboxXFactor, boxSize * _hitboxYFactor),
+    );
+
     add(_hitbox);
     priority = 11;
   }
 
   @override
-  void update(double dt) {
-    const double targetHeight = 60.0;
-    _currentDt = dt;
+  void render(Canvas canvas) {
+    final ticker = animationTicker;
 
-    // Wir passen die Größe des Players und der Hitbox dynamisch an
-    if (current == Direction.down) {
-      double width = (206 / 229) * targetHeight;
-      size = Vector2(width, targetHeight);
-      _hitbox.size.x = width; // Breite der Hitbox anpassen
-    } else if (current == Direction.up) {
-      double width = (190 / 256) * targetHeight;
-      size = Vector2(width, targetHeight);
-      _hitbox.size.x = width; // Breite der Hitbox anpassen
-    } else if (current == Direction.left || current == Direction.right) {
-      double width = (139 / 261) * targetHeight;
-      size = Vector2(width, targetHeight);
-      _hitbox.size.x = width; // Breite der Hitbox anpassen
+    if (ticker != null) {
+      final sprite = ticker.getSprite();
+
+      final double spriteWidth = sprite.srcSize.x;
+      final double spriteHeight = sprite.srcSize.y;
+      final double aspectRatio = spriteWidth / spriteHeight;
+
+      double renderWidth = boxSize;
+      double renderHeight = boxSize;
+
+      if (aspectRatio > 1.0) {
+        renderHeight = boxSize / aspectRatio;
+      } else {
+        renderWidth = boxSize * aspectRatio;
+      }
+
+      if (current == Direction.up || current == Direction.down) {
+        const double scaleFactor = 0.8;
+        renderWidth *= scaleFactor;
+        renderHeight *= scaleFactor;
+      }
+
+      final double offsetX = (boxSize - renderWidth) / 2;
+      final double offsetY = (boxSize - renderHeight) / 2;
+
+      sprite.render(canvas, position: Vector2(offsetX, offsetY), size: Vector2(renderWidth, renderHeight));
+    } else {
+      super.render(canvas);
     }
+  }
+
+  @override
+  void update(double dt) {
+    _currentDt = dt;
 
     if (_velocity.length > 0) {
       super.update(dt);
@@ -108,7 +133,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     }
   }
 
-  // In hendrik.dart:
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     if (game.overlays.activeOverlays.isNotEmpty) {
@@ -151,7 +175,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       _velocity.normalize();
     }
 
-    // PC sperren mit Leertaste
     if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.space)) {
       game.toggleScreenLock();
       return true;
