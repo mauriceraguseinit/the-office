@@ -32,6 +32,7 @@ class ClickableMinimap extends PositionComponent with TapCallbacks {
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
+    event.handled = true;
     // Wenn auf die Minimap geklickt wird, führen wir die Zoom-Funktion aus
     onMinimapPressed();
   }

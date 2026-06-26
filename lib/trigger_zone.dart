@@ -87,6 +87,22 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
 
   @override
   void onTapDown(TapDownEvent event) {
+    // --- MINIMAP SCHUTZSCHILD START ---
+    // Wir holen uns die Klick-Position in echten Bildschirm-Pixeln
+    final screenPosition = event.canvasPosition;
+    final gameSize = game.size;
+
+    // Deine Minimap ist 200x200 Pixel groß und sitzt unten rechts mit 20px Abstand (220)
+    final minimapLeft = gameSize.x - 220;
+    final minimapTop = gameSize.y - 220;
+
+    // Wenn der Klick innerhalb des Minimap-Quadrats gelandet ist, ignorieren wir ihn komplett!
+    if (screenPosition.x >= minimapLeft && screenPosition.y >= minimapTop) {
+      return;
+    }
+    // --- MINIMAP SCHUTZSCHILD ENDE ---
+
+    // Dein bestehender Code:
     final distance = game.player.absoluteCenter.distanceTo(absoluteCenter);
     if (distance > 120) {
       game.overlays.add(TriggerZoneDialogs.tooFar.toString());

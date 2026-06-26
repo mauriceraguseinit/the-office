@@ -25,8 +25,8 @@ class OfficeGame extends FlameGame
         MouseMovementDetector,
         SecondaryTapCallbacks {
   bool _isZoomedOut = false;
-  final double _normalZoom = 3.0; // Deine aktuelle Zoomstufe
-  final double _mapViewZoom = 1.0; // Die herausgezoomte Übersicht
+  final double _normalZoom = 2.5; // Deine aktuelle Zoomstufe
+  final double _mapViewZoom = 1.5; // Die herausgezoomte Übersicht
 
   late CameraComponent minimapCamera;
 
@@ -153,7 +153,7 @@ class OfficeGame extends FlameGame
 
     // Kamera folgt dem Spieler
     camera.follow(player, snap: true);
-    camera.viewfinder.zoom = 3;
+    camera.viewfinder.zoom = 2.5;
 
     // Am Ende deiner onLoad()-Methode:
 
