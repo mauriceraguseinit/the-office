@@ -88,8 +88,34 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   @override
   void render(Canvas canvas) {
-    final ticker = animationTicker;
+    // ==========================================
+    // FAKE SCHATTEN ZEICHNEN
+    // ==========================================
+    final shadowPaint = Paint()
+      ..color = const Color(0x66000000)
+      ..style = PaintingStyle.fill;
 
+    final double shadowWidth = boxSize * 0.55;
+    final double shadowHeight = boxSize * 0.18;
+
+    final double shadowX = (boxSize - shadowWidth) / 2;
+
+    // Standard-Höhe für Hoch/Runter
+    double shadowY = boxSize - (shadowHeight * 1.2);
+
+    if (current == Direction.left || current == Direction.right) {
+      // Wir vergrößern den Abzug (z.B. von 0.7 auf 1.5),
+      // um den Schatten auf der Y-Achse weiter nach oben (höher) zu schieben.
+      shadowY = boxSize - (shadowHeight * 1.2);
+    }
+
+    canvas.drawOval(Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight), shadowPaint);
+    // ==========================================
+    // ==========================================
+    // ==========================================
+
+    // Ab hier folgt dein ganz normaler, bestehender AnimationCode...
+    final ticker = animationTicker;
     if (ticker != null) {
       final sprite = ticker.getSprite();
 
@@ -113,7 +139,12 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       }
 
       final double offsetX = (boxSize - renderWidth) / 2;
-      final double offsetY = (boxSize - renderHeight) / 2;
+      double offsetY = (boxSize - renderHeight) / 2;
+      if (current == Direction.left || current == Direction.right) {
+        // Wir ziehen einen kleinen Prozentsatz ab (z.B. 8% der Box-Größe),
+        // um das Sprite beim Seitwärtslaufen ein Stück nach oben (höher) zu schieben.
+        offsetY -= (boxSize * 0.08);
+      }
 
       sprite.render(canvas, position: Vector2(offsetX, offsetY), size: Vector2(renderWidth, renderHeight));
     } else {
