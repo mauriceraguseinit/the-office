@@ -1,4 +1,6 @@
 // tobi.dart
+import 'dart:ui';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -49,6 +51,31 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   static double frame = 4;
   static double pngHeight = 495;
   static double get frameWidth => pngWidth / frame;
+
+  @override
+  void render(Canvas canvas) {
+    // ==========================================
+    // FAKE SCHATTEN ZEICHNEN
+    // ==========================================
+    final shadowPaint = Paint()
+      ..color = const Color(0x66000000)
+      ..style = PaintingStyle.fill;
+
+    final double shadowWidth = 40;
+    final double shadowHeight = 14;
+
+    final double shadowX = 4;
+
+    // Standard-Höhe für Hoch/Runter
+    double shadowY = 56;
+
+    canvas.drawOval(Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight), shadowPaint);
+    // ==========================================
+    // ==========================================
+    // ==========================================
+
+    super.render(canvas);
+  }
 
   @override
   Future<void> onLoad() async {

@@ -67,7 +67,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     final animRight = await game.loadSpriteAnimation(
       'right.png',
-      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(286, 512)),
+      SpriteAnimationData.sequenced(amount: 7, stepTime: 0.15, textureSize: Vector2(286, 512)),
     );
 
     animations = {Direction.down: animDown, Direction.up: animUp, Direction.left: animLeft, Direction.right: animRight};
