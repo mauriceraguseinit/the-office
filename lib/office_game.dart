@@ -1,4 +1,3 @@
-import 'package:flame/camera.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -9,11 +8,13 @@ import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/npcs/tobi.dart';
 import 'package:the_office/trigger_zone.dart';
-import 'package:the_office/util.dart';
+import 'package:the_office/utils/map_splitter.dart';
+import 'package:the_office/utils/util.dart';
 
 import 'hendrik.dart';
+import 'hud/clickable_minimap.dart';
 import 'inventory_cursor.dart';
-import 'inventory_item.dart';
+import 'models/inventory_item.dart';
 import 'npcs/desk_daniel.dart';
 
 class OfficeGame extends FlameGame
@@ -107,10 +108,10 @@ class OfficeGame extends FlameGame
                   if (flipX && !flipDiag) objX = 64.0 - objX - objWidth;
                   if (flipY) objY = 64.0 - objY - objHeight;
 
-                  final obstacle = TileObstacle(
+                  final obstacle = PositionComponent(
                     position: Vector2(tileX + objX, tileY + objY),
                     size: Vector2(objWidth, objHeight),
-                  );
+                  )..add(RectangleHitbox());
 
                   // Hitboxen bekommen eine feste Priorität über dem Boden
                   obstacle.priority = 1;
@@ -312,110 +313,5 @@ class OfficeGame extends FlameGame
       },
     );
     world.add(danielTrigger);
-  }
-}
-
-class TileObstacle extends PositionComponent {
-  TileObstacle({required Vector2 position, required Vector2 size}) : super(position: position, size: size) {
-    // Das Aktiviert die Hitbox für diese Box
-    add(RectangleHitbox());
-  }
-}
-
-// Falls dein Editor 'RenderableLayer' nicht kennt, deklarieren wir den Parameter
-// in der Komponente einfach als 'dynamic' oder nutzen den exakten Typ aus der Schleife.
-class MyTiledLayerComponent extends PositionComponent {
-  final dynamic renderLayer; // dynamic fängt alle internen Paket-Namensänderungen ab
-
-  MyTiledLayerComponent(this.renderLayer);
-
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    // Ruft die originale Render-Methode des flame_tiled Layers auf
-    renderLayer.render(canvas);
-  }
-}
-
-class MapSplitter {
-  /// Lädt eine Tiled-Map und splittet sie in eine Liste von TiledComponents auf.
-  /// Jede Komponente enthält genau einen Layer und die Priorität entspricht dem Index.
-  static Future<List<TiledComponent>> splitMapIntoLayers({
-    required String fileName,
-    required Vector2 destTileSize,
-  }) async {
-    List<TiledComponent> splitComponents = [];
-
-    // 1. Wir laden eine temporäre Instanz, um die Anzahl und Namen der Layer zu ermitteln
-    final baseMap = await TiledComponent.load(fileName, destTileSize);
-    final totalLayers = baseMap.tileMap.renderableLayers.length;
-
-    // Wir merken uns die Namen der Layer in der korrekten Reihenfolge aus Tiled
-    List<String> layerNames = baseMap.tileMap.renderableLayers.map((renderable) => renderable.layer.name).toList();
-
-    // 2. Jetzt erstellen wir für jeden Layer eine eigene TiledComponent
-    for (int i = 0; i < totalLayers; i++) {
-      final currentLayerName = layerNames[i];
-
-      // Wir laden die Map erneut (Flame nutzt hier das Asset-Caching, das ist performant!)
-      final layerComponent = await TiledComponent.load(
-        fileName,
-        destTileSize,
-        priority: i, // Automatische Priorität nach Tiled-Reihenfolge (Index)
-      );
-
-      // Nur diesen einen spezifischen Layer sichtbar lassen
-      _isolateSingleLayer(layerComponent.tileMap, targetLayerName: currentLayerName);
-
-      splitComponents.add(layerComponent);
-    }
-
-    return splitComponents;
-  }
-
-  /// Schaltet alle Layer bis auf den Ziel-Layer unsichtbar
-  static void _isolateSingleLayer(RenderableTiledMap tileMap, {required String targetLayerName}) {
-    for (var i = 0; i < tileMap.renderableLayers.length; i++) {
-      final layerName = tileMap.renderableLayers[i].layer.name;
-      if (layerName == targetLayerName) {
-        tileMap.setLayerVisibility(i, visible: true);
-      } else {
-        tileMap.setLayerVisibility(i, visible: false);
-      }
-    }
-  }
-}
-
-class ClickableMinimap extends PositionComponent with TapCallbacks {
-  final CameraComponent minimapCamera;
-  final VoidCallback onMinimapPressed;
-
-  ClickableMinimap({
-    required this.minimapCamera,
-    required this.onMinimapPressed,
-    required Vector2 position,
-    required Vector2 size,
-  }) : super(position: position, size: size) {
-    // Die Minimap-Kamera wird als Kind dieser Komponente hinzugefügt
-    // und an deren Position/Größe angepasst
-    minimapCamera.viewport = FixedSizeViewport(size.x, size.y);
-    add(minimapCamera);
-
-    // Optionaler schicker Rahmen
-    final border = RectangleComponent(
-      size: size,
-      paint: Paint()
-        ..color = Colors.orange
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4,
-    );
-    add(border);
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
-    super.onTapDown(event);
-    // Wenn auf die Minimap geklickt wird, führen wir die Zoom-Funktion aus
-    onMinimapPressed();
   }
 }

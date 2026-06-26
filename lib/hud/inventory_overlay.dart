@@ -1,8 +1,8 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-import 'inventory_item.dart';
-import 'office_game.dart';
+import '../models/inventory_item.dart';
+import '../office_game.dart';
 
 class InventoryOverlay extends StatefulWidget {
   final OfficeGame game;

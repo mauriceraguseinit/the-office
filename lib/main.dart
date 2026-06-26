@@ -1,10 +1,10 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/npcs/tobi.dart';
-import 'package:the_office/speech_bubble.dart';
 import 'package:the_office/trigger_zone.dart';
 
-import 'inventory_overlay.dart';
+import 'hud/inventory_overlay.dart';
 import 'npcs/desk_daniel.dart';
 import 'office_game.dart';
 

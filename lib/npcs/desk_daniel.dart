@@ -2,7 +2,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:the_office/speech_bubble.dart';
+import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/trigger_zone.dart';
 
 import '../office_game.dart';
