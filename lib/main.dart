@@ -1,11 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:the_office/hud/speech_bubble.dart';
-import 'package:the_office/npcs/tobi.dart';
-import 'package:the_office/trigger_zone.dart';
 
-import 'hud/inventory_overlay.dart';
-import 'npcs/desk_daniel.dart';
 import 'office_game.dart';
 
 void main() {
@@ -33,22 +28,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
             return MouseRegion(
               // TRICK: Wenn ein Item aktiv ist, blenden wir den System-Cursor komplett aus!
               cursor: _game.selectedItem != null ? SystemMouseCursors.none : SystemMouseCursors.basic,
-              child: GameWidget(
-                game: _game,
-                overlayBuilderMap: {
-                  ...Tobi.dialogs,
-                  ...DeskDaniel.dialogs,
-                  ...TriggerZone.dialogs,
-
-                  'inventory': (context, OfficeGame game) => InventoryOverlay(game: game),
-                  'intro': (context, OfficeGame game) => RetroSpeechBubble(
-                    actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
-                    text:
-                        'Willkommen im Büro.\n\nHente wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
-                    onClose: () => game.overlays.remove('intro'),
-                  ),
-                },
-              ),
+              child: GameWidget(game: _game, overlayBuilderMap: _game.overlayBuilderMap),
             );
           },
         ),

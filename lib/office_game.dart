@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
+import 'package:the_office/interactiveObjects/toilet.dart';
 import 'package:the_office/npcs/tobi.dart';
 import 'package:the_office/trigger_zone.dart';
 import 'package:the_office/utils/map_splitter.dart';
@@ -13,6 +14,8 @@ import 'package:the_office/utils/util.dart';
 
 import 'hendrik.dart';
 import 'hud/clickable_minimap.dart';
+import 'hud/inventory_overlay.dart';
+import 'hud/speech_bubble.dart';
 import 'inventory_cursor.dart';
 import 'models/inventory_item.dart';
 import 'npcs/desk_daniel.dart';
@@ -39,6 +42,16 @@ class OfficeGame extends FlameGame
   late TiledComponent mapComponent;
 
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
+
+  final Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = {
+    'inventory': (context, OfficeGame game) => InventoryOverlay(game: game),
+    'intro': (context, OfficeGame game) => RetroSpeechBubble(
+      actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
+      text:
+          'Willkommen im Büro.\n\nHente wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
+      onClose: () => game.overlays.remove('intro'),
+    ),
+  };
 
   @override
   Future<void> onLoad() async {
@@ -139,6 +152,20 @@ class OfficeGame extends FlameGame
     ownedItems.add(InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'));
 
     final spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
+    final interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
+
+    interactiveObjects?.objects.forEach((object) {
+      if (object.class_ == 'Toilet') {
+        final Toilet toilet = Toilet(
+          position: Vector2(object.x, object.y),
+          size: Vector2(object.size.x, object.size.y),
+        );
+        world.add(toilet);
+        world.add(
+          TriggerZone(target: toilet, onAction: () => overlays.add(ToiletDialogs.normalAction.toString()), padding: 5),
+        );
+      }
+    });
 
     _buildNpcs(spawnPoints);
 

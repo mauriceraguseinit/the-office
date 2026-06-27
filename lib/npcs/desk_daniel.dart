@@ -11,7 +11,7 @@ enum DanielDialogs { normalAction, mate, wrongItem }
 
 class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
   DeskDaniel({required super.position, required super.size, this.hitBox = true});
-  static Map<String, OverlayWidgetBuilder<OfficeGame>> get dialogs {
+  Map<String, OverlayWidgetBuilder<OfficeGame>> get _dialogs {
     return {
       for (final value in DanielDialogs.values)
         value.toString(): (context, OfficeGame game) {
@@ -47,6 +47,7 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
   @override
   Future<void> onLoad() async {
     super.onLoad();
+    game.overlayBuilderMap?.addAll(_dialogs);
 
     priority = 10;
     final anim = await game.loadSpriteAnimation(

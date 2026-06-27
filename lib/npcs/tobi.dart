@@ -13,7 +13,7 @@ import '../office_game.dart';
 enum TobiDialogs { normalAction, thanks, wrongItem, noMate }
 
 class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
-  static Map<String, OverlayWidgetBuilder<OfficeGame>> get dialogs {
+  Map<String, OverlayWidgetBuilder<OfficeGame>> get _dialogs {
     return {
       for (final value in TobiDialogs.values)
         value.toString(): (context, OfficeGame game) {
@@ -80,6 +80,7 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   @override
   Future<void> onLoad() async {
     super.onLoad();
+    game.overlayBuilderMap?.addAll(_dialogs);
     priority = 4;
 
     final anim = await game.loadSpriteAnimation(

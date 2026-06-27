@@ -12,7 +12,7 @@ import 'office_game.dart';
 enum TriggerZoneDialogs { tooFar }
 
 class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallbacks, HasGameReference<OfficeGame> {
-  static Map<String, OverlayWidgetBuilder<OfficeGame>> dialogs = {
+  final Map<String, OverlayWidgetBuilder<OfficeGame>> _dialogs = {
     TriggerZoneDialogs.tooFar.toString(): (context, OfficeGame game) => RetroSpeechBubble(
       text: 'Dafür bin ich zu weit weg.',
       onClose: () => game.overlays.remove(TriggerZoneDialogs.tooFar.toString()),
@@ -30,6 +30,10 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
   @override
   Future<void> onLoad() async {
     super.onLoad();
+
+    debugMode = false;
+
+    game.overlayBuilderMap?.addAll(_dialogs);
 
     final isRotated = target.angle == 1.5707963267948966 || target.angle == 4.71238898038469;
 
