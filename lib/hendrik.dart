@@ -21,9 +21,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   // Breite: 32/60 ≈ 53.3% | Höhe: 40/60 ≈ 66.6%
   // X-Pos:  14/60 ≈ 23.3% | Y-Pos:  18/60 ≈ 30.0%
   static const double _hitboxWidthFactor = 32 / 60;
-  static const double _hitboxHeightFactor = 40 / 60;
+  static const double _hitboxHeightFactor = 0.5;
   static const double _hitboxXFactor = 14 / 60;
-  static const double _hitboxYFactor = 18 / 60;
+  static const double _hitboxYFactor = 0.5;
   // ==========================================
 
   Hendrik({required Vector2 position}) : super(position: position, size: Vector2.all(boxSize));
@@ -80,7 +80,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     _hitbox = RectangleHitbox(
       size: Vector2(boxSize * _hitboxWidthFactor, boxSize * _hitboxHeightFactor),
       position: Vector2(boxSize * _hitboxXFactor, boxSize * _hitboxYFactor),
-    );
+    )..debugMode = true;
 
     add(_hitbox);
   }
