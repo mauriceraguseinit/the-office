@@ -51,7 +51,7 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
 
     game.overlayBuilderMap?.addAll(_dialogs);
 
-    priority = 4;
+    priority = (y + height / 2).toInt();
     debugMode = false;
     anchor = Anchor.centerRight;
 

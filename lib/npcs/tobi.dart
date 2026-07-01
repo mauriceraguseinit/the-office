@@ -81,7 +81,8 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   Future<void> onLoad() async {
     super.onLoad();
     game.overlayBuilderMap?.addAll(_dialogs);
-    priority = 4;
+
+    priority = (y + height).toInt();
 
     final anim = await game.loadSpriteAnimation(
       'tobi_idle.png',

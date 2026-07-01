@@ -49,7 +49,7 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
     super.onLoad();
     game.overlayBuilderMap?.addAll(_dialogs);
 
-    priority = 10;
+    priority = (y + height).toInt();
     final anim = await game.loadSpriteAnimation(
       'desk_daniel.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.915, textureSize: Vector2(frameWidth, pngHeight)),

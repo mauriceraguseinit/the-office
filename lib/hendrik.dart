@@ -83,7 +83,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     );
 
     add(_hitbox);
-    priority = 11;
   }
 
   @override
@@ -162,6 +161,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     } else {
       super.update(0);
     }
+
+    priority = (y + height / 2).toInt();
   }
 
   @override

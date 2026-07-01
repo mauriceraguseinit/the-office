@@ -7,7 +7,7 @@
   <tile id="7">
    <image source="../images/wall.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="0.353331" y="0.4499" width="63.4818" height="31.503"/>
+    <object id="1" x="0.037788" y="52.6723" width="63.4818" height="10.3616"/>
    </objectgroup>
   </tile>
   <tile id="8">
