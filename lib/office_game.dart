@@ -66,40 +66,85 @@ class OfficeGame extends FlameGame
       destTileSize: Vector2.all(64),
     );
 
-    world.addAll(mapLayers);
-
-    // Wir geben der Map die Basis-Priorität 0, damit sie ganz unten liegt
-    mapComponent.priority = 0;
+    // Wir fügen NUR den Boden als statischen Layer im Hintergrund hinzu
+    for (final layerComponent in mapLayers) {
+      final isBoden = layerComponent.tileMap.renderableLayers.any((rl) => rl.layer.name == 'Boden' && rl.layer.visible);
+      if (isBoden) {
+        layerComponent.priority = -1000;
+        world.add(layerComponent);
+      }
+    }
 
     final tileMap = mapComponent.tileMap;
 
-    // 2. Schleife: Wir gehen durch alle Kachel-Layer für die Kollisionen
+    // 0. Alle Tileset-Bilder vorab laden, damit wir sie synchron für Sprites nutzen können
+    for (final ts in tileMap.map.tilesets) {
+      if (ts.image?.source != null) await images.load(ts.image!.source!);
+      for (final t in ts.tiles) {
+        if (t.image?.source != null) await images.load(t.image!.source!);
+      }
+    }
+
+    // 2. Schleife: Alle anderen Kachel-Layer (Wände, Möbel etc.) für Y-Sorting verarbeiten
     for (final renderableLayer in tileMap.renderableLayers) {
       final layer = renderableLayer.layer;
 
-      if (layer is TileLayer) {
+      if (layer is TileLayer && layer.name != 'Boden' && layer.visible) {
         final tileLayer = layer;
         final mapWidth = tileMap.map.width;
         final mapHeight = tileMap.map.height;
 
         for (int y = 0; y < mapHeight; y++) {
           for (int x = 0; x < mapWidth; x++) {
-            // HIER wird tileData definiert!
             final tileData = tileMap.getTileData(layerId: tileLayer.id!, x: x, y: y);
 
             if (tileData != null && tileData.tile != 0) {
-              final tileDefinition = tileMap.map.tileByGid(tileData.tile);
+              final gid = tileData.tile;
+
+              // VISUELL: Jede Kachel als eigene Komponente für Y-Sorting hinzufügen
+              // Da getTileSprite in dieser Version fehlt, extrahieren wir das Sprite manuell
+              final tile = tileMap.map.tileByGid(gid)!;
+              final ts = tileMap.map.tilesetByTileGId(gid);
+              final rect = ts.computeDrawRect(tile);
+              final imageSource = (tile.image ?? ts.image)!.source!;
+
+              final sprite = Sprite(
+                images.fromCache(imageSource),
+                srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+                srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+              );
+
+              // Rotations- und Spiegelungszustände aus tileData
+              final bool flipX = tileData.flips.horizontally;
+              final bool flipY = tileData.flips.vertically;
+              final bool flipDiag = tileData.flips.diagonally;
+
+              final tileComponent = SpriteComponent(
+                sprite: sprite,
+                position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0), // Mitte für korrekte Rotation
+                size: Vector2.all(64.0),
+                anchor: Anchor.center,
+                priority: (y * 64 + 64).toInt(),
+              );
+
+              // Tiled Rotations-Logik anwenden (Z-Taste im Editor)
+              if (flipDiag) {
+                tileComponent.angle = Units.degree90;
+                tileComponent.flipHorizontally();
+              }
+              if (flipX) tileComponent.flipHorizontally();
+              if (flipY) tileComponent.flipVertically();
+
+              world.add(tileComponent);
+
+              // KOLLISION:
+              final tileDefinition = tileMap.map.tileByGid(gid);
 
               if (tileDefinition != null && tileDefinition.objectGroup != null) {
                 final objectGroup = tileDefinition.objectGroup as ObjectGroup;
 
                 final tileX = x * 64.0;
                 final tileY = y * 64.0;
-
-                // Rotationszustände direkt aus tileData ablesen (korrekte Properties)
-                final bool flipX = tileData.flips.horizontally;
-                final bool flipY = tileData.flips.vertically;
-                final bool flipDiag = tileData.flips.diagonally;
 
                 for (final tiledObject in objectGroup.objects) {
                   double objX = tiledObject.x;
@@ -164,6 +209,42 @@ class OfficeGame extends FlameGame
         world.add(
           TriggerZone(target: toilet, onAction: () => overlays.add(ToiletDialogs.normalAction.toString()), padding: 5),
         );
+      } else if (object.gid != null) {
+        // Generisches Handling für alle anderen visuellen Objekte aus Tiled (Deko, Möbel)
+        final gid = object.gid!;
+        final tile = tileMap.map.tileByGid(gid)!;
+        final ts = tileMap.map.tilesetByTileGId(gid);
+        final rect = ts.computeDrawRect(tile);
+        final imageSource = (tile.image ?? ts.image)!.source!;
+
+        final sprite = Sprite(
+          images.fromCache(imageSource),
+          srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+          srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+        );
+
+        final item = SpriteComponent(
+          sprite: sprite,
+          position: Vector2(object.x, object.y),
+          size: Vector2(object.width, object.height),
+          anchor: Anchor.bottomLeft,
+          angle: Units.radFromDegree(object.rotation),
+        );
+
+        // Auch Objekt-GIDs können Flips enthalten (Z-Taste oder Spiegeln)
+        final bool flipX = (gid & 0x80000000) != 0;
+        final bool flipY = (gid & 0x40000000) != 0;
+        final bool flipDiag = (gid & 0x20000000) != 0;
+
+        if (flipDiag) {
+          item.angle += Units.degree90;
+          item.flipHorizontally();
+        }
+        if (flipX) item.flipHorizontally();
+        if (flipY) item.flipVertically();
+
+        item.priority = object.y.toInt();
+        world.add(item);
       }
     });
 
@@ -172,9 +253,9 @@ class OfficeGame extends FlameGame
     // Spawnpoint auslesen
     TiledObject? playerObject = spawnPoints?.objects.firstWhere((element) => element.name == 'playerStart');
 
-    // Spieler erstellen und ihm eine höhere Priorität als der Map geben
+    // Spieler erstellen
     player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0));
-    player.priority = 0; // Läuft über dem Boden
+    // player.priority wird dynamisch in Hendrik.update gesetzt
 
     world.add(player);
 

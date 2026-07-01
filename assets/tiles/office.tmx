@@ -13,7 +13,7 @@
   <tile id="8">
    <image source="../images/window.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="0.110554" y="-0.0385" width="63.5996" height="32.602"/>
+    <object id="1" x="0.110554" y="55.9704" width="63.5996" height="7.35856"/>
    </objectgroup>
   </tile>
   <tile id="9">
@@ -91,7 +91,7 @@
   <tile id="74">
    <image source="../images/window_big.png" width="64" height="64"/>
    <objectgroup draworder="index" id="2">
-    <object id="1" x="0.125" y="0.125" width="63.875" height="32.5"/>
+    <object id="1" x="0.125" y="56.2916" width="63.875" height="7.25656"/>
    </objectgroup>
   </tile>
   <tile id="75">
@@ -99,6 +99,9 @@
   </tile>
   <tile id="76">
    <image source="../images/window_opaqe.png" width="64" height="64"/>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="0.473314" y="56.3244" width="63.1086" height="7.25749"/>
+   </objectgroup>
   </tile>
   <tile id="77">
    <image source="../images/trashes.png" width="64" height="64"/>
