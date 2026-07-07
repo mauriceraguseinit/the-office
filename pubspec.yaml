@@ -27,4 +27,5 @@ flutter:
   assets:
     - assets/images/
     - assets/tiles/
-
+  shaders:
+    - assets/shaders/lighting.frag

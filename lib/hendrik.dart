@@ -26,7 +26,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   static const double _hitboxYFactor = 0.5;
   // ==========================================
 
-  Hendrik({required Vector2 position}) : super(position: position, size: Vector2.all(boxSize));
+  Hendrik({required Vector2 position})
+    : super(position: position, size: Vector2.all(boxSize));
 
   final Vector2 _velocity = Vector2.zero();
   final double _speed = 200.0;
@@ -39,7 +40,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     super.onCollision(intersectionPoints, other);
 
     final hitboxes = other.children.whereType<ShapeHitbox>();
-    final hasActiveCollision = hitboxes.any((hitbox) => hitbox.collisionType == CollisionType.active);
+    final hasActiveCollision = hitboxes.any(
+      (hitbox) => hitbox.collisionType == CollisionType.active,
+    );
 
     if (hasActiveCollision) {
       position -= _velocity * _speed * _currentDt;
@@ -52,25 +55,46 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     final animDown = await game.loadSpriteAnimation(
       'down.png',
-      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(206, 229)),
+      SpriteAnimationData.sequenced(
+        amount: 4,
+        stepTime: 0.15,
+        textureSize: Vector2(206, 229),
+      ),
     );
 
     final animUp = await game.loadSpriteAnimation(
       'up.png',
-      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(190, 256)),
+      SpriteAnimationData.sequenced(
+        amount: 4,
+        stepTime: 0.15,
+        textureSize: Vector2(190, 256),
+      ),
     );
 
     final animLeft = await game.loadSpriteAnimation(
       'left.png',
-      SpriteAnimationData.sequenced(amount: 7, stepTime: 0.15, textureSize: Vector2(286, 512)),
+      SpriteAnimationData.sequenced(
+        amount: 7,
+        stepTime: 0.15,
+        textureSize: Vector2(286, 512),
+      ),
     );
 
     final animRight = await game.loadSpriteAnimation(
       'right.png',
-      SpriteAnimationData.sequenced(amount: 7, stepTime: 0.15, textureSize: Vector2(286, 512)),
+      SpriteAnimationData.sequenced(
+        amount: 7,
+        stepTime: 0.15,
+        textureSize: Vector2(286, 512),
+      ),
     );
 
-    animations = {Direction.down: animDown, Direction.up: animUp, Direction.left: animLeft, Direction.right: animRight};
+    animations = {
+      Direction.down: animDown,
+      Direction.up: animUp,
+      Direction.left: animLeft,
+      Direction.right: animRight,
+    };
 
     anchor = Anchor.center;
     current = Direction.down;
@@ -78,9 +102,12 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     // --- AUTOMATISCHE HITBOX-SKALIERUNG ---
     // Hier berechnen wir die Werte vollautomatisch über die Faktoren!
     _hitbox = RectangleHitbox(
-      size: Vector2(boxSize * _hitboxWidthFactor, boxSize * _hitboxHeightFactor),
+      size: Vector2(
+        boxSize * _hitboxWidthFactor,
+        boxSize * _hitboxHeightFactor,
+      ),
       position: Vector2(boxSize * _hitboxXFactor, boxSize * _hitboxYFactor),
-    )..debugMode = true;
+    )..debugMode = false;
 
     add(_hitbox);
   }
@@ -108,7 +135,10 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       shadowY = boxSize - (shadowHeight * 1.2);
     }
 
-    canvas.drawOval(Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight), shadowPaint);
+    canvas.drawOval(
+      Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight),
+      shadowPaint,
+    );
     // ==========================================
     // ==========================================
     // ==========================================
@@ -145,7 +175,11 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
         offsetY -= (boxSize * 0.08);
       }
 
-      sprite.render(canvas, position: Vector2(offsetX, offsetY), size: Vector2(renderWidth, renderHeight));
+      sprite.render(
+        canvas,
+        position: Vector2(offsetX, offsetY),
+        size: Vector2(renderWidth, renderHeight),
+      );
     } else {
       super.render(canvas);
     }
@@ -172,7 +206,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       return false;
     }
 
-    if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.keyE)) {
+    if (event is KeyDownEvent &&
+        keysPressed.contains(LogicalKeyboardKey.keyE)) {
       final zones = game.world.children.whereType<TriggerZone>();
       for (final zone in zones) {
         if (zone.checkInteraction(this)) {
@@ -186,19 +221,23 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     if (keysPressed.contains(LogicalKeyboardKey.keyI)) {
       game.overlays.add('inventory');
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyW) || keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
+    if (keysPressed.contains(LogicalKeyboardKey.keyW) ||
+        keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
       _velocity.y = -1;
       current = Direction.up;
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyS) || keysPressed.contains(LogicalKeyboardKey.arrowDown)) {
+    if (keysPressed.contains(LogicalKeyboardKey.keyS) ||
+        keysPressed.contains(LogicalKeyboardKey.arrowDown)) {
       _velocity.y = 1;
       current = Direction.down;
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyA) || keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
+    if (keysPressed.contains(LogicalKeyboardKey.keyA) ||
+        keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
       _velocity.x = -1;
       current = Direction.left;
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyD) || keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
+    if (keysPressed.contains(LogicalKeyboardKey.keyD) ||
+        keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
       _velocity.x = 1;
       current = Direction.right;
     }
@@ -207,7 +246,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       _velocity.normalize();
     }
 
-    if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.space)) {
+    if (event is KeyDownEvent &&
+        keysPressed.contains(LogicalKeyboardKey.space)) {
       game.toggleScreenLock();
       return true;
     }
