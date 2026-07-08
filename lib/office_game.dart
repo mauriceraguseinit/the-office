@@ -29,7 +29,7 @@ class OfficeGame extends FlameGame
         MouseMovementDetector,
         SecondaryTapCallbacks {
   bool _isZoomedOut = false;
-  final double _normalZoom = 0.5; // Deine aktuelle Zoomstufe
+  final double _normalZoom = 2.5; // Deine aktuelle Zoomstufe
   final double _mapViewZoom = 1.5; // Die herausgezoomte Übersicht
 
   late CameraComponent minimapCamera;
@@ -40,6 +40,7 @@ class OfficeGame extends FlameGame
   late TextComponent statusText;
   bool isDeskLocked = false;
   late Hendrik player;
+  late ClickableMinimap minimap;
   late TiledComponent mapComponent;
 
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
@@ -106,7 +107,7 @@ class OfficeGame extends FlameGame
               final tileDefinition = tileMap.map.tileByGid(gid);
               final ts = tileMap.map.tilesetByTileGId(gid);
 
-              if (tileDefinition == null || ts == null) continue;
+              if (tileDefinition == null) continue;
 
               final imageSource = (tileDefinition.image ?? ts.image)!.source!;
               PositionComponent tileComponent;
@@ -303,7 +304,7 @@ class OfficeGame extends FlameGame
     rawMinimapCamera.viewfinder.zoom = 0.2;
     rawMinimapCamera.follow(player, snap: true);
 
-    final minimap = ClickableMinimap(
+    minimap = ClickableMinimap(
       minimapCamera: rawMinimapCamera,
       size: Vector2(200, 200),
       position: Vector2(size.x - 220, size.y - 220),
@@ -332,8 +333,21 @@ class OfficeGame extends FlameGame
       print('  Licht $i: ${sources[i]}');
     }
 
-    final lighting = LightingManager(lightSources: sources, shadowBlockers: blockers)..priority = 500;
+    final lighting = LightingManager(lightSources: sources, shadowBlockers: blockers, targetCamera: camera)
+      ..priority = 500;
     camera.viewport.add(lighting);
+
+    final lighting2 = LightingManager(lightSources: sources, shadowBlockers: blockers, targetCamera: rawMinimapCamera)
+      ..priority = 500;
+    rawMinimapCamera.viewport.add(lighting2);
+  }
+
+  @override
+  void onGameResize(Vector2 newSize) {
+    super.onGameResize(newSize);
+    try {
+      minimap.position = Vector2(newSize.x - 220, newSize.y - 220);
+    } catch (_) {}
   }
 
   @override
