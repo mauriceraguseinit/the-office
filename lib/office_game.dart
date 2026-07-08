@@ -17,6 +17,7 @@ import 'hud/clickable_minimap.dart';
 import 'hud/inventory_overlay.dart';
 import 'hud/speech_bubble.dart';
 import 'inventory_cursor.dart';
+import 'lighting_manager.dart';
 import 'models/inventory_item.dart';
 import 'npcs/desk_daniel.dart';
 
@@ -28,7 +29,7 @@ class OfficeGame extends FlameGame
         MouseMovementDetector,
         SecondaryTapCallbacks {
   bool _isZoomedOut = false;
-  final double _normalZoom = 2.5; // Deine aktuelle Zoomstufe
+  final double _normalZoom = 0.5; // Deine aktuelle Zoomstufe
   final double _mapViewZoom = 1.5; // Die herausgezoomte Übersicht
 
   late CameraComponent minimapCamera;
@@ -101,31 +102,65 @@ class OfficeGame extends FlameGame
             if (tileData != null && tileData.tile != 0) {
               final gid = tileData.tile;
 
-              // VISUELL: Jede Kachel als eigene Komponente für Y-Sorting hinzufügen
-              // Da getTileSprite in dieser Version fehlt, extrahieren wir das Sprite manuell
-              final tile = tileMap.map.tileByGid(gid)!;
+              // 1. Hole die Definitionen aus der Map
+              final tileDefinition = tileMap.map.tileByGid(gid);
               final ts = tileMap.map.tilesetByTileGId(gid);
-              final rect = ts.computeDrawRect(tile);
-              final imageSource = (tile.image ?? ts.image)!.source!;
 
-              final sprite = Sprite(
-                images.fromCache(imageSource),
-                srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
-                srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
-              );
+              if (tileDefinition == null || ts == null) continue;
 
-              // Rotations- und Spiegelungszustände aus tileData
+              final imageSource = (tileDefinition.image ?? ts.image)!.source!;
+              PositionComponent tileComponent;
+
+              // 2. PRÜFEN: Hat dieses Tile eine Tiled-Animation?
+              if (tileDefinition.animation.isNotEmpty) {
+                final List<SpriteAnimationFrame> frames = [];
+
+                for (final frame in tileDefinition.animation) {
+                  // Bestimme das exakte Tile für diesen Animations-Frame
+                  final frameTile = tileMap.map.tileByGid(ts.firstGid! + frame.tileId)!;
+                  final frameRect = ts.computeDrawRect(frameTile);
+
+                  final sprite = Sprite(
+                    images.fromCache((frameTile.image ?? ts.image)!.source!),
+                    srcPosition: Vector2(frameRect.left.toDouble(), frameRect.top.toDouble()),
+                    srcSize: Vector2(frameRect.width.toDouble(), frameRect.height.toDouble()),
+                  );
+
+                  // Dauer von Millisekunden in Sekunden umrechnen
+                  final double durationInSeconds = frame.duration / 1000.0;
+                  frames.add(SpriteAnimationFrame(sprite, durationInSeconds));
+                }
+
+                // Animierte Komponente erstellen
+                tileComponent = SpriteAnimationComponent(
+                  animation: SpriteAnimation(frames), // Nutzt direkt deine fertige Liste!
+                  position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
+                  size: Vector2.all(64.0),
+                  anchor: Anchor.center,
+                  priority: (y * 64 + 64).toInt(),
+                );
+              } else {
+                // STATISCHES FALLBACK: Normales Sprite erstellen, wenn keine Animation existiert
+                final rect = ts.computeDrawRect(tileDefinition);
+                final sprite = Sprite(
+                  images.fromCache(imageSource),
+                  srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+                  srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+                );
+
+                tileComponent = SpriteComponent(
+                  sprite: sprite,
+                  position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
+                  size: Vector2.all(64.0),
+                  anchor: Anchor.center,
+                  priority: (y * 64 + 64).toInt(),
+                );
+              }
+
+              // Rotations- und Spiegelungszustände aus tileData auslesen
               final bool flipX = tileData.flips.horizontally;
               final bool flipY = tileData.flips.vertically;
               final bool flipDiag = tileData.flips.diagonally;
-
-              final tileComponent = SpriteComponent(
-                sprite: sprite,
-                position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0), // Mitte für korrekte Rotation
-                size: Vector2.all(64.0),
-                anchor: Anchor.center,
-                priority: (y * 64 + 64).toInt(),
-              );
 
               // Tiled Rotations-Logik anwenden (Z-Taste im Editor)
               if (flipDiag) {
@@ -135,13 +170,14 @@ class OfficeGame extends FlameGame
               if (flipX) tileComponent.flipHorizontally();
               if (flipY) tileComponent.flipVertically();
 
+              // Kachel der Spielwelt hinzufügen
               world.add(tileComponent);
 
               // KOLLISION:
-              final tileDefinition = tileMap.map.tileByGid(gid);
+              final tileDefinitionForCollision = tileMap.map.tileByGid(gid);
 
-              if (tileDefinition != null && tileDefinition.objectGroup != null) {
-                final objectGroup = tileDefinition.objectGroup as ObjectGroup;
+              if (tileDefinitionForCollision != null && tileDefinitionForCollision.objectGroup != null) {
+                final objectGroup = tileDefinitionForCollision.objectGroup as ObjectGroup;
 
                 final tileX = x * 64.0;
                 final tileY = y * 64.0;
@@ -263,8 +299,6 @@ class OfficeGame extends FlameGame
     camera.follow(player, snap: true);
     camera.viewfinder.zoom = 2.5;
 
-    // Am Ende deiner onLoad()-Methode:
-
     final rawMinimapCamera = CameraComponent(world: world);
     rawMinimapCamera.viewfinder.zoom = 0.2;
     rawMinimapCamera.follow(player, snap: true);
@@ -275,10 +309,31 @@ class OfficeGame extends FlameGame
       position: Vector2(size.x - 220, size.y - 220),
       onMinimapPressed: _toggleCameraZoom,
     );
-
+    minimap.priority = 1000;
     camera.viewport.add(minimap);
 
     _buildHud();
+
+    // --- LIGHTING SYSTEM ---
+    final lightPoints = mapComponent.tileMap.getLayer<ObjectGroup>('lights')?.objects ?? [];
+    final shadowObjects = mapComponent.tileMap.getLayer<ObjectGroup>('shadowCast')?.objects ?? [];
+
+    final sources = lightPoints.map((obj) => Vector2(obj.x, obj.y)).toList();
+    final blockers = shadowObjects.map((obj) => Rect.fromLTWH(obj.x, obj.y, obj.width, obj.height)).toList();
+
+    // NUR wenn WIRKLICH nichts geladen wurde:
+    if (sources.isEmpty) {
+      print('⚠️  WARNUNG: Keine Lichter in Tiled gefunden! Nutze Fallback-Licht.');
+      sources.add(Vector2(500, 500));
+    }
+
+    print('Finale Licht-Positionen: ${sources.length}');
+    for (int i = 0; i < sources.length; i++) {
+      print('  Licht $i: ${sources[i]}');
+    }
+
+    final lighting = LightingManager(lightSources: sources, shadowBlockers: blockers)..priority = 500;
+    camera.viewport.add(lighting);
   }
 
   @override
@@ -378,8 +433,8 @@ class OfficeGame extends FlameGame
 
     // WICHTIG: Die Texte werden jetzt an das VIEWPORT der Kamera gehängt!
     // Dadurch wandern sie garantiert in den absoluten Vordergrund (HUD)
-    camera.viewport.add(statusText);
-    camera.viewport.add(infoText);
+    // camera.viewport.add(statusText);
+    camera.viewport.add(infoText..priority = 1000);
     camera.viewport.add(InventoryCursor());
   }
 
