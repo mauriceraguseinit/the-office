@@ -1,8 +1,8 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import 'office_game.dart';
 import 'hud/character_editor.dart';
+import 'office_game.dart';
 
 void main() {
   runApp(const TheOfficeApp());
@@ -33,7 +33,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
                   return MouseRegion(
                     // TRICK: Wenn ein Item aktiv ist, blenden wir den System-Cursor komplett aus!
                     cursor: _game.selectedItem != null ? SystemMouseCursors.none : SystemMouseCursors.basic,
-                    child: GameWidget(game: _game, overlayBuilderMap: _game.overlayBuilderMap),
+                    child: GameWidget(game: _game, overlayBuilderMap: OfficeGame.overlayBuilderMap),
                   );
                 },
               ),

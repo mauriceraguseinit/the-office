@@ -47,7 +47,7 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    game.overlayBuilderMap?.addAll(_dialogs);
+    OfficeGame.overlayBuilderMap?.addAll(_dialogs);
 
     priority = (y + height).toInt();
     final anim = await game.loadSpriteAnimation(

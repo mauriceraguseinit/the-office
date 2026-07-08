@@ -1,9 +1,8 @@
-import 'dart:ui';
-
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:the_office/hud/speech_bubble.dart';
 
 import 'hendrik.dart';
@@ -12,8 +11,8 @@ import 'office_game.dart';
 enum TriggerZoneDialogs { tooFar }
 
 class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallbacks, HasGameReference<OfficeGame> {
-  final Map<String, OverlayWidgetBuilder<OfficeGame>> _dialogs = {
-    TriggerZoneDialogs.tooFar.toString(): (context, OfficeGame game) => RetroSpeechBubble(
+  final Map<String, Widget Function(BuildContext, Game)> _dialogs = {
+    TriggerZoneDialogs.tooFar.toString(): (context, Game game) => RetroSpeechBubble(
       text: 'Dafür bin ich zu weit weg.',
       onClose: () => game.overlays.remove(TriggerZoneDialogs.tooFar.toString()),
     ),
@@ -33,7 +32,9 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
 
     debugMode = false;
 
-    game.overlayBuilderMap?.addAll(_dialogs);
+    for (var key in _dialogs.keys) {
+      game.overlays.addEntry(key, _dialogs[key]!);
+    }
 
     final isRotated = target.angle == 1.5707963267948966 || target.angle == 4.71238898038469;
 

@@ -1,10 +1,9 @@
 // tobi.dart
-import 'dart:ui';
-
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/trigger_zone.dart';
 
@@ -13,10 +12,10 @@ import '../office_game.dart';
 enum TobiDialogs { normalAction, thanks, wrongItem, noMate }
 
 class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
-  Map<String, OverlayWidgetBuilder<OfficeGame>> get _dialogs {
+  Map<String, Widget Function(BuildContext, Game)> get _dialogs {
     return {
       for (final value in TobiDialogs.values)
-        value.toString(): (context, OfficeGame game) {
+        value.toString(): (_, _) {
           switch (value) {
             case TobiDialogs.normalAction:
               return RetroSpeechBubble(
@@ -80,7 +79,9 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    game.overlayBuilderMap?.addAll(_dialogs);
+    for (var key in _dialogs.keys) {
+      game.overlays.addEntry(key, _dialogs[key]!);
+    }
 
     priority = (y + height).toInt();
 

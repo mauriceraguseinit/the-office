@@ -47,7 +47,7 @@ class OfficeGame extends FlameGame
 
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
 
-  Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = {
+  static Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = {
     'inventory': (context, OfficeGame game) => InventoryOverlay(game: game),
     'intro': (context, OfficeGame game) => RetroSpeechBubble(
       actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
@@ -376,7 +376,6 @@ class OfficeGame extends FlameGame
 
     // --- LIGHTING SYSTEM ---
     final lightPoints = mapComponent.tileMap.getLayer<ObjectGroup>('lights')?.objects ?? [];
-    final shadowObjects = mapComponent.tileMap.getLayer<ObjectGroup>('shadowCast')?.objects ?? [];
 
     final sources = lightPoints.map((obj) => Vector2(obj.x, obj.y)).toList();
 

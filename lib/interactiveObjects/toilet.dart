@@ -49,7 +49,7 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
   Future<void> onLoad() async {
     super.onLoad();
 
-    game.overlayBuilderMap?.addAll(_dialogs);
+    OfficeGame.overlayBuilderMap?.addAll(_dialogs);
 
     priority = (y + height / 2).toInt();
     debugMode = false;
