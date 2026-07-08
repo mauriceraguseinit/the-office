@@ -52,7 +52,7 @@ class OfficeGame extends FlameGame
     'intro': (context, OfficeGame game) => RetroSpeechBubble(
       actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
       text:
-          'Willkommen im Büro.\n\nHente wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
+          'Willkommen im Büro.\n\nHeute wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
       onClose: () => game.overlays.remove('intro'),
     ),
   };
