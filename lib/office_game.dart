@@ -117,8 +117,16 @@ class OfficeGame extends FlameGame
                 final List<SpriteAnimationFrame> frames = [];
 
                 for (final frame in tileDefinition.animation) {
-                  // Bestimme das exakte Tile für diesen Animations-Frame
-                  final frameTile = tileMap.map.tileByGid(ts.firstGid! + frame.tileId)!;
+                  // Berechne die Ziel-ID
+                  final targetGid = ts.firstGid! + frame.tileId;
+
+                  // Sicher abfragen, ohne den Absturz mit '!' zu erzwingen
+                  var frameTile = tileMap.map.tileByGid(targetGid);
+
+                  // 🔥 DER FALLBACK: Falls Tiled die ID beim Speichern weggeschnitten hat,
+                  // nutzen wir einfach das Haupt-Tile als Platzhalter. Das verhindert den Absturz!
+                  frameTile ??= tileDefinition;
+
                   final frameRect = ts.computeDrawRect(frameTile);
 
                   final sprite = Sprite(
@@ -320,7 +328,6 @@ class OfficeGame extends FlameGame
     final shadowObjects = mapComponent.tileMap.getLayer<ObjectGroup>('shadowCast')?.objects ?? [];
 
     final sources = lightPoints.map((obj) => Vector2(obj.x, obj.y)).toList();
-    final blockers = shadowObjects.map((obj) => Rect.fromLTWH(obj.x, obj.y, obj.width, obj.height)).toList();
 
     // NUR wenn WIRKLICH nichts geladen wurde:
     if (sources.isEmpty) {
@@ -333,12 +340,10 @@ class OfficeGame extends FlameGame
       print('  Licht $i: ${sources[i]}');
     }
 
-    final lighting = LightingManager(lightSources: sources, shadowBlockers: blockers, targetCamera: camera)
-      ..priority = 500;
+    final lighting = LightingManager(lightSources: sources, targetCamera: camera)..priority = 500;
     camera.viewport.add(lighting);
 
-    final lighting2 = LightingManager(lightSources: sources, shadowBlockers: blockers, targetCamera: rawMinimapCamera)
-      ..priority = 500;
+    final lighting2 = LightingManager(lightSources: sources, targetCamera: rawMinimapCamera)..priority = 500;
     rawMinimapCamera.viewport.add(lighting2);
   }
 

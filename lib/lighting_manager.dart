@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 
 class LightingManager extends PositionComponent with HasGameReference {
   final List<Vector2> lightSources;
-  final List<Rect> shadowBlockers;
 
   // Die Kamera, die wir überwachen
   final CameraComponent targetCamera;
 
   double ambientDarkness = 0.55;
 
-  LightingManager({required this.lightSources, required this.shadowBlockers, required this.targetCamera});
+  LightingManager({required this.lightSources, required this.targetCamera});
 
   @override
   Future<void> onLoad() async {
