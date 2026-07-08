@@ -47,7 +47,7 @@ class OfficeGame extends FlameGame
 
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
 
-  final Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = {
+  Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = {
     'inventory': (context, OfficeGame game) => InventoryOverlay(game: game),
     'intro': (context, OfficeGame game) => RetroSpeechBubble(
       actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
