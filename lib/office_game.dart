@@ -380,15 +380,9 @@ class OfficeGame extends FlameGame
 
     final sources = lightPoints.map((obj) => Vector2(obj.x, obj.y)).toList();
 
-    // NUR wenn WIRKLICH nichts geladen wurde:
     if (sources.isEmpty) {
       print('⚠️  WARNUNG: Keine Lichter in Tiled gefunden! Nutze Fallback-Licht.');
       sources.add(Vector2(500, 500));
-    }
-
-    print('Finale Licht-Positionen: ${sources.length}');
-    for (int i = 0; i < sources.length; i++) {
-      print('  Licht $i: ${sources[i]}');
     }
 
     final lighting = LightingManager(lightSources: sources, targetCamera: camera)..priority = 500;
