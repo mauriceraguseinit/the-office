@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -254,32 +256,59 @@ class OfficeGame extends FlameGame
         world.add(
           TriggerZone(target: toilet, onAction: () => overlays.add(ToiletDialogs.normalAction.toString()), padding: 5),
         );
-      } else if (object.gid != null) {
-        // Generisches Handling für alle anderen visuellen Objekte aus Tiled (Deko, Möbel)
-        final gid = object.gid!;
-        final tile = tileMap.map.tileByGid(gid)!;
-        final ts = tileMap.map.tilesetByTileGId(gid);
-        final rect = ts.computeDrawRect(tile);
+      } else if (object.gid != null && object.gid! > 0) {
+        final rawGid = object.gid!;
+        final cleanGid = rawGid & 0x0FFFFFFF;
+
+        final tile = tileMap.map.tileByGid(cleanGid);
+        if (tile == null) return;
+
+        final ts = tileMap.map.tilesetByTileGId(cleanGid);
+        if (ts == null) return;
+
         final imageSource = (tile.image ?? ts.image)!.source!;
 
-        final sprite = Sprite(
-          images.fromCache(imageSource),
-          srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
-          srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
-        );
+        final sprite = tile.image != null
+            ? Sprite(images.fromCache(imageSource))
+            : () {
+                final rect = ts.computeDrawRect(tile);
+                return Sprite(
+                  images.fromCache(imageSource),
+                  srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+                  srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+                );
+              }();
+
+        // 🔥 HIER IST DIE BRUTAL PRÄZISE ROTATIONS-BERECHNUNG:
+        final double angle = Units.radFromDegree(object.rotation);
+
+        // Vektor vom Tiled-Pivotpunkt (unten rechts) zur unrotierten Objektmitte:
+        // Da der Pivot unten rechts ist, müssen wir nach links (-width/2) und hoch (-height/2) zur Mitte wandern.
+        final localCenter = Vector2(-object.width / 2, 0);
+        // HINWEIS: Falls ein paar Objekte im Editor doch "bottomLeft" waren, kannst du stattdessen das hier nehmen:
+        // final localCenter = Vector2(object.width / 2, -object.height / 2);
+
+        // Wir rotieren diesen Richtungsvektor im Raum mit einer Drehmatrix (Clockwise für Screen-Space)
+        final double cosA = cos(angle);
+        final double sinA = sin(angle);
+        final double rotatedX = localCenter.x * cosA - localCenter.y * sinA;
+        final double rotatedY = localCenter.x * sinA + localCenter.y * cosA;
+
+        // Die exakte, mitgeschwungene Center-Position in der Spielwelt
+        final centerPosition = Vector2(object.x + rotatedX, object.y + rotatedY);
 
         final item = SpriteComponent(
           sprite: sprite,
-          position: Vector2(object.x, object.y),
+          position: centerPosition, // Nutzt die dynamische Mitte
           size: Vector2(object.width, object.height),
-          anchor: Anchor.bottomLeft,
-          angle: Units.radFromDegree(object.rotation),
+          anchor: Anchor.center, // Bleibt Center, damit Flipping fehlerfrei klappt
+          angle: angle,
         );
 
-        // Auch Objekt-GIDs können Flips enthalten (Z-Taste oder Spiegeln)
-        final bool flipX = (gid & 0x80000000) != 0;
-        final bool flipY = (gid & 0x40000000) != 0;
-        final bool flipDiag = (gid & 0x20000000) != 0;
+        // Spiegelungen anwenden (Passiert nun perfekt in-place)
+        final bool flipX = (rawGid & 0x80000000) != 0;
+        final bool flipY = (rawGid & 0x40000000) != 0;
+        final bool flipDiag = (rawGid & 0x20000000) != 0;
 
         if (flipDiag) {
           item.angle += Units.degree90;
@@ -288,7 +317,29 @@ class OfficeGame extends FlameGame
         if (flipX) item.flipHorizontally();
         if (flipY) item.flipVertically();
 
+        if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
+          final objectGroup = tile.objectGroup as ObjectGroup;
+          for (final collisionObject in objectGroup.objects) {
+            // Flame's RectangleHitbox übernimmt automatisch die lokale Position und Größe
+            final hitbox = RectangleHitbox(
+              position: Vector2(collisionObject.x, collisionObject.y),
+              size: Vector2(collisionObject.width, collisionObject.height),
+            );
+
+            // Optional: Wenn du visuell im Debug-Modus sehen willst, ob sie richtig sitzen:
+            // hitbox.renderShape = true;
+
+            item.add(hitbox);
+          }
+        } else {
+          // Fallback: Falls in Tiled keine Box definiert wurde,
+          // machen wir einfach das gesamte Objekt solide.
+          item.add(RectangleHitbox());
+        }
+
+        // Für das Y-Sorting rechnen wir die echte Unterkante des Objekts im Raum aus
         item.priority = object.y.toInt();
+
         world.add(item);
       }
     });
