@@ -1,3 +1,4 @@
+import 'package:flame/camera.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -93,24 +94,24 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
   @override
   void onTapDown(TapDownEvent event) {
     // --- MINIMAP SCHUTZSCHILD START ---
-    // Wir holen uns die Klick-Position in echten Bildschirm-Pixeln
-    final Vector2 screenPosition = event.canvasPosition;
-    final Vector2 gameSize = game.size;
-
-    // Deine Minimap ist 200x200 Pixel groß und sitzt unten rechts mit 20px Abstand (220)
-    final double minimapLeft = gameSize.x - 220;
-    final double minimapTop = gameSize.y - 220;
+    // Wandelt den echten Klick in die virtuellen 1280x720 Koordinaten um
+    final Vector2 virtualPosition = (game.camera.viewport as FixedResolutionViewport).globalToLocal(
+      event.canvasPosition,
+    );
+    // Feste Platzierung der Minimap auf der virtuellen Auflösung
+    final double minimapLeft = 1280 - 220;
+    final double minimapTop = 720 - 220;
 
     // Wenn der Klick innerhalb des Minimap-Quadrats gelandet ist, ignorieren wir ihn komplett!
-    if (screenPosition.x >= minimapLeft && screenPosition.y >= minimapTop) {
+    if (virtualPosition.x >= minimapLeft && virtualPosition.y >= minimapTop) {
       return;
     }
     // --- MINIMAP SCHUTZSCHILD ENDE ---
 
-    // Dein bestehender Code:
     final double distance = game.player.absoluteCenter.distanceTo(absoluteCenter);
     if (distance > 120) {
-      game.overlays.add(TriggerZoneDialogs.tooFar.toString());
+      // Nutzt den zentral registrierten String-Key aus deiner Hauptdatei
+      game.overlays.add('TriggerZoneDialogs.tooFar');
       game.resetSelection();
       return;
     }

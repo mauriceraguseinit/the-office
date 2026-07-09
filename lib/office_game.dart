@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flame/camera.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -341,24 +342,30 @@ class OfficeGame extends FlameGame<World>
 
     world.add(player);
 
+    final double virtualWidth = 1280;
+    final double virtualHeight = 720;
+
+    camera.viewport = FixedResolutionViewport(resolution: Vector2(virtualWidth, virtualHeight));
+
     // Kamera folgt dem Spieler
     camera.follow(player, snap: true);
     camera.viewfinder.zoom = 2.5;
 
     final CameraComponent rawMinimapCamera = CameraComponent(world: world);
+    rawMinimapCamera.viewport = FixedResolutionViewport(resolution: Vector2(virtualWidth, virtualHeight));
     rawMinimapCamera.viewfinder.zoom = 0.2;
     rawMinimapCamera.follow(player, snap: true);
 
     minimap = ClickableMinimap(
       minimapCamera: rawMinimapCamera,
       size: Vector2(200, 200),
-      position: Vector2(size.x - 220, size.y - 220),
+      position: Vector2(virtualWidth - 220, virtualHeight - 220),
       onMinimapPressed: _toggleCameraZoom,
     );
     minimap.priority = 1000;
     camera.viewport.add(minimap);
 
-    _buildHud();
+    _buildHud(virtualWidth, virtualHeight);
 
     // --- LIGHTING SYSTEM ---
     final List<TiledObject> lightPoints =
@@ -371,19 +378,28 @@ class OfficeGame extends FlameGame<World>
       sources.add(Vector2(500, 500));
     }
 
-    final LightingManager lighting = LightingManager(lightSources: sources, targetCamera: camera)..priority = 500;
-    camera.viewport.add(lighting);
+    final LightingManager lighting = LightingManager(
+      lightSources: sources,
+      targetCamera: camera,
+    )..priority = 500;
+    world.add(lighting);
 
-    final LightingManager lighting2 = LightingManager(lightSources: sources, targetCamera: rawMinimapCamera)
-      ..priority = 500;
-    rawMinimapCamera.viewport.add(lighting2);
+    // 2. Minimap-Lichtsystem erstellen und zur Welt hinzufügen
+    final LightingManager lighting2 = LightingManager(
+      lightSources: sources,
+      targetCamera: rawMinimapCamera,
+    )..priority = 500;
+    world.add(lighting2);
+
+    // 🟢 HIER IST DER MAGISCHE SCHLÜSSEL:
+    // Wir sagen der Hauptkamera: Ignoriere das Lichtsystem der Minimap!
   }
 
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
     try {
-      minimap.position = Vector2(size.x - 220, size.y - 220);
+      //minimap.position = Vector2(size.x - 220, size.y - 220);
     } catch (_) {}
   }
 
@@ -441,7 +457,7 @@ class OfficeGame extends FlameGame<World>
     );
   }
 
-  void _buildHud() {
+  void _buildHud(double virtualWidth, double virtualHeight) {
     // 4. UI-Texte erstellen
     statusText = TextComponent<TextRenderer>(
       text: 'PC-Status: Entsperrt (Gefahr!)',
