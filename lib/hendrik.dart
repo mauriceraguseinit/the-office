@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
 import 'package:the_office/trigger_zone.dart';
 
@@ -11,6 +12,9 @@ enum Direction { left, right, up, down }
 
 class Hendrik extends SpriteAnimationGroupComponent<Direction>
     with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks {
+  // ==========================================
+
+  Hendrik({required Vector2 position}) : super(position: position, size: Vector2.all(boxSize));
   // ==========================================
   // ZENTRALE SKALIERUNGS-REGLER
   // ==========================================
@@ -24,10 +28,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   static const double _hitboxHeightFactor = 0.5;
   static const double _hitboxXFactor = 14 / 60;
   static const double _hitboxYFactor = 0.5;
-  // ==========================================
-
-  Hendrik({required Vector2 position})
-    : super(position: position, size: Vector2.all(boxSize));
 
   final Vector2 _velocity = Vector2.zero();
   final double _speed = 200.0;
@@ -39,9 +39,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
 
-    final hitboxes = other.children.whereType<ShapeHitbox>();
-    final hasActiveCollision = hitboxes.any(
-      (hitbox) => hitbox.collisionType == CollisionType.active,
+    final Iterable<ShapeHitbox> hitboxes = other.children.whereType<ShapeHitbox>();
+    final bool hasActiveCollision = hitboxes.any(
+      (ShapeHitbox hitbox) => hitbox.collisionType == CollisionType.active,
     );
 
     if (hasActiveCollision) {
@@ -53,7 +53,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   Future<void> onLoad() async {
     super.onLoad();
 
-    final animDown = await game.loadSpriteAnimation(
+    final SpriteAnimation animDown = await game.loadSpriteAnimation(
       'down.png',
       SpriteAnimationData.sequenced(
         amount: 4,
@@ -62,7 +62,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       ),
     );
 
-    final animUp = await game.loadSpriteAnimation(
+    final SpriteAnimation animUp = await game.loadSpriteAnimation(
       'up.png',
       SpriteAnimationData.sequenced(
         amount: 4,
@@ -71,7 +71,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       ),
     );
 
-    final animLeft = await game.loadSpriteAnimation(
+    final SpriteAnimation animLeft = await game.loadSpriteAnimation(
       'left.png',
       SpriteAnimationData.sequenced(
         amount: 7,
@@ -80,7 +80,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       ),
     );
 
-    final animRight = await game.loadSpriteAnimation(
+    final SpriteAnimation animRight = await game.loadSpriteAnimation(
       'right.png',
       SpriteAnimationData.sequenced(
         amount: 7,
@@ -89,7 +89,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       ),
     );
 
-    animations = {
+    animations = <Direction, SpriteAnimation>{
       Direction.down: animDown,
       Direction.up: animUp,
       Direction.left: animLeft,
@@ -117,7 +117,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     // ==========================================
     // FAKE SCHATTEN ZEICHNEN
     // ==========================================
-    final shadowPaint = Paint()
+    final Paint shadowPaint = Paint()
       ..color = const Color(0x66000000)
       ..style = PaintingStyle.fill;
 
@@ -144,9 +144,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     // ==========================================
 
     // Ab hier folgt dein ganz normaler, bestehender AnimationCode...
-    final ticker = animationTicker;
+    final SpriteAnimationTicker? ticker = animationTicker;
     if (ticker != null) {
-      final sprite = ticker.getSprite();
+      final Sprite sprite = ticker.getSprite();
 
       final double spriteWidth = sprite.srcSize.x;
       final double spriteHeight = sprite.srcSize.y;
@@ -206,10 +206,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       return false;
     }
 
-    if (event is KeyDownEvent &&
-        keysPressed.contains(LogicalKeyboardKey.keyE)) {
-      final zones = game.world.children.whereType<TriggerZone>();
-      for (final zone in zones) {
+    if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.keyE)) {
+      final Iterable<TriggerZone> zones = game.world.children.whereType<TriggerZone>();
+      for (final TriggerZone zone in zones) {
         if (zone.checkInteraction(this)) {
           return false;
         }
@@ -221,23 +220,19 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     if (keysPressed.contains(LogicalKeyboardKey.keyI)) {
       game.overlays.add('inventory');
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyW) ||
-        keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
+    if (keysPressed.contains(LogicalKeyboardKey.keyW) || keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
       _velocity.y = -1;
       current = Direction.up;
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyS) ||
-        keysPressed.contains(LogicalKeyboardKey.arrowDown)) {
+    if (keysPressed.contains(LogicalKeyboardKey.keyS) || keysPressed.contains(LogicalKeyboardKey.arrowDown)) {
       _velocity.y = 1;
       current = Direction.down;
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyA) ||
-        keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
+    if (keysPressed.contains(LogicalKeyboardKey.keyA) || keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
       _velocity.x = -1;
       current = Direction.left;
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyD) ||
-        keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
+    if (keysPressed.contains(LogicalKeyboardKey.keyD) || keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
       _velocity.x = 1;
       current = Direction.right;
     }
@@ -246,8 +241,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       _velocity.normalize();
     }
 
-    if (event is KeyDownEvent &&
-        keysPressed.contains(LogicalKeyboardKey.space)) {
+    if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.space)) {
       game.toggleScreenLock();
       return true;
     }

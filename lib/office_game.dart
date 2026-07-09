@@ -6,6 +6,7 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
+import 'package:flame/text.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/interactiveObjects/toilet.dart';
@@ -16,18 +17,16 @@ import 'package:the_office/utils/util.dart';
 
 import 'hendrik.dart';
 import 'hud/clickable_minimap.dart';
-import 'hud/inventory_overlay.dart';
-import 'hud/speech_bubble.dart';
 import 'inventory_cursor.dart';
 import 'lighting_manager.dart';
 import 'models/inventory_item.dart';
 import 'npcs/desk_daniel.dart';
 
-class OfficeGame extends FlameGame
+class OfficeGame extends FlameGame<World>
     with
         ChangeNotifier,
-        HasKeyboardHandlerComponents,
-        HasCollisionDetection,
+        HasKeyboardHandlerComponents<World>,
+        HasCollisionDetection<Broadphase<ShapeHitbox>>,
         MouseMovementDetector,
         SecondaryTapCallbacks {
   bool _isZoomedOut = false;
@@ -36,26 +35,16 @@ class OfficeGame extends FlameGame
 
   late CameraComponent minimapCamera;
 
-  List<InventoryItem> ownedItems = [];
+  List<InventoryItem> ownedItems = <InventoryItem>[];
   InventoryItem? selectedItem;
   Vector2 mousePosition = Vector2.zero();
-  late TextComponent statusText;
+  late TextComponent<TextRenderer> statusText;
   bool isDeskLocked = false;
   late Hendrik player;
   late ClickableMinimap minimap;
-  late TiledComponent mapComponent;
+  late TiledComponent<FlameGame<World>> mapComponent;
 
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
-
-  static Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = {
-    'inventory': (context, OfficeGame game) => InventoryOverlay(game: game),
-    'intro': (context, OfficeGame game) => RetroSpeechBubble(
-      actions: [RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
-      text:
-          'Willkommen im Büro.\n\nHeute wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
-      onClose: () => game.overlays.remove('intro'),
-    ),
-  };
 
   @override
   Future<void> onLoad() async {
@@ -65,95 +54,100 @@ class OfficeGame extends FlameGame
     mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
     // world.add(mapComponent);
 
-    final List<TiledComponent> mapLayers = await MapSplitter.splitMapIntoLayers(
+    final List<TiledComponent<FlameGame<World>>> mapLayers = await MapSplitter.splitMapIntoLayers(
       fileName: 'office.tmx',
       destTileSize: Vector2.all(64),
     );
 
     // Wir fügen NUR den Boden als statischen Layer im Hintergrund hinzu
-    for (final layerComponent in mapLayers) {
-      final isBoden = layerComponent.tileMap.renderableLayers.any((rl) => rl.layer.name == 'Boden' && rl.layer.visible);
-      if (isBoden) {
+
+    for (final TiledComponent<FlameGame<World>> layerComponent in mapLayers) {
+      bool isFloor = false;
+
+      final int renderableLayerCount = layerComponent.tileMap.renderableLayers.length;
+      for (int i = 0; i < renderableLayerCount; i++) {
+        final Layer currentLayer = layerComponent.tileMap.renderableLayers[i].layer;
+        if (currentLayer.name == 'Boden' && currentLayer.visible) {
+          isFloor = true;
+          break;
+        }
+      }
+
+      if (isFloor) {
         layerComponent.priority = -1000;
         world.add(layerComponent);
       }
     }
 
-    final tileMap = mapComponent.tileMap;
+    final RenderableTiledMap tileMap = mapComponent.tileMap;
 
     // 0. Alle Tileset-Bilder vorab laden, damit wir sie synchron für Sprites nutzen können
-    for (final ts in tileMap.map.tilesets) {
+    for (final Tileset ts in tileMap.map.tilesets) {
       if (ts.image?.source != null) await images.load(ts.image!.source!);
-      for (final t in ts.tiles) {
+      for (final Tile t in ts.tiles) {
         if (t.image?.source != null) await images.load(t.image!.source!);
       }
     }
 
     // 2. Schleife: Alle anderen Kachel-Layer (Wände, Möbel etc.) für Y-Sorting verarbeiten
-    for (final renderableLayer in tileMap.renderableLayers) {
-      final layer = renderableLayer.layer;
+    final int totalMapLayers = tileMap.renderableLayers.length;
+
+    for (int layerIndex = 0; layerIndex < totalMapLayers; layerIndex++) {
+      // Zugriff über den Index gibt uns direkt das öffentliche Layer-Objekt
+      final Layer layer = tileMap.renderableLayers[layerIndex].layer;
 
       if (layer is TileLayer && layer.name != 'Boden' && layer.visible) {
-        final tileLayer = layer;
-        final mapWidth = tileMap.map.width;
-        final mapHeight = tileMap.map.height;
+        final TileLayer tileLayer = layer;
+        final int mapWidth = tileMap.map.width;
+        final int mapHeight = tileMap.map.height;
 
         for (int y = 0; y < mapHeight; y++) {
           for (int x = 0; x < mapWidth; x++) {
-            final tileData = tileMap.getTileData(layerId: tileLayer.id!, x: x, y: y);
+            final Gid? tileData = tileMap.getTileData(layerId: tileLayer.id!, x: x, y: y);
 
             if (tileData != null && tileData.tile != 0) {
-              final gid = tileData.tile;
+              final int gid = tileData.tile;
 
               // 1. Hole die Definitionen aus der Map
-              final tileDefinition = tileMap.map.tileByGid(gid);
-              final ts = tileMap.map.tilesetByTileGId(gid);
+              final Tile? tileDefinition = tileMap.map.tileByGid(gid);
+              final Tileset ts = tileMap.map.tilesetByTileGId(gid);
 
               if (tileDefinition == null) continue;
 
-              final imageSource = (tileDefinition.image ?? ts.image)!.source!;
+              final String imageSource = (tileDefinition.image ?? ts.image)!.source!;
               PositionComponent tileComponent;
 
               // 2. PRÜFEN: Hat dieses Tile eine Tiled-Animation?
               if (tileDefinition.animation.isNotEmpty) {
-                final List<SpriteAnimationFrame> frames = [];
+                final List<SpriteAnimationFrame> frames = <SpriteAnimationFrame>[];
 
-                for (final frame in tileDefinition.animation) {
-                  // Berechne die Ziel-ID
-                  final targetGid = ts.firstGid! + frame.tileId;
-
-                  // Sicher abfragen, ohne den Absturz mit '!' zu erzwingen
-                  var frameTile = tileMap.map.tileByGid(targetGid);
-
-                  // 🔥 DER FALLBACK: Falls Tiled die ID beim Speichern weggeschnitten hat,
-                  // nutzen wir einfach das Haupt-Tile als Platzhalter. Das verhindert den Absturz!
+                for (final Frame frame in tileDefinition.animation) {
+                  final int targetGid = ts.firstGid! + frame.tileId;
+                  Tile? frameTile = tileMap.map.tileByGid(targetGid);
                   frameTile ??= tileDefinition;
 
-                  final frameRect = ts.computeDrawRect(frameTile);
+                  final Rectangle<num> frameRect = ts.computeDrawRect(frameTile);
 
-                  final sprite = Sprite(
+                  final Sprite sprite = Sprite(
                     images.fromCache((frameTile.image ?? ts.image)!.source!),
                     srcPosition: Vector2(frameRect.left.toDouble(), frameRect.top.toDouble()),
                     srcSize: Vector2(frameRect.width.toDouble(), frameRect.height.toDouble()),
                   );
 
-                  // Dauer von Millisekunden in Sekunden umrechnen
                   final double durationInSeconds = frame.duration / 1000.0;
                   frames.add(SpriteAnimationFrame(sprite, durationInSeconds));
                 }
 
-                // Animierte Komponente erstellen
                 tileComponent = SpriteAnimationComponent(
-                  animation: SpriteAnimation(frames), // Nutzt direkt deine fertige Liste!
+                  animation: SpriteAnimation(frames),
                   position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
                   size: Vector2.all(64.0),
                   anchor: Anchor.center,
                   priority: (y * 64 + 64).toInt(),
                 );
               } else {
-                // STATISCHES FALLBACK: Normales Sprite erstellen, wenn keine Animation existiert
-                final rect = ts.computeDrawRect(tileDefinition);
-                final sprite = Sprite(
+                final Rectangle<num> rect = ts.computeDrawRect(tileDefinition);
+                final Sprite sprite = Sprite(
                   images.fromCache(imageSource),
                   srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
                   srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
@@ -168,12 +162,10 @@ class OfficeGame extends FlameGame
                 );
               }
 
-              // Rotations- und Spiegelungszustände aus tileData auslesen
               final bool flipX = tileData.flips.horizontally;
               final bool flipY = tileData.flips.vertically;
               final bool flipDiag = tileData.flips.diagonally;
 
-              // Tiled Rotations-Logik anwenden (Z-Taste im Editor)
               if (flipDiag) {
                 tileComponent.angle = Units.degree90;
                 tileComponent.flipHorizontally();
@@ -181,44 +173,37 @@ class OfficeGame extends FlameGame
               if (flipX) tileComponent.flipHorizontally();
               if (flipY) tileComponent.flipVertically();
 
-              // Kachel der Spielwelt hinzufügen
               world.add(tileComponent);
 
-              // KOLLISION:
-              final tileDefinitionForCollision = tileMap.map.tileByGid(gid);
+              final Tile? tileDefinitionForCollision = tileMap.map.tileByGid(gid);
 
               if (tileDefinitionForCollision != null && tileDefinitionForCollision.objectGroup != null) {
-                final objectGroup = tileDefinitionForCollision.objectGroup as ObjectGroup;
+                final ObjectGroup objectGroup = tileDefinitionForCollision.objectGroup as ObjectGroup;
 
-                final tileX = x * 64.0;
-                final tileY = y * 64.0;
+                final double tileX = x * 64.0;
+                final double tileY = y * 64.0;
 
-                for (final tiledObject in objectGroup.objects) {
+                for (final TiledObject tiledObject in objectGroup.objects) {
                   double objX = tiledObject.x;
                   double objY = tiledObject.y;
                   double objWidth = tiledObject.width;
                   double objHeight = tiledObject.height;
 
-                  // Wenn die Kachel im Editor mit 'Z' rotiert wurde:
                   if (flipDiag) {
                     objX = 64.0 - tiledObject.y - tiledObject.height;
                     objY = tiledObject.x;
-
-                    // Breite und Höhe tauschen durch die Drehung
                     objWidth = tiledObject.height;
                     objHeight = tiledObject.width;
                   }
 
-                  // Zusätzliche Spiegelungen abfangen
                   if (flipX && !flipDiag) objX = 64.0 - objX - objWidth;
                   if (flipY) objY = 64.0 - objY - objHeight;
 
-                  final obstacle = PositionComponent(
+                  final PositionComponent obstacle = PositionComponent(
                     position: Vector2(tileX + objX, tileY + objY),
                     size: Vector2(objWidth, objHeight),
                   )..add(RectangleHitbox());
 
-                  // Hitboxen bekommen eine feste Priorität über dem Boden
                   obstacle.priority = 1;
                   world.add(obstacle..debugMode = false);
                 }
@@ -238,15 +223,15 @@ class OfficeGame extends FlameGame
         name: 'Mate',
         assetPath: 'assets/images/mate_full.png',
         combinesWith: 'koffein_pulver',
-        onCombineSuccess: (context) {},
+        onCombineSuccess: (BuildContext context) {},
       ),
     );
     ownedItems.add(InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'));
 
-    final spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
-    final interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
+    final ObjectGroup? spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
+    final ObjectGroup? interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
 
-    interactiveObjects?.objects.forEach((object) {
+    interactiveObjects?.objects.forEach((TiledObject object) {
       if (object.class_ == 'Toilet') {
         final Toilet toilet = Toilet(
           position: Vector2(object.x, object.y),
@@ -257,21 +242,20 @@ class OfficeGame extends FlameGame
           TriggerZone(target: toilet, onAction: () => overlays.add(ToiletDialogs.normalAction.toString()), padding: 5),
         );
       } else if (object.gid != null && object.gid! > 0) {
-        final rawGid = object.gid!;
-        final cleanGid = rawGid & 0x0FFFFFFF;
+        final int rawGid = object.gid!;
+        final int cleanGid = rawGid & 0x0FFFFFFF;
 
-        final tile = tileMap.map.tileByGid(cleanGid);
+        final Tile? tile = tileMap.map.tileByGid(cleanGid);
         if (tile == null) return;
 
-        final ts = tileMap.map.tilesetByTileGId(cleanGid);
-        if (ts == null) return;
+        final Tileset ts = tileMap.map.tilesetByTileGId(cleanGid);
 
-        final imageSource = (tile.image ?? ts.image)!.source!;
+        final String imageSource = (tile.image ?? ts.image)!.source!;
 
-        final sprite = tile.image != null
+        final Sprite sprite = tile.image != null
             ? Sprite(images.fromCache(imageSource))
             : () {
-                final rect = ts.computeDrawRect(tile);
+                final Rectangle<num> rect = ts.computeDrawRect(tile);
                 return Sprite(
                   images.fromCache(imageSource),
                   srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
@@ -284,7 +268,7 @@ class OfficeGame extends FlameGame
 
         // Vektor vom Tiled-Pivotpunkt (unten rechts) zur unrotierten Objektmitte:
         // Da der Pivot unten rechts ist, müssen wir nach links (-width/2) und hoch (-height/2) zur Mitte wandern.
-        final localCenter = Vector2(-object.width / 2, 0);
+        final Vector2 localCenter = Vector2(-object.width / 2, 0);
         // HINWEIS: Falls ein paar Objekte im Editor doch "bottomLeft" waren, kannst du stattdessen das hier nehmen:
         // final localCenter = Vector2(object.width / 2, -object.height / 2);
 
@@ -295,9 +279,9 @@ class OfficeGame extends FlameGame
         final double rotatedY = localCenter.x * sinA + localCenter.y * cosA;
 
         // Die exakte, mitgeschwungene Center-Position in der Spielwelt
-        final centerPosition = Vector2(object.x + rotatedX, object.y + rotatedY);
+        final Vector2 centerPosition = Vector2(object.x + rotatedX, object.y + rotatedY);
 
-        final item = SpriteComponent(
+        final SpriteComponent item = SpriteComponent(
           sprite: sprite,
           position: centerPosition, // Nutzt die dynamische Mitte
           size: Vector2(object.width, object.height),
@@ -318,10 +302,10 @@ class OfficeGame extends FlameGame
         if (flipY) item.flipVertically();
 
         if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
-          final objectGroup = tile.objectGroup as ObjectGroup;
-          for (final collisionObject in objectGroup.objects) {
+          final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
+          for (final TiledObject collisionObject in objectGroup.objects) {
             // Flame's RectangleHitbox übernimmt automatisch die lokale Position und Größe
-            final hitbox = RectangleHitbox(
+            final RectangleHitbox hitbox = RectangleHitbox(
               position: Vector2(collisionObject.x, collisionObject.y),
               size: Vector2(collisionObject.width, collisionObject.height),
             );
@@ -347,7 +331,9 @@ class OfficeGame extends FlameGame
     _buildNpcs(spawnPoints);
 
     // Spawnpoint auslesen
-    TiledObject? playerObject = spawnPoints?.objects.firstWhere((element) => element.name == 'playerStart');
+    final TiledObject? playerObject = spawnPoints?.objects.firstWhere(
+      (TiledObject element) => element.name == 'playerStart',
+    );
 
     // Spieler erstellen
     player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0));
@@ -359,7 +345,7 @@ class OfficeGame extends FlameGame
     camera.follow(player, snap: true);
     camera.viewfinder.zoom = 2.5;
 
-    final rawMinimapCamera = CameraComponent(world: world);
+    final CameraComponent rawMinimapCamera = CameraComponent(world: world);
     rawMinimapCamera.viewfinder.zoom = 0.2;
     rawMinimapCamera.follow(player, snap: true);
 
@@ -375,27 +361,29 @@ class OfficeGame extends FlameGame
     _buildHud();
 
     // --- LIGHTING SYSTEM ---
-    final lightPoints = mapComponent.tileMap.getLayer<ObjectGroup>('lights')?.objects ?? [];
+    final List<TiledObject> lightPoints =
+        mapComponent.tileMap.getLayer<ObjectGroup>('lights')?.objects ?? <TiledObject>[];
 
-    final sources = lightPoints.map((obj) => Vector2(obj.x, obj.y)).toList();
+    final List<Vector2> sources = lightPoints.map((TiledObject obj) => Vector2(obj.x, obj.y)).toList();
 
     if (sources.isEmpty) {
-      print('⚠️  WARNUNG: Keine Lichter in Tiled gefunden! Nutze Fallback-Licht.');
+      debugPrint('⚠️  WARNUNG: Keine Lichter in Tiled gefunden! Nutze Fallback-Licht.');
       sources.add(Vector2(500, 500));
     }
 
-    final lighting = LightingManager(lightSources: sources, targetCamera: camera)..priority = 500;
+    final LightingManager lighting = LightingManager(lightSources: sources, targetCamera: camera)..priority = 500;
     camera.viewport.add(lighting);
 
-    final lighting2 = LightingManager(lightSources: sources, targetCamera: rawMinimapCamera)..priority = 500;
+    final LightingManager lighting2 = LightingManager(lightSources: sources, targetCamera: rawMinimapCamera)
+      ..priority = 500;
     rawMinimapCamera.viewport.add(lighting2);
   }
 
   @override
-  void onGameResize(Vector2 newSize) {
-    super.onGameResize(newSize);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
     try {
-      minimap.position = Vector2(newSize.x - 220, newSize.y - 220);
+      minimap.position = Vector2(size.x - 220, size.y - 220);
     } catch (_) {}
   }
 
@@ -435,7 +423,7 @@ class OfficeGame extends FlameGame
 
   void _toggleCameraZoom() {
     _isZoomedOut = !_isZoomedOut;
-    final targetZoom = _isZoomedOut ? _mapViewZoom : _normalZoom;
+    final double targetZoom = _isZoomedOut ? _mapViewZoom : _normalZoom;
 
     // Vorherige Skalierungs-Effekte vom Viewfinder entfernen
     camera.viewfinder.removeAll(camera.viewfinder.children.whereType<ScaleEffect>());
@@ -455,7 +443,7 @@ class OfficeGame extends FlameGame
 
   void _buildHud() {
     // 4. UI-Texte erstellen
-    statusText = TextComponent(
+    statusText = TextComponent<TextRenderer>(
       text: 'PC-Status: Entsperrt (Gefahr!)',
       position: Vector2(20, 20),
       textRenderer: TextPaint(
@@ -463,7 +451,7 @@ class OfficeGame extends FlameGame
           color: Colors.white,
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          shadows: [
+          shadows: <Shadow>[
             Shadow(
               color: Colors.black, // Dunkler Schatten für maximalen Kontrast
               offset: Offset(2.0, 2.0), // Versatz um 2 Pixel nach rechts und unten
@@ -474,7 +462,7 @@ class OfficeGame extends FlameGame
       ),
     );
 
-    final infoText = TextComponent(
+    final TextComponent<TextPaint> infoText = TextComponent<TextPaint>(
       text: 'BEWEGUNG: WASD/Pfeiltasten | LEERTASTE: PC Sperren/Entsperren\nAKTION: Taste E\nINVENTAR: Taste I',
       position: Vector2(20, 60),
       textRenderer: TextPaint(
@@ -483,7 +471,7 @@ class OfficeGame extends FlameGame
           fontSize: 16,
           fontWeight: FontWeight.bold,
           // HIER FÜGEN WIR DIE SCHATTEN HINZU:
-          shadows: [
+          shadows: <Shadow>[
             Shadow(
               color: Colors.black, // Dunkler Schatten für maximalen Kontrast
               offset: Offset(2.0, 2.0), // Versatz um 2 Pixel nach rechts und unten
@@ -502,17 +490,17 @@ class OfficeGame extends FlameGame
   }
 
   void _buildNpcs(ObjectGroup? spawnPoints) {
-    TiledObject? positionTobi = spawnPoints?.objects.firstWhere((element) => element.name == 'tobi');
+    final TiledObject? positionTobi = spawnPoints?.objects.firstWhere((TiledObject element) => element.name == 'tobi');
 
     // 1. Tobi ganz normal erstellen und zur World hinzufügen
-    final tobiNpc = Tobi(
+    final Tobi tobiNpc = Tobi(
       position: Vector2(positionTobi?.x ?? 0, positionTobi?.y ?? 0),
       size: Vector2(Tobi.frameWidth * 0.13, Tobi.pngHeight * 0.13),
     );
     world.add(tobiNpc);
 
     // TriggerZone als eigenständiges Objekt in die World legen
-    final tobiTrigger = TriggerZone(
+    final TriggerZone tobiTrigger = TriggerZone(
       target: tobiNpc,
       padding: 25.0,
       onAction: () {
@@ -522,16 +510,18 @@ class OfficeGame extends FlameGame
     world.add(tobiTrigger);
 
     // 2. Daniels Tisch erstellen, rotieren und zur World hinzufügen
-    TiledObject? positionDaniel = spawnPoints?.objects.firstWhere((element) => element.name == 'daniel');
+    final TiledObject? positionDaniel = spawnPoints?.objects.firstWhere(
+      (TiledObject element) => element.name == 'daniel',
+    );
 
-    final deskTopRight = DeskDaniel(
+    final DeskDaniel deskTopRight = DeskDaniel(
       position: Vector2(positionDaniel?.x ?? 0, positionDaniel?.y ?? 0),
       size: Vector2(DeskDaniel.frameWidth * 0.24, DeskDaniel.pngHeight * 0.24),
     )..angle = Units.degree270;
     world.add(deskTopRight);
 
     // TriggerZone für Daniel ebenfalls in die World legen
-    final danielTrigger = TriggerZone(
+    final TriggerZone danielTrigger = TriggerZone(
       target: deskTopRight,
       padding: 35.0, // Bei Tischen gerne etwas mehr Padding, da sie breiter sind
       onAction: () {

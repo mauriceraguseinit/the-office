@@ -1,33 +1,34 @@
 import 'package:flame/components.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../models/inventory_item.dart';
 import '../office_game.dart';
 
 class InventoryOverlay extends StatefulWidget {
-  final OfficeGame game;
   const InventoryOverlay({super.key, required this.game});
+  final OfficeGame game;
 
   @override
   State<InventoryOverlay> createState() => _InventoryOverlayState();
 }
 
 class _InventoryOverlayState extends State<InventoryOverlay> {
-  String _hoverText = "";
+  String _hoverText = '';
 
   @override
   Widget build(BuildContext context) {
-    final items = widget.game.ownedItems;
-    final selectedItem = widget.game.selectedItem;
+    final List<InventoryItem> items = widget.game.ownedItems;
+    final InventoryItem? selectedItem = widget.game.selectedItem;
 
     // Diese äußere Region trackt nur die Mausbewegung für das Item-Icon
     return MouseRegion(
-      onHover: (event) {
+      onHover: (PointerHoverEvent event) {
         widget.game.mousePosition = Vector2(event.position.dx, event.position.dy);
         setState(() {});
       },
       child: Stack(
-        children: [
+        children: <Widget>[
           // 1. Das eigentliche Inventar-Fenster im Hintergrund
           Center(
             // WICHTIG: Hier kommt die Schließ-Region hin!
@@ -50,10 +51,10 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                     border: Border.all(color: const Color(0xFF1E1E1E), width: 6),
                   ),
                   child: Stack(
-                    children: [
+                    children: <Widget>[
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: <Widget>[
                           const Text(
                             'INVENTAR',
                             style: TextStyle(
@@ -74,29 +75,29 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
                               ),
-                              itemBuilder: (context, index) {
-                                final item = items[index];
-                                final isCurrentlySelected = widget.game.selectedItem?.id == item.id;
+                              itemBuilder: (BuildContext context, int index) {
+                                final InventoryItem item = items[index];
+                                final bool isCurrentlySelected = widget.game.selectedItem?.id == item.id;
 
                                 return MouseRegion(
                                   onEnter: (_) {
                                     setState(() {
                                       if (widget.game.selectedItem != null) {
                                         if (widget.game.selectedItem!.id == item.id) {
-                                          _hoverText = "BENUTZE ${item.name.toUpperCase()}";
+                                          _hoverText = 'BENUTZE ${item.name.toUpperCase()}';
                                         } else {
                                           _hoverText =
-                                              "BENUTZE ${widget.game.selectedItem!.name.toUpperCase()} MIT ${item.name.toUpperCase()}";
+                                              'BENUTZE ${widget.game.selectedItem!.name.toUpperCase()} MIT ${item.name.toUpperCase()}';
                                         }
                                       } else {
-                                        _hoverText = "BENUTZE ${item.name.toUpperCase()} MIT...";
+                                        _hoverText = 'BENUTZE ${item.name.toUpperCase()} MIT...';
                                       }
                                     });
                                   },
                                   onExit: (_) => setState(
                                     () => _hoverText = widget.game.selectedItem != null
-                                        ? "BENUTZE ${widget.game.selectedItem!.name.toUpperCase()} MIT..."
-                                        : "",
+                                        ? 'BENUTZE ${widget.game.selectedItem!.name.toUpperCase()} MIT...'
+                                        : '',
                                   ),
                                   child: GestureDetector(
                                     onTap: () => _handleItemClick(item),
@@ -188,7 +189,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
   }
 
   void _handleItemClick(InventoryItem item) {
-    final activeSelection = widget.game.selectedItem;
+    final InventoryItem? activeSelection = widget.game.selectedItem;
 
     if (activeSelection == null) {
       widget.game.selectItem(item);
@@ -206,7 +207,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
         widget.game.resetSelection();
         widget.game.overlays.remove('inventory');
       } else {
-        setState(() => _hoverText = "DAS GEHT SO NICHT!");
+        setState(() => _hoverText = 'DAS GEHT SO NICHT!');
       }
     }
   }

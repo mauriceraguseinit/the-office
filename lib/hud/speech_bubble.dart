@@ -3,18 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class RetroSpeechBubble extends StatefulWidget {
-  final String text;
-  final VoidCallback? onClose;
-  final List<RetroAction> actions;
-  final Duration speed;
-
   const RetroSpeechBubble({
     super.key,
     required this.text,
     this.onClose,
-    this.actions = const [],
-    this.speed = const Duration(milliseconds: 30), // Etwas schneller, da Formatierung Rechenzeit braucht
+    this.actions = const <RetroAction>[],
+    this.speed = const Duration(milliseconds: 30),
   });
+  final String text;
+  final VoidCallback? onClose;
+  final List<RetroAction> actions;
+  final Duration speed;
 
   @override
   State<RetroSpeechBubble> createState() => _RetroSpeechBubbleState();
@@ -22,9 +21,9 @@ class RetroSpeechBubble extends StatefulWidget {
 
 class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
   // Enthält am Ende alle fertig formatierten Einzelbuchstaben
-  List<TextSpan> _allCharacters = [];
+  List<TextSpan> _allCharacters = <TextSpan>[];
   // Die aktuell angezeigten Buchstaben im Typewriter
-  List<TextSpan> _displayedCharacters = [];
+  List<TextSpan> _displayedCharacters = <TextSpan>[];
 
   int _currentIndex = 0;
   Timer? _timer;
@@ -34,10 +33,9 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
   @override
   void initState() {
     super.initState();
-    // 1. Text parsen klappt sofort
+
     _allCharacters = _parseCustomTags(widget.text);
 
-    // 2. Erst starten, wenn das Widget fertig auf dem Bildschirm gerendert wurde
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _startTypewriterEffect();
@@ -54,7 +52,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
 
   // --- DER CUSTOM PARSER ---
   List<TextSpan> _parseCustomTags(String rawText) {
-    List<TextSpan> characters = [];
+    final List<TextSpan> characters = <TextSpan>[];
 
     bool isBold = false;
     Color currentColor = const Color(0xFF1E1E1E); // Standard-Schriftfarbe
@@ -80,9 +78,9 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
           continue;
         } else if (rawText.startsWith('[color=', i)) {
           // Wir suchen das schließende ']' des Color-Tags
-          int closeBracket = rawText.indexOf(']', i);
+          final int closeBracket = rawText.indexOf(']', i);
           if (closeBracket != -1) {
-            String colorStr = rawText.substring(i + 7, closeBracket);
+            final String colorStr = rawText.substring(i + 7, closeBracket);
 
             // Farbe zuweisen
             if (colorStr == 'red') {
@@ -132,12 +130,12 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
     _displayedCharacters.clear();
     _currentIndex = 0;
 
-    _timer = Timer.periodic(widget.speed, (timer) {
+    _timer = Timer.periodic(widget.speed, (Timer timer) {
       if (_currentIndex < _allCharacters.length) {
         setState(() {
           // DER TRICK: Wir erstellen eine brandneue Instanz der Liste.
           // Das triggert das UI-Rendering in Flutter garantiert!
-          _displayedCharacters = [..._displayedCharacters, _allCharacters[_currentIndex]];
+          _displayedCharacters = <TextSpan>[..._displayedCharacters, _allCharacters[_currentIndex]];
           _currentIndex++;
         });
         _scrollToBottom();
@@ -178,7 +176,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
             border: Border.all(color: const Color(0xFF1E1E1E), width: 4),
           ),
           child: Stack(
-            children: [
+            children: <Widget>[
               Positioned.fill(
                 top: 24,
                 left: 12,
@@ -186,7 +184,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
                 bottom: 12,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Expanded(
                       child: SizedBox(
                         width: double.infinity,
@@ -213,14 +211,14 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
                       ),
                     ),
 
-                    if (widget.actions.isNotEmpty && _isTypewriterFinished) ...[
+                    if (widget.actions.isNotEmpty && _isTypewriterFinished) ...<Widget>[
                       const SizedBox(height: 12),
                       Center(
                         child: Wrap(
                           spacing: 10,
                           runSpacing: 10,
                           alignment: WrapAlignment.center,
-                          children: widget.actions.map((action) {
+                          children: widget.actions.map((RetroAction action) {
                             return RetroButton(title: action.title, onTap: action.onTap);
                           }).toList(),
                         ),
@@ -263,15 +261,15 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
 
 // Die Klassen RetroAction, RetroButton und _RetroButtonState bleiben exakt unverändert!
 class RetroAction {
+  RetroAction({required this.title, required this.onTap});
   final String title;
   final VoidCallback onTap;
-  RetroAction({required this.title, required this.onTap});
 }
 
 class RetroButton extends StatefulWidget {
+  const RetroButton({super.key, required this.title, required this.onTap});
   final String title;
   final VoidCallback onTap;
-  const RetroButton({super.key, required this.title, required this.onTap});
   @override
   State<RetroButton> createState() => _RetroButtonState();
 }

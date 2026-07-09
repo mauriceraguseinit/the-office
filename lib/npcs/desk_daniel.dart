@@ -2,19 +2,21 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:the_office/hud/speech_bubble.dart';
+import 'package:the_office/models/inventory_item.dart';
 import 'package:the_office/trigger_zone.dart';
 
 import '../office_game.dart';
 
 enum DanielDialogs { normalAction, mate, wrongItem }
 
-class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
+class DeskDaniel extends SpriteAnimationGroupComponent<String> with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
   DeskDaniel({required super.position, required super.size, this.hitBox = true});
-  Map<String, OverlayWidgetBuilder<OfficeGame>> get _dialogs {
-    return {
-      for (final value in DanielDialogs.values)
-        value.toString(): (context, OfficeGame game) {
+  Map<String, Widget Function(BuildContext, Game)> get _dialogs {
+    return <String, Widget Function(BuildContext, Game)>{
+      for (final DanielDialogs value in DanielDialogs.values)
+        value.toString(): (BuildContext context, Game game) {
           switch (value) {
             case DanielDialogs.normalAction:
               return RetroSpeechBubble(
@@ -47,16 +49,18 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    OfficeGame.overlayBuilderMap?.addAll(_dialogs);
+    for (String key in _dialogs.keys) {
+      game.overlays.addEntry(key, _dialogs[key]!);
+    }
 
     priority = (y + height).toInt();
-    final anim = await game.loadSpriteAnimation(
+    final SpriteAnimation anim = await game.loadSpriteAnimation(
       'desk_daniel.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.915, textureSize: Vector2(frameWidth, pngHeight)),
     );
 
     // Jetzt übergeben wir die Animationen an die Komponente
-    animations = {'idle': anim};
+    animations = <String, SpriteAnimation>{'idle': anim};
     current = 'idle';
 
     if (hitBox) {
@@ -67,12 +71,12 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
   @override
   void onTapDown(TapDownEvent event) {
     // 2. Welches Item hat der Spieler an der Maus ausgewählt?
-    final activeItem = game.selectedItem;
+    final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
       // 3. Fall: Ein Item wurde auf Tobi geklickt!
       if (activeItem.id == 'kaffee') {
-        print("Daniel: 'Oh danke! Der Kaffee rettet meinen Tag!'");
+        debugPrint("Daniel: 'Oh danke! Der Kaffee rettet meinen Tag!'");
 
         // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);
@@ -83,7 +87,7 @@ class DeskDaniel extends SpriteAnimationGroupComponent with HasGameReference<Off
         // game.ownedItems.remove(activeItem);
       } else {
         // Falsches Item erwischt
-        print("Daniel schaut das Item an: 'Was soll ich damit?'");
+        debugPrint("Daniel schaut das Item an: 'Was soll ich damit?'");
       }
       game.resetSelection();
     } else {

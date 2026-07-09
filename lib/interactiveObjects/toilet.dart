@@ -2,7 +2,9 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
 import 'package:the_office/hud/speech_bubble.dart';
+import 'package:the_office/models/inventory_item.dart';
 import 'package:the_office/trigger_zone.dart';
 
 import '../../office_game.dart';
@@ -10,10 +12,11 @@ import '../../office_game.dart';
 enum ToiletDialogs { normalAction, thanks, wrongItem, noMate }
 
 class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
-  Map<String, OverlayWidgetBuilder<OfficeGame>> get _dialogs {
-    return {
-      for (final value in ToiletDialogs.values)
-        value.toString(): (context, OfficeGame game) {
+  Toilet({required super.position, super.size, this.hitBox = true});
+  Map<String, Widget Function(BuildContext, Game)> get _dialogs {
+    return <String, Widget Function(BuildContext, Game)>{
+      for (final ToiletDialogs value in ToiletDialogs.values)
+        value.toString(): (BuildContext context, Game game) {
           switch (value) {
             case ToiletDialogs.normalAction:
               return RetroSpeechBubble(
@@ -41,15 +44,15 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
     };
   }
 
-  Toilet({required super.position, super.size, this.hitBox = true});
-
   final bool hitBox;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
-    OfficeGame.overlayBuilderMap?.addAll(_dialogs);
+    for (String key in _dialogs.keys) {
+      game.overlays.addEntry(key, _dialogs[key]!);
+    }
 
     priority = (y + height / 2).toInt();
     debugMode = false;
@@ -65,12 +68,12 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
   @override
   void onTapDown(TapDownEvent event) {
     // 2. Welches Item hat der Spieler an der Maus ausgewählt?
-    final activeItem = game.selectedItem;
+    final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
       // 3. Fall: Ein Item wurde auf Tobi geklickt!
       if (activeItem.id == 'kaffee') {
-        print("Tobi: 'Oh danke! Der Kaffee rettet meinen Tag!'");
+        debugPrint("Tobi: 'Oh danke! Der Kaffee rettet meinen Tag!'");
 
         // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);

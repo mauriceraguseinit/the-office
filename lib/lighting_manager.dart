@@ -1,43 +1,41 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-class LightingManager extends PositionComponent with HasGameReference {
+import 'office_game.dart';
+
+class LightingManager extends PositionComponent with HasGameReference<OfficeGame> {
+  LightingManager({required this.lightSources, required this.targetCamera});
   final List<Vector2> lightSources;
 
-  // Die Kamera, die wir überwachen
   final CameraComponent targetCamera;
 
   double ambientDarkness = 0.55;
 
-  LightingManager({required this.lightSources, required this.targetCamera});
-
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    // Holt die exakte virtuelle Größe des Viewports der Zielkamera
     size = targetCamera.viewport.size;
   }
 
   @override
-  void onGameResize(Vector2 newSize) {
-    super.onGameResize(newSize);
-    // Aktualisiert die physische Zeichenfläche des Licht-Overlays exakt bei jeder Fensteränderung
-    size = targetCamera.viewport.size;
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    this.size = targetCamera.viewport.size;
   }
 
   @override
   void render(Canvas canvas) {
     if (size == Vector2.zero()) return;
 
-    final screenRect = size.toRect();
-    final zoom = targetCamera.viewfinder.scale.x;
+    final Rect screenRect = size.toRect();
+    final double zoom = targetCamera.viewfinder.zoom;
 
     canvas.saveLayer(screenRect, Paint());
     canvas.drawRect(screenRect, Paint()..color = Colors.black.withValues(alpha: ambientDarkness));
 
     // Lichter zeichnen
-    for (final lightWorldPos in lightSources) {
-      final lightScreenPos = _worldToScreenPos(lightWorldPos, targetCamera);
+    for (final Vector2 lightWorldPos in lightSources) {
+      final Offset lightScreenPos = _worldToScreenPos(lightWorldPos, targetCamera);
       _renderLightCircle(canvas, lightScreenPos, zoom);
     }
 
@@ -45,17 +43,19 @@ class LightingManager extends PositionComponent with HasGameReference {
   }
 
   void _renderLightCircle(Canvas canvas, Offset screenPos, double zoom) {
-    final radius = 200.0 * zoom;
+    final double radius = 200.0 * zoom;
 
-    final colors = [
+    final List<Color> colors = <Color>[
       Colors.white.withValues(alpha: 1.0),
       Colors.white.withValues(alpha: 0.5),
       Colors.white.withValues(alpha: 0.0),
     ];
 
-    final gradient = RadialGradient(colors: colors).createShader(Rect.fromCircle(center: screenPos, radius: radius));
+    final Shader gradient = RadialGradient(
+      colors: colors,
+    ).createShader(Rect.fromCircle(center: screenPos, radius: radius));
 
-    final paint = Paint()
+    final Paint paint = Paint()
       ..shader = gradient
       ..blendMode = BlendMode.dstOut;
 
@@ -63,13 +63,13 @@ class LightingManager extends PositionComponent with HasGameReference {
   }
 
   Offset _worldToScreenPos(Vector2 worldPos, CameraComponent camera) {
-    final visibleRect = camera.visibleWorldRect;
+    final Rect visibleRect = camera.visibleWorldRect;
 
-    final relativeX = worldPos.x - visibleRect.left;
-    final relativeY = worldPos.y - visibleRect.top;
+    final double relativeX = worldPos.x - visibleRect.left;
+    final double relativeY = worldPos.y - visibleRect.top;
 
-    final screenX = (relativeX / visibleRect.width) * size.x;
-    final screenY = (relativeY / visibleRect.height) * size.y;
+    final double screenX = (relativeX / visibleRect.width) * size.x;
+    final double screenY = (relativeY / visibleRect.height) * size.y;
 
     return Offset(screenX, screenY);
   }

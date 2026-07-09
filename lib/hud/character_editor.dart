@@ -3,13 +3,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector3;
 
 import 'speech_bubble.dart';
 
 class CharacterEditor extends StatefulWidget {
-  final VoidCallback onFinished;
-
   const CharacterEditor({super.key, required this.onFinished});
+  final VoidCallback onFinished;
 
   @override
   State<CharacterEditor> createState() => _CharacterEditorState();
@@ -29,15 +29,15 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   // Step 1 State (Name)
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final String _targetName = "Hendrik";
-  String _statusMessage = "Bitte gib deinen Namen ein:";
-  String _subMessage = "";
+  final String _targetName = 'Hendrik';
+  String _statusMessage = 'Bitte gib deinen Namen ein:';
+  String _subMessage = '';
   bool _isNameFinished = false;
   bool _showStep1NextButton = false;
 
   // Step 2 State (Gender)
-  String _selectedGender = "Männlich";
-  String _genderMessage = "";
+  String _selectedGender = 'Männlich';
+  String _genderMessage = '';
   bool _isResettingGender = false;
 
   @override
@@ -76,7 +76,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
       _isDraggingSlider = true;
 
       // Berechnet einen Wert von 0.0 (unten) bis 1.0 (oben)
-      double ratio = 1.0 - (details.localPosition.dy / maxHeight).clamp(0.0, 1.0);
+      final double ratio = 1.0 - (details.localPosition.dy / maxHeight).clamp(0.0, 1.0);
 
       // Mappt die Ratio auf das neue, sanftere Fenster (_minScale bis _maxScale)
       _heightScale = _minScale + (ratio * (_maxScale - _minScale));
@@ -88,21 +88,21 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     _isDraggingSlider = false;
 
     // Listen mit den fiesen Sprüchen
-    final List<String> spruecheGroesser = [
-      "Die Deckenhöhen in den Leveln sind genau 1,80m hoch. Sei dankbar, wenn wir dich nicht größer machen.",
-      "Größer? In dieser Wirtschaftslage? Weißt du, wie viele Tokens eine größere Hitbox kostet?!",
+    final List<String> spruecheGroesser = <String>[
+      'Die Deckenhöhen in den Leveln sind genau 1,80m hoch. Sei dankbar, wenn wir dich nicht größer machen.',
+      'Größer? In dieser Wirtschaftslage? Weißt du, wie viele Tokens eine größere Hitbox kostet?!',
     ];
 
     setState(() {
       // Schauen wir mal, was der Spieler mit Hendrik angestellt hat
       if (_heightScale > 1.05) {
         // Zufälligen Spruch aus der Liste wählen
-        final random = math.Random();
+        final math.Random random = math.Random();
         _genderMessage = spruecheGroesser[random.nextInt(spruecheGroesser.length)];
       } else if (_heightScale < 0.95) {
         // Spruch fürs Schrumpfen
         _genderMessage =
-            "Wenn du kleiner wirst, fällst du durch die Map. Vertrau mir! Das ist die perfekte Höhe für ein Sprite.";
+            'Wenn du kleiner wirst, fällst du durch die Map. Vertrau mir! Das ist die perfekte Höhe für ein Sprite.';
       }
     });
 
@@ -116,7 +116,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.backspace) {
         setState(() {
-          _subMessage = "Netter Versuch, aber Rückwärtsschreiben ist hier nicht erlaubt.";
+          _subMessage = 'Netter Versuch, aber Rückwärtsschreiben ist hier nicht erlaubt.';
         });
         return;
       }
@@ -133,7 +133,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         setState(() {
           _controller.text = _targetName.substring(0, _controller.text.length + 1);
           _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
-          _subMessage = "";
+          _subMessage = '';
         });
       }
     }
@@ -142,12 +142,12 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   void _validateName() {
     if (_controller.text.length < _targetName.length) {
       setState(() {
-        _subMessage = "Der Name muss mindestens 7 Buchstaben lang sein.";
+        _subMessage = 'Der Name muss mindestens 7 Buchstaben lang sein.';
       });
     } else {
       setState(() {
-        _statusMessage = "Ein wunderschöner Name. Kurz, prägnant... Hendrik.";
-        _subMessage = "";
+        _statusMessage = 'Ein wunderschöner Name. Kurz, prägnant... Hendrik.';
+        _subMessage = '';
         _isNameFinished = true;
         _showStep1NextButton = true;
       });
@@ -156,17 +156,17 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
 
   void _selectGender(String gender) {
     if (_isResettingGender) return;
-    if (gender == "Männlich") {
+    if (gender == 'Männlich') {
       setState(() {
         _selectedGender = gender;
-        _genderMessage = "";
+        _genderMessage = '';
       });
       return;
     }
 
     setState(() {
       _selectedGender = gender;
-      _genderMessage = "";
+      _genderMessage = '';
       _isResettingGender = true;
     });
 
@@ -174,8 +174,8 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     Timer(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
-          _selectedGender = "Männlich";
-          _genderMessage = "Nett, dass du gefragt wirst, oder? Bleibt trotzdem so.";
+          _selectedGender = 'Männlich';
+          _genderMessage = 'Nett, dass du gefragt wirst, oder? Bleibt trotzdem so.';
           _isResettingGender = false;
         });
       }
@@ -216,9 +216,9 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   Widget _buildStep1() {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         const Text(
-          "CHARAKTER-EDITOR",
+          'CHARAKTER-EDITOR',
           style: TextStyle(fontFamily: 'Courier New', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
         ),
         const SizedBox(height: 30),
@@ -242,12 +242,12 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
                 letterSpacing: 2,
                 fontWeight: FontWeight.bold,
               ),
-              decoration: const InputDecoration(border: InputBorder.none, hintText: "..."),
+              decoration: const InputDecoration(border: InputBorder.none, hintText: '...'),
             ),
           ),
-        if (!_isNameFinished && _controller.text.length == _targetName.length) ...[
+        if (!_isNameFinished && _controller.text.length == _targetName.length) ...<Widget>[
           const SizedBox(height: 20),
-          RetroButton(title: "OK", onTap: _validateName),
+          RetroButton(title: 'OK', onTap: _validateName),
         ],
         const SizedBox(height: 15),
         Text(
@@ -260,9 +260,9 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
             fontWeight: FontWeight.bold,
           ),
         ),
-        if (_showStep1NextButton) ...[
+        if (_showStep1NextButton) ...<Widget>[
           const SizedBox(height: 30),
-          RetroButton(title: "Weiter", onTap: () => setState(() => _currentStep = 2)),
+          RetroButton(title: 'Weiter', onTap: () => setState(() => _currentStep = 2)),
         ],
       ],
     );
@@ -271,23 +271,23 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   Widget _buildStep2() {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         const Text(
-          "CHARAKTER-EDITOR",
+          'CHARAKTER-EDITOR',
           style: TextStyle(fontFamily: 'Courier New', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
         ),
         const SizedBox(height: 40),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+          children: <Widget>[
             // Leftmost: Height Slider
             _buildHeightSlider(),
             const SizedBox(width: 30),
             // Left: Hendrik Image (Frame 1 of down.png)
             Transform(
               alignment: Alignment.bottomCenter,
-              transform: Matrix4.identity()..scale(1.0, _heightScale),
+              transform: Matrix4.identity()..scaleByVector3(Vector3(1.0, _heightScale, 1.0)),
               child: Container(
                 width: 150,
                 height: 180,
@@ -314,9 +314,9 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   const Text(
-                    "GESCHLECHT:",
+                    'GESCHLECHT:',
                     style: TextStyle(
                       fontFamily: 'Courier New',
                       fontSize: 18,
@@ -325,10 +325,10 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _buildGenderOption("Männlich", Icons.male),
-                  _buildGenderOption("Weiblich", Icons.female),
-                  _buildGenderOption("Divers", Icons.transgender),
-                  _buildGenderOption("Kampfjet", Icons.airplanemode_active),
+                  _buildGenderOption('Männlich', Icons.male),
+                  _buildGenderOption('Weiblich', Icons.female),
+                  _buildGenderOption('Divers', Icons.transgender),
+                  _buildGenderOption('Kampfjet', Icons.airplanemode_active),
                   const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.only(top: 10.0),
@@ -348,7 +348,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           ],
         ),
         const SizedBox(height: 30),
-        RetroButton(title: "Charakter Erstellen", onTap: () => setState(() => _currentStep = 3)),
+        RetroButton(title: 'Charakter Erstellen', onTap: () => setState(() => _currentStep = 3)),
       ],
     );
   }
@@ -356,14 +356,14 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   Widget _buildStep3() {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         const Text(
-          "GLÜCKWUNSCH!",
+          'GLÜCKWUNSCH!',
           style: TextStyle(fontFamily: 'Courier New', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
         ),
         const SizedBox(height: 30),
         const Text(
-          "Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\n\nViel Spaß im Abenteuer, Hendrik!",
+          'Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\n\nViel Spaß im Abenteuer, Hendrik!',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'Courier New',
@@ -375,22 +375,22 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         ),
         const SizedBox(height: 40),
         // Erst dieser Button startet das eigentliche Spiel über das Callback
-        RetroButton(title: "Abenteuer starten", onTap: widget.onFinished),
+        RetroButton(title: 'Abenteuer starten', onTap: widget.onFinished),
       ],
     );
   }
 
   Widget _buildHeightSlider() {
-    double sliderHeight = 180;
+    final double sliderHeight = 180;
     return Column(
-      children: [
+      children: <Widget>[
         const Text(
-          "GRÖSSE",
+          'GRÖSSE',
           style: TextStyle(fontFamily: 'Courier New', fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         GestureDetector(
-          onVerticalDragUpdate: (details) => _onSliderDragUpdate(details, sliderHeight),
+          onVerticalDragUpdate: (DragUpdateDetails details) => _onSliderDragUpdate(details, sliderHeight),
           onVerticalDragEnd: _onSliderDragEnd,
           child: Container(
             width: 35,
@@ -401,7 +401,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
             ),
             child: Stack(
               clipBehavior: Clip.none,
-              children: [
+              children: <Widget>[
                 // Track
                 Center(child: Container(width: 4, color: const Color(0xFF1E1E1E))),
                 // Handle
@@ -427,13 +427,13 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   }
 
   Widget _buildGenderOption(String label, IconData icon) {
-    bool isSelected = _selectedGender == label;
+    final bool isSelected = _selectedGender == label;
     return GestureDetector(
       onTap: () => _selectGender(label),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
-          children: [
+          children: <Widget>[
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               width: 30,

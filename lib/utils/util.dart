@@ -17,6 +17,6 @@ enum Layers {
   player(3),
   dialogs(4);
 
-  final int value;
   const Layers(this.value);
+  final int value;
 }

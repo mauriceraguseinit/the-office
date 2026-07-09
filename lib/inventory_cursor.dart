@@ -1,28 +1,28 @@
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:the_office/models/inventory_item.dart';
 
 import 'office_game.dart';
 
 class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame> {
-  Sprite? _cursorSprite;
-  String? _currentLoadedPath;
-
   InventoryCursor() : super(priority: 9999) {
     size = Vector2(32, 32);
     anchor = Anchor.center;
   }
+  Sprite? _cursorSprite;
+  String? _currentLoadedPath;
 
-  @override // HIER: Der doppelte `@override` wurde entfernt
+  @override
   void update(double dt) {
     super.update(dt);
 
-    final selectedItem = game.selectedItem;
+    final InventoryItem? selectedItem = game.selectedItem;
 
     if (selectedItem != null) {
       position = game.mousePosition;
 
-      final filename = selectedItem.assetPath.split('/').last;
+      final String filename = selectedItem.assetPath.split('/').last;
       if (_currentLoadedPath != filename) {
         _loadCursorSprite(filename);
       }
@@ -37,7 +37,7 @@ class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame
     super.render(canvas);
 
     // Wir prüfen, ob IRGENDEIN Overlay aktiv ist (z.B. 'inventory', 'intro', oder Dialog-Meldungen)
-    final isAnyOverlayOpen = game.overlays.activeOverlays.isNotEmpty;
+    final bool isAnyOverlayOpen = game.overlays.activeOverlays.isNotEmpty;
 
     // Nur rendern, wenn ein Sprite existiert UND gerade absolut kein Overlay/Dialog im Weg ist
     if (_cursorSprite != null && game.selectedItem != null && !isAnyOverlayOpen) {

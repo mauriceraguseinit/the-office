@@ -5,16 +5,19 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:the_office/hud/speech_bubble.dart';
+import 'package:the_office/models/inventory_item.dart';
 import 'package:the_office/trigger_zone.dart';
 
 import '../office_game.dart';
 
 enum TobiDialogs { normalAction, thanks, wrongItem, noMate }
 
-class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
+class Tobi extends SpriteAnimationGroupComponent<String>
+    with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
+  Tobi({required super.position, required super.size, this.hitBox = true});
   Map<String, Widget Function(BuildContext, Game)> get _dialogs {
-    return {
-      for (final value in TobiDialogs.values)
+    return <String, Widget Function(BuildContext, Game)>{
+      for (final TobiDialogs value in TobiDialogs.values)
         value.toString(): (_, _) {
           switch (value) {
             case TobiDialogs.normalAction:
@@ -43,8 +46,6 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
     };
   }
 
-  Tobi({required super.position, required super.size, this.hitBox = true});
-
   final bool hitBox;
   static double pngWidth = 1488;
   static double frame = 4;
@@ -56,7 +57,7 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
     // ==========================================
     // FAKE SCHATTEN ZEICHNEN
     // ==========================================
-    final shadowPaint = Paint()
+    final Paint shadowPaint = Paint()
       ..color = const Color(0x66000000)
       ..style = PaintingStyle.fill;
 
@@ -66,7 +67,7 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
     final double shadowX = 4;
 
     // Standard-Höhe für Hoch/Runter
-    double shadowY = 56;
+    final double shadowY = 56;
 
     canvas.drawOval(Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight), shadowPaint);
     // ==========================================
@@ -79,17 +80,17 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    for (var key in _dialogs.keys) {
+    for (String key in _dialogs.keys) {
       game.overlays.addEntry(key, _dialogs[key]!);
     }
 
     priority = (y + height).toInt();
 
-    final anim = await game.loadSpriteAnimation(
+    final SpriteAnimation anim = await game.loadSpriteAnimation(
       'tobi_idle.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(frameWidth, pngHeight)),
     );
-    animations = {'idle': anim};
+    animations = <String, SpriteAnimation>{'idle': anim};
     current = 'idle';
 
     if (hitBox) {
@@ -100,12 +101,12 @@ class Tobi extends SpriteAnimationGroupComponent with HasGameReference<OfficeGam
   @override
   void onTapDown(TapDownEvent event) {
     // 2. Welches Item hat der Spieler an der Maus ausgewählt?
-    final activeItem = game.selectedItem;
+    final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
       // 3. Fall: Ein Item wurde auf Tobi geklickt!
       if (activeItem.id == 'kaffee') {
-        print("Tobi: 'Oh danke! Der Kaffee rettet meinen Tag!'");
+        debugPrint("Tobi: 'Oh danke! Der Kaffee rettet meinen Tag!'");
 
         // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);

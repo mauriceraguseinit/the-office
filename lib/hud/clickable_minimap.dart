@@ -4,9 +4,6 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
 class ClickableMinimap extends PositionComponent with TapCallbacks {
-  final CameraComponent minimapCamera;
-  final VoidCallback onMinimapPressed;
-
   ClickableMinimap({
     required this.minimapCamera,
     required this.onMinimapPressed,
@@ -19,7 +16,7 @@ class ClickableMinimap extends PositionComponent with TapCallbacks {
     add(minimapCamera);
 
     // Optionaler schicker Rahmen
-    final border = RectangleComponent(
+    final RectangleComponent border = RectangleComponent(
       size: size,
       paint: Paint()
         ..color = Colors.orange
@@ -28,6 +25,8 @@ class ClickableMinimap extends PositionComponent with TapCallbacks {
     );
     add(border);
   }
+  final CameraComponent minimapCamera;
+  final VoidCallback onMinimapPressed;
 
   @override
   void onTapDown(TapDownEvent event) {

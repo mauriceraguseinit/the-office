@@ -2,6 +2,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flame/sprite.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:the_office/hud/speech_bubble.dart';
 
@@ -11,8 +12,9 @@ import 'office_game.dart';
 enum TriggerZoneDialogs { tooFar }
 
 class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallbacks, HasGameReference<OfficeGame> {
-  final Map<String, Widget Function(BuildContext, Game)> _dialogs = {
-    TriggerZoneDialogs.tooFar.toString(): (context, Game game) => RetroSpeechBubble(
+  TriggerZone({required this.target, required this.onAction, this.padding = 35.0});
+  final Map<String, Widget Function(BuildContext, Game)> _dialogs = <String, Widget Function(BuildContext, Game)>{
+    TriggerZoneDialogs.tooFar.toString(): (BuildContext context, Game game) => RetroSpeechBubble(
       text: 'Dafür bin ich zu weit weg.',
       onClose: () => game.overlays.remove(TriggerZoneDialogs.tooFar.toString()),
     ),
@@ -24,19 +26,17 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
 
   bool _playerInside = false;
 
-  TriggerZone({required this.target, required this.onAction, this.padding = 35.0});
-
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
     debugMode = false;
 
-    for (var key in _dialogs.keys) {
+    for (String key in _dialogs.keys) {
       game.overlays.addEntry(key, _dialogs[key]!);
     }
 
-    final isRotated = target.angle == 1.5707963267948966 || target.angle == 4.71238898038469;
+    final bool isRotated = target.angle == 1.5707963267948966 || target.angle == 4.71238898038469;
 
     if (isRotated) {
       size = Vector2(target.size.y, target.size.x) + Vector2(padding * 2, padding * 2);
@@ -73,10 +73,10 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
 
     // 2. Sicherheitsnetz: Wenn der Spieler die innere Box rammt,
     // messen wir einfach den direkten Abstand zwischen den Mittelpunkten.
-    final distance = (player.absoluteCenter - target.absoluteCenter).length;
+    final double distance = (player.absoluteCenter - target.absoluteCenter).length;
 
     // Wir berechnen die maximale Reichweite (halbe Diagonale der Trigger-Zone)
-    final maxAllowedDistance = size.length / 2;
+    final double maxAllowedDistance = size.length / 2;
 
     if (distance <= maxAllowedDistance) {
       return _executeAction();
@@ -94,12 +94,12 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
   void onTapDown(TapDownEvent event) {
     // --- MINIMAP SCHUTZSCHILD START ---
     // Wir holen uns die Klick-Position in echten Bildschirm-Pixeln
-    final screenPosition = event.canvasPosition;
-    final gameSize = game.size;
+    final Vector2 screenPosition = event.canvasPosition;
+    final Vector2 gameSize = game.size;
 
     // Deine Minimap ist 200x200 Pixel groß und sitzt unten rechts mit 20px Abstand (220)
-    final minimapLeft = gameSize.x - 220;
-    final minimapTop = gameSize.y - 220;
+    final double minimapLeft = gameSize.x - 220;
+    final double minimapTop = gameSize.y - 220;
 
     // Wenn der Klick innerhalb des Minimap-Quadrats gelandet ist, ignorieren wir ihn komplett!
     if (screenPosition.x >= minimapLeft && screenPosition.y >= minimapTop) {
@@ -108,7 +108,7 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
     // --- MINIMAP SCHUTZSCHILD ENDE ---
 
     // Dein bestehender Code:
-    final distance = game.player.absoluteCenter.distanceTo(absoluteCenter);
+    final double distance = game.player.absoluteCenter.distanceTo(absoluteCenter);
     if (distance > 120) {
       game.overlays.add(TriggerZoneDialogs.tooFar.toString());
       game.resetSelection();
@@ -152,10 +152,10 @@ mixin Interactable on PositionComponent {
       Sprite? activeSprite;
 
       if (this is SpriteAnimationGroupComponent) {
-        final group = this as SpriteAnimationGroupComponent;
-        final currentAnim = group.animations?[group.current];
+        final SpriteAnimationGroupComponent<dynamic> group = this as SpriteAnimationGroupComponent<String>;
+        final SpriteAnimation? currentAnim = group.animations?[group.current];
         if (currentAnim != null) {
-          final ticker = group.animationTickers?[group.current];
+          final SpriteAnimationTicker? ticker = group.animationTickers?[group.current];
           activeSprite = ticker?.getSprite() ?? currentAnim.frames.first.sprite;
         }
       } else if (this is SpriteComponent) {
