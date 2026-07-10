@@ -53,31 +53,57 @@ class OfficeGame extends FlameGame<World>
 
     mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
 
+    final RenderableTiledMap tileMap = mapComponent.tileMap;
+
     final List<TiledComponent<FlameGame<World>>> mapLayers = await MapSplitter.splitMapIntoLayers(
       fileName: 'office.tmx',
       destTileSize: Vector2.all(64),
     );
 
-    // Nur den Boden als statischen Hintergrundlayer (Priorität -1000) hinzufügen
-    for (final TiledComponent<FlameGame<World>> layerComponent in mapLayers) {
-      bool isFloor = false;
+    // Boden manuell rendern
+    final Layer? bodenLayer =
+        tileMap.renderableLayers
+                .where((layer) => layer.layer is TileLayer && layer.layer.name == 'Boden')
+                .firstOrNull
+                ?.layer
+            as TileLayer?;
 
-      final int renderableLayerCount = layerComponent.tileMap.renderableLayers.length;
-      for (int i = 0; i < renderableLayerCount; i++) {
-        final Layer currentLayer = layerComponent.tileMap.renderableLayers[i].layer;
-        if (currentLayer.name == 'Boden' && currentLayer.visible) {
-          isFloor = true;
-          break;
+    if (bodenLayer != null) {
+      final int mapWidth = tileMap.map.width;
+      final int mapHeight = tileMap.map.height;
+
+      for (int y = 0; y < mapHeight; y++) {
+        for (int x = 0; x < mapWidth; x++) {
+          final Gid? tileData = tileMap.getTileData(layerId: bodenLayer.id!, x: x, y: y);
+
+          if (tileData != null && tileData.tile != 0) {
+            final int gid = tileData.tile;
+            final Tile? tileDefinition = tileMap.map.tileByGid(gid);
+            final Tileset ts = tileMap.map.tilesetByTileGId(gid);
+
+            if (tileDefinition == null) continue;
+
+            final String imageSource = (tileDefinition.image ?? ts.image)!.source!;
+            final Rectangle<num> rect = ts.computeDrawRect(tileDefinition);
+            final Sprite sprite = Sprite(
+              images.fromCache(imageSource),
+              srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+              srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+            );
+
+            final SpriteComponent tileComponent = SpriteComponent(
+              sprite: sprite,
+              position: Vector2(x * 64.0, y * 64.0),
+              size: Vector2.all(64.5),
+              anchor: Anchor.topLeft,
+              priority: -1000,
+            );
+
+            world.add(tileComponent);
+          }
         }
       }
-
-      if (isFloor) {
-        layerComponent.priority = -1000;
-        world.add(layerComponent);
-      }
     }
-
-    final RenderableTiledMap tileMap = mapComponent.tileMap;
 
     // Alle Tileset-Bilder vorab synchron in den Cache laden
     for (final Tileset ts in tileMap.map.tilesets) {
