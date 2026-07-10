@@ -10,6 +10,7 @@ import 'package:flame/input.dart';
 import 'package:flame/text.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
+import 'package:the_office/interactiveObjects/fridge.dart';
 import 'package:the_office/interactiveObjects/toilet.dart';
 import 'package:the_office/npcs/tobi.dart';
 import 'package:the_office/trigger_zone.dart';
@@ -17,6 +18,7 @@ import 'package:the_office/utils/util.dart';
 
 import 'hendrik.dart';
 import 'hud/clickable_minimap.dart';
+import 'interactiveObjects/coffee_machine.dart';
 import 'inventory_cursor.dart';
 import 'lighting_manager.dart';
 import 'models/inventory_item.dart';
@@ -334,6 +336,34 @@ class OfficeGame extends FlameGame<World>
       world.add(
         TriggerZone(target: toilet, onAction: () => overlays.add(ToiletDialogs.normalAction.toString()), padding: 5),
       );
+      return;
+    }
+    if (object.class_ == 'CoffeeMachine') {
+      final CoffeeMachine coffeeMachine = CoffeeMachine(
+        position: Vector2(object.x, object.y),
+        size: Vector2(object.size.x, object.size.y),
+        priorityOffset: priorityOffset,
+      );
+      world.add(coffeeMachine);
+      world.add(
+        TriggerZone(
+          target: coffeeMachine,
+          onAction: () => overlays.add(CoffeeMachineDialogs.normalAction.toString()),
+          padding: 5,
+        ),
+      );
+      return;
+    }
+    if (object.class_ == 'Fridge') {
+      final Fridge fridge = Fridge(
+        position: Vector2(object.x, object.y),
+        size: Vector2(object.size.x, object.size.y),
+      );
+      world.add(fridge);
+      world.add(
+        TriggerZone(target: fridge, onAction: () => overlays.add(FridgeDialogs.normalAction.toString()), padding: 5),
+      );
+      return;
     } else if (object.gid != null && object.gid! > 0) {
       final int rawGid = object.gid!;
       final int cleanGid = rawGid & 0x0FFFFFFF;

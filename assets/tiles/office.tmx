@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="150">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="151">
  <tileset firstgid="1" name="Office" tilewidth="128" tileheight="128" tilecount="25" columns="1" objectalignment="right">
   <grid orientation="orthogonal" width="64" height="64"/>
   <tile id="7">
@@ -375,10 +375,10 @@
   <object id="74" gid="102" x="2624.17" y="575.578" width="128" height="128" rotation="270"/>
   <object id="121" gid="103" x="1253.9" y="1328.67" width="75.4872" height="69"/>
   <object id="141" gid="105" x="1344.19" y="1142.15" width="96" height="109"/>
-  <object id="143" gid="106" x="1344.17" y="1238" width="32" height="83"/>
+  <object id="143" type="Fridge" gid="106" x="1344.17" y="1238" width="32" height="83"/>
  </objectgroup>
  <objectgroup id="18" name="interactiveObjects2">
-  <object id="146" gid="107" x="1341.92" y="1115.42" width="26" height="34"/>
+  <object id="146" type="CoffeeMachine" gid="107" x="1341.92" y="1115.42" width="26" height="34"/>
  </objectgroup>
  <objectgroup id="17" name="collision">
   <object id="75" x="2176.04" y="817.333" width="383.936" height="13.6667"/>
@@ -437,8 +437,9 @@
   <object id="136" x="2340.33" y="1389.38" width="26" height="15.9583"/>
   <object id="137" x="2387.67" y="1060" width="19.3333" height="19.6667"/>
   <object id="138" x="832.333" y="833.667" width="11" height="162.333"/>
-  <object id="139" x="2407.09" y="809.091" width="22.5455" height="7.09091"/>
-  <object id="140" x="2004" y="806.375" width="17.75" height="10.5"/>
+  <object id="139" name="trash" x="2407.09" y="809.091" width="22.5455" height="7.09091"/>
+  <object id="140" name="pflanzenbox" x="2004" y="806.375" width="17.75" height="10.5"/>
+  <object id="150" name="kühlschrankbox" x="1315.64" y="1196.91" width="27.8182" height="79.8182"/>
  </objectgroup>
  <objectgroup id="13" name="lights">
   <object id="16" x="2561.33" y="448.5">
