@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flame/game.dart';
-// Ganz oben zu deinen Imports hinzufügen
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,13 +41,12 @@ class TheOfficeApp extends StatefulWidget {
 }
 
 class _TheOfficeAppState extends State<TheOfficeApp> {
-  // Das eigentliche Hauptspiel
   final OfficeGame _game = OfficeGame();
-
-  // Instanz für das Intro-Spiel
   late final IntroGame _introGame;
-
   Scenes _showScene = Scenes.editor;
+
+  // Tracken, ob wir im Web aktuell im Vollbildmodus sind
+  bool _isFullscreen = false;
 
   @override
   void initState() {
@@ -58,6 +56,26 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
         setState(() => _showScene = Scenes.game);
       },
     );
+  }
+
+  // Die native Browser-Logik synchron umschalten
+  void _toggleFullscreen() {
+    if (!kIsWeb) return;
+
+    try {
+      if (web.document.fullscreenElement == null) {
+        // In den Vollbildmodus wechseln
+        web.document.documentElement?.requestFullscreen();
+        web.window.screen.orientation.lock('landscape');
+        setState(() => _isFullscreen = true);
+      } else {
+        // Vollbildmodus verlassen
+        web.document.exitFullscreen();
+        setState(() => _isFullscreen = false);
+      }
+    } catch (e) {
+      debugPrint('Fullscreen-Toggle fehlgeschlagen: $e');
+    }
   }
 
   Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = <String, OverlayWidgetBuilder<OfficeGame>>{
@@ -75,72 +93,82 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: switch (_showScene) {
-          Scenes.editor => CharacterEditor(
-            onFinished: () {
-              // WENN es im Browser läuft, starte den Fullscreen-Modus
-              if (kIsWeb) {
-                try {
-                  web.document.documentElement?.requestFullscreen();
+        // Wir nutzen einen Stack, damit der Fullscreen-Knopf IMMER oben rechts drüber liegt
+        body: Stack(
+          children: <Widget>[
+            // Das eigentliche Spiel/Szenen-Wechsel
+            Positioned.fill(
+              child: switch (_showScene) {
+                Scenes.editor => CharacterEditor(
+                  onFinished: () => setState(() => _showScene = Scenes.intro),
+                ),
 
-                  // Orientierung auf Landscape sperren
-                  web.window.screen.orientation.lock('landscape');
-                } catch (e) {
-                  debugPrint('Vollbild wurde vom Browser blockiert oder nicht unterstützt: $e');
-                }
-              }
+                Scenes.intro => GameWidget<IntroGame>(
+                  game: _introGame,
+                  initialActiveOverlays: const <String>['button'],
+                  overlayBuilderMap: <String, OverlayWidgetBuilder<IntroGame>>{
+                    'button': (BuildContext context, IntroGame introGame) {
+                      return LayoutBuilder(
+                        builder: (BuildContext context, BoxConstraints constraints) {
+                          final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
+                          final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
+                          final double gameScale = math.min(scaleX, scaleY);
 
-              // Danach normal weiter zur Intro-Szene
-              setState(() => _showScene = Scenes.intro);
-            },
-          ),
+                          return Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Padding(
+                              padding: EdgeInsets.all(32 * gameScale),
+                              child: Transform.scale(
+                                scale: gameScale,
+                                alignment: Alignment.bottomCenter,
+                                child: RetroButton(
+                                  title: 'Überspringen',
+                                  onTap: () => setState(() => _showScene = Scenes.game),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  },
+                ),
 
-          Scenes.intro => GameWidget<IntroGame>(
-            game: _introGame,
-            initialActiveOverlays: const <String>['button'],
-            overlayBuilderMap: <String, OverlayWidgetBuilder<IntroGame>>{
-              'button': (BuildContext context, IntroGame introGame) {
-                // Virtuelle Auflösung des Intros abgreifen
-
-                return LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    // Berechne den aktuellen Skalierungsfaktor des Bildschirmfensters
-                    final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
-                    final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
-                    final double gameScale = math.min(scaleX, scaleY);
-
-                    // Positioniert den Button absolut stabil am unteren Rand des skalierten Viewports
-                    return Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        // Auch das Padding schrumpft/wächst passend mit
-                        padding: EdgeInsets.all(32 * gameScale),
-                        child: Transform.scale(
-                          scale: gameScale,
-                          alignment: Alignment.bottomCenter,
-                          child: RetroButton(
-                            title: 'Überspringen',
-                            onTap: () => setState(() => _showScene = Scenes.game),
-                          ),
-                        ),
-                      ),
+                Scenes.game => ListenableBuilder(
+                  listenable: _game.overlayChangeNotifier,
+                  builder: (BuildContext context, Widget? child) {
+                    return MouseRegion(
+                      cursor: _game.selectedItem != null ? SystemMouseCursors.none : SystemMouseCursors.basic,
+                      child: GameWidget<OfficeGame>(game: _game, overlayBuilderMap: overlayBuilderMap),
                     );
                   },
-                );
+                ),
               },
-            },
-          ),
+            ),
 
-          Scenes.game => ListenableBuilder(
-            listenable: _game.overlayChangeNotifier,
-            builder: (BuildContext context, Widget? child) {
-              return MouseRegion(
-                cursor: _game.selectedItem != null ? SystemMouseCursors.none : SystemMouseCursors.basic,
-                child: GameWidget<OfficeGame>(game: _game, overlayBuilderMap: overlayBuilderMap),
-              );
-            },
-          ),
-        },
+            // DER FULLSCREEN TOGGLE BUTTON (Nur im Web sichtbar)
+            if (kIsWeb)
+              Positioned(
+                top: 16,
+                right: 16,
+                child: SafeArea(
+                  child: Material(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(8),
+                    child: IconButton(
+                      icon: Icon(
+                        _isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      onPressed: _toggleFullscreen,
+                      tooltip: _isFullscreen ? 'Vollbild beenden' : 'Vollbild aktivieren',
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
