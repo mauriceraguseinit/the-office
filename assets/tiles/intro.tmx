@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="1280" tileheight="720" infinite="0" nextlayerid="4" nextobjectid="8">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="1280" tileheight="720" infinite="0" nextlayerid="4" nextobjectid="10">
  <tileset firstgid="1" name="intro" tilewidth="1280" tileheight="720" tilecount="2" columns="1">
   <tile id="1">
    <image source="../images/intro.png" width="1280" height="720"/>
@@ -21,6 +21,9 @@
    <ellipse/>
   </object>
   <object id="7" x="753" y="410" width="79" height="68">
+   <ellipse/>
+  </object>
+  <object id="8" x="1194.5" y="397" width="79" height="68">
    <ellipse/>
   </object>
  </objectgroup>
