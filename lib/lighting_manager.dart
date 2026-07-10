@@ -11,7 +11,7 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
 
   final List<Vector2> lightSources;
   final CameraComponent targetCamera;
-  double ambientDarkness = 0.85;
+  double ambientDarkness = 0.55;
 
   @override
   Future<void> onLoad() async {

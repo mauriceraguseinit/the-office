@@ -10,12 +10,9 @@ class ClickableMinimap extends PositionComponent with TapCallbacks {
     required Vector2 position,
     required Vector2 size,
   }) : super(position: position, size: size) {
-    // Die Minimap-Kamera wird als Kind dieser Komponente hinzugefügt
-    // und an deren Position/Größe angepasst
     minimapCamera.viewport = FixedSizeViewport(size.x, size.y);
     add(minimapCamera);
 
-    // Optionaler schicker Rahmen
     final RectangleComponent border = RectangleComponent(
       size: size,
       paint: Paint()
@@ -25,6 +22,7 @@ class ClickableMinimap extends PositionComponent with TapCallbacks {
     );
     add(border);
   }
+
   final CameraComponent minimapCamera;
   final VoidCallback onMinimapPressed;
 
@@ -32,7 +30,6 @@ class ClickableMinimap extends PositionComponent with TapCallbacks {
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
     event.handled = true;
-    // Wenn auf die Minimap geklickt wird, führen wir die Zoom-Funktion aus
     onMinimapPressed();
   }
 }
