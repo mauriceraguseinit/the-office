@@ -1,20 +1,23 @@
-import 'package:flame/collisions.dart';
-import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/models/inventory_item.dart';
-import 'package:the_office/trigger_zone.dart';
 
-import '../../office_game.dart';
+import 'interactive_object.dart';
 
 enum ToiletDialogs { normalAction, thanks, wrongItem, noMate }
 
-class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
-  Toilet({required super.position, super.size, this.hitBox = true});
+class Toilet extends InteractiveObject {
+  Toilet({
+    required super.position,
+    required super.sprite,
+    super.size,
+    super.priorityOffset,
+  });
 
-  Map<String, Widget Function(BuildContext, Game)> get _dialogs {
+  @override
+  Map<String, Widget Function(BuildContext, Game)> get dialogs {
     return <String, Widget Function(BuildContext, Game)>{
       for (final ToiletDialogs value in ToiletDialogs.values)
         value.toString(): (BuildContext context, Game game) {
@@ -42,27 +45,6 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
           }
         },
     };
-  }
-
-  final bool hitBox;
-
-  @override
-  Future<void> onLoad() async {
-    super.onLoad();
-
-    for (String key in _dialogs.keys) {
-      game.overlays.addEntry(key, _dialogs[key]!);
-    }
-
-    priority = (y + height / 2).toInt();
-    debugMode = false;
-    anchor = Anchor.centerRight;
-
-    sprite = await game.loadSprite('toilet.png');
-
-    if (hitBox) {
-      add(RectangleHitbox(size: Vector2(size.x, (size.y) / 2)));
-    }
   }
 
   @override

@@ -52,8 +52,23 @@ class OfficeGame extends FlameGame<World>
   Future<void> onLoad() async {
     super.onLoad();
 
+    // 1. Assets vorab in den Cache laden
+    await images.loadAll(<String>[
+      'coffeeMachine.png',
+      'mate_full.png',
+      'mate_empty.png',
+    ]);
+
     mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
     final RenderableTiledMap tileMap = mapComponent.tileMap;
+
+    // 2. Alle Tiled-Tilesets vorab laden
+    for (final Tileset ts in tileMap.map.tilesets) {
+      if (ts.image?.source != null) await images.load(ts.image!.source!);
+      for (final Tile t in ts.tiles) {
+        if (t.image?.source != null) await images.load(t.image!.source!);
+      }
+    }
 
     // --- BODEN MANUELL RENDERN ---
     final Layer? bodenLayer =
@@ -100,14 +115,6 @@ class OfficeGame extends FlameGame<World>
       }
     }
 
-    // Alle Tileset-Bilder vorab synchron in den Cache laden
-    for (final Tileset ts in tileMap.map.tilesets) {
-      if (ts.image?.source != null) await images.load(ts.image!.source!);
-      for (final Tile t in ts.tiles) {
-        if (t.image?.source != null) await images.load(t.image!.source!);
-      }
-    }
-
     // --- KACHEL-LAYER (WÄNDE, MÖBEL ETC.) FÜR Y-SORTING VERARBEITEN ---
     final int totalMapLayers = tileMap.renderableLayers.length;
 
@@ -133,7 +140,6 @@ class OfficeGame extends FlameGame<World>
               final String imageSource = (tileDefinition.image ?? ts.image)!.source!;
               PositionComponent tileComponent;
 
-              // Tile-Animationen verarbeiten falls vorhanden
               if (tileDefinition.animation.isNotEmpty) {
                 final List<SpriteAnimationFrame> frames = <SpriteAnimationFrame>[];
 
@@ -191,7 +197,6 @@ class OfficeGame extends FlameGame<World>
 
               world.add(tileComponent);
 
-              // Kollisionsboxen aus Tiled-Kacheldefinition auslesen
               final Tile? tileDefinitionForCollision = tileMap.map.tileByGid(gid);
 
               if (tileDefinitionForCollision != null && tileDefinitionForCollision.objectGroup != null) {
@@ -247,7 +252,6 @@ class OfficeGame extends FlameGame<World>
     final ObjectGroup? interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
     final ObjectGroup? interactiveObjects2 = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects2');
 
-    // --- REINE KOLLISIONSBOXEN AUS DEM DEDIZIERTEN TILED-LAYER LADEN ---
     final ObjectGroup? collisionLayer = mapComponent.tileMap.getLayer<ObjectGroup>('collision');
     collisionLayer?.objects.forEach((TiledObject object) {
       final PositionComponent staticobstacle = PositionComponent(
@@ -259,7 +263,6 @@ class OfficeGame extends FlameGame<World>
       world.add(staticobstacle..debugMode = false);
     });
 
-    // --- INTERAKTIVE OBJEKTE AUS BEIDEN LAYERN LADEN ---
     interactiveObjects?.objects.forEach((TiledObject object) {
       _processInteractiveObject(object, tileMap, priorityOffset: 0);
     });
@@ -284,7 +287,6 @@ class OfficeGame extends FlameGame<World>
     camera.follow(player, snap: true);
     camera.viewfinder.zoom = 2.5;
 
-    // Minimap initialisieren
     final CameraComponent rawMinimapCamera = CameraComponent(world: world);
     rawMinimapCamera.viewport = FixedResolutionViewport(resolution: Vector2(virtualWidth, virtualHeight));
     rawMinimapCamera.viewfinder.zoom = 0.2;
@@ -301,7 +303,6 @@ class OfficeGame extends FlameGame<World>
 
     _buildHud(virtualWidth, virtualHeight);
 
-    // --- LIGHTING SYSTEM ---
     final List<TiledObject> lightPoints =
         mapComponent.tileMap.getLayer<ObjectGroup>('lights')?.objects ?? <TiledObject>[];
 
@@ -325,10 +326,36 @@ class OfficeGame extends FlameGame<World>
     world.add(lighting2);
   }
 
-  // --- HILFSFUNKTION FÜR DAS GENERIEREN DER INTERAKTIVEN OBJEKTE ---
+  // --- REINIGUNG: Redundanzen bei der Sprite-Generierung komplett entfernt ---
   void _processInteractiveObject(TiledObject object, RenderableTiledMap tileMap, {required int priorityOffset}) {
+    // Falls das Objekt im Tiled-Editor gar keine Grafik-ID zugewiesen hat, brechen wir direkt ab
+    if (object.gid == null || object.gid! <= 0) return;
+
+    final int rawGid = object.gid!;
+    final int cleanGid = rawGid & 0x0FFFFFFF;
+
+    final Tile? tile = tileMap.map.tileByGid(cleanGid);
+    if (tile == null) return;
+
+    final Tileset ts = tileMap.map.tilesetByTileGId(cleanGid);
+    final String imageSource = (tile.image ?? ts.image)!.source!;
+
+    // Generiere das Sprite genau EINMAL für alle interaktiven Objekte
+    final Sprite tiledSprite = tile.image != null
+        ? Sprite(images.fromCache(imageSource))
+        : () {
+            final Rectangle<num> rect = ts.computeDrawRect(tile);
+            return Sprite(
+              images.fromCache(imageSource),
+              srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+              srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+            );
+          }();
+
+    // 1. Zuweisung: Toilette
     if (object.class_ == 'Toilet') {
       final Toilet toilet = Toilet(
+        sprite: tiledSprite,
         position: Vector2(object.x, object.y),
         size: Vector2(object.size.x, object.size.y),
       );
@@ -338,8 +365,25 @@ class OfficeGame extends FlameGame<World>
       );
       return;
     }
+
+    // 2. Zuweisung: Kühlschrank
+    if (object.class_ == 'Fridge') {
+      final Fridge fridge = Fridge(
+        sprite: tiledSprite,
+        position: Vector2(object.x, object.y),
+        size: Vector2(object.size.x, object.size.y),
+      );
+      world.add(fridge);
+      world.add(
+        TriggerZone(target: fridge, onAction: () => overlays.add(FridgeDialogs.normalAction.toString()), padding: 5),
+      );
+      return;
+    }
+
+    // 3. Zuweisung: Kaffeemaschine
     if (object.class_ == 'CoffeeMachine') {
       final CoffeeMachine coffeeMachine = CoffeeMachine(
+        sprite: tiledSprite,
         position: Vector2(object.x, object.y),
         size: Vector2(object.size.x, object.size.y),
         priorityOffset: priorityOffset,
@@ -354,81 +398,50 @@ class OfficeGame extends FlameGame<World>
       );
       return;
     }
-    if (object.class_ == 'Fridge') {
-      final Fridge fridge = Fridge(
-        position: Vector2(object.x, object.y),
-        size: Vector2(object.size.x, object.size.y),
-      );
-      world.add(fridge);
-      world.add(
-        TriggerZone(target: fridge, onAction: () => overlays.add(FridgeDialogs.normalAction.toString()), padding: 5),
-      );
-      return;
-    } else if (object.gid != null && object.gid! > 0) {
-      final int rawGid = object.gid!;
-      final int cleanGid = rawGid & 0x0FFFFFFF;
 
-      final Tile? tile = tileMap.map.tileByGid(cleanGid);
-      if (tile == null) return;
+    // --- 4. GENERISCHER RENDERING-CODE FÜR STATISCHE DEKO-OBJEKTE OHNE SPEZIFISCHE LOGIK-KLASSE ---
+    final double angle = Units.radFromDegree(object.rotation);
+    final Vector2 localCenter = Vector2(-object.width / 2, 0);
 
-      final Tileset ts = tileMap.map.tilesetByTileGId(cleanGid);
-      final String imageSource = (tile.image ?? ts.image)!.source!;
+    final double cosA = cos(angle);
+    final double sinA = sin(angle);
+    final double rotatedX = localCenter.x * cosA - localCenter.y * sinA;
+    final double rotatedY = localCenter.x * sinA + localCenter.y * cosA;
 
-      final Sprite sprite = tile.image != null
-          ? Sprite(images.fromCache(imageSource))
-          : () {
-              final Rectangle<num> rect = ts.computeDrawRect(tile);
-              return Sprite(
-                images.fromCache(imageSource),
-                srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
-                srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
-              );
-            }();
+    final Vector2 centerPosition = Vector2(object.x + rotatedX, object.y + rotatedY);
 
-      final double angle = Units.radFromDegree(object.rotation);
-      final Vector2 localCenter = Vector2(-object.width / 2, 0);
+    final SpriteComponent item = SpriteComponent(
+      sprite: tiledSprite,
+      position: centerPosition,
+      size: Vector2(object.width, object.height),
+      anchor: Anchor.center,
+      angle: angle,
+    );
 
-      final double cosA = cos(angle);
-      final double sinA = sin(angle);
-      final double rotatedX = localCenter.x * cosA - localCenter.y * sinA;
-      final double rotatedY = localCenter.x * sinA + localCenter.y * cosA;
+    final bool flipX = (rawGid & 0x80000000) != 0;
+    final bool flipY = (rawGid & 0x40000000) != 0;
+    final bool flipDiag = (rawGid & 0x20000000) != 0;
 
-      final Vector2 centerPosition = Vector2(object.x + rotatedX, object.y + rotatedY);
-
-      final SpriteComponent item = SpriteComponent(
-        sprite: sprite,
-        position: centerPosition,
-        size: Vector2(object.width, object.height),
-        anchor: Anchor.center,
-        angle: angle,
-      );
-
-      final bool flipX = (rawGid & 0x80000000) != 0;
-      final bool flipY = (rawGid & 0x40000000) != 0;
-      final bool flipDiag = (rawGid & 0x20000000) != 0;
-
-      if (flipDiag) {
-        item.angle += Units.degree90;
-        item.flipHorizontally();
-      }
-      if (flipX) item.flipHorizontally();
-      if (flipY) item.flipVertically();
-
-      if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
-        final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
-        for (final TiledObject collisionObject in objectGroup.objects) {
-          final RectangleHitbox hitbox = RectangleHitbox(
-            position: Vector2(collisionObject.x, collisionObject.y),
-            size: Vector2(collisionObject.width, collisionObject.height),
-          );
-
-          item.add(hitbox);
-        }
-      }
-
-      item.priority = object.y.toInt() + priorityOffset;
-      world.add(item);
+    if (flipDiag) {
+      item.angle += Units.degree90;
+      item.flipHorizontally();
     }
+    if (flipX) item.flipHorizontally();
+    if (flipY) item.flipVertically();
+
+    if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
+      final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
+      for (final TiledObject collisionObject in objectGroup.objects) {
+        final RectangleHitbox hitbox = RectangleHitbox(
+          position: Vector2(collisionObject.x, collisionObject.y),
+          size: Vector2(collisionObject.width, collisionObject.height),
+        );
+        item.add(hitbox);
+      }
+    }
+
+    item.priority = object.y.toInt() + priorityOffset;
+    world.add(item);
   }
 
   @override

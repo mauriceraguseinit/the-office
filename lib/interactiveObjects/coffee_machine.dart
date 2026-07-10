@@ -1,27 +1,23 @@
-import 'package:flame/collisions.dart';
-import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/models/inventory_item.dart';
-import 'package:the_office/trigger_zone.dart';
 
-import '../../office_game.dart';
+import 'interactive_object.dart';
 
 enum CoffeeMachineDialogs { normalAction, thanks, wrongItem, noMate }
 
-class CoffeeMachine extends SpriteComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
+class CoffeeMachine extends InteractiveObject {
   CoffeeMachine({
     required super.position,
+    required super.sprite,
     super.size,
-    this.hitBox = true,
-    this.priorityOffset = 0,
+    super.priorityOffset,
   });
-  final bool hitBox;
-  final int priorityOffset;
 
-  Map<String, Widget Function(BuildContext, Game)> get _dialogs {
+  @override
+  Map<String, Widget Function(BuildContext, Game)> get dialogs {
     return <String, Widget Function(BuildContext, Game)>{
       for (final CoffeeMachineDialogs value in CoffeeMachineDialogs.values)
         value.toString(): (BuildContext context, Game game) {
@@ -49,27 +45,6 @@ class CoffeeMachine extends SpriteComponent with HasGameReference<OfficeGame>, H
           }
         },
     };
-  }
-
-  @override
-  Future<void> onLoad() async {
-    super.onLoad();
-
-    for (String key in _dialogs.keys) {
-      game.overlays.addEntry(key, _dialogs[key]!);
-    }
-
-    // Y-Sorting + Layer-Offset zusammenrechnen
-    priority = (y + height / 2).toInt() + priorityOffset;
-
-    debugMode = false;
-    anchor = Anchor.centerRight;
-
-    sprite = await game.loadSprite('coffeyMaschine.png');
-
-    if (hitBox) {
-      add(RectangleHitbox(size: Vector2(size.x, size.y / 2)));
-    }
   }
 
   @override
