@@ -1,4 +1,3 @@
-// tobi.dart
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -15,6 +14,7 @@ enum TobiDialogs { normalAction, thanks, wrongItem, noMate }
 class Tobi extends SpriteAnimationGroupComponent<String>
     with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
   Tobi({required super.position, required super.size, this.hitBox = true});
+
   Map<String, Widget Function(BuildContext, Game)> get _dialogs {
     return <String, Widget Function(BuildContext, Game)>{
       for (final TobiDialogs value in TobiDialogs.values)
@@ -54,25 +54,17 @@ class Tobi extends SpriteAnimationGroupComponent<String>
 
   @override
   void render(Canvas canvas) {
-    // ==========================================
-    // FAKE SCHATTEN ZEICHNEN
-    // ==========================================
+    // Fake-Schatten unter dem NPC zeichnen
     final Paint shadowPaint = Paint()
       ..color = const Color(0x66000000)
       ..style = PaintingStyle.fill;
 
     final double shadowWidth = 40;
     final double shadowHeight = 14;
-
     final double shadowX = 4;
-
-    // Standard-Höhe für Hoch/Runter
     final double shadowY = 56;
 
     canvas.drawOval(Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight), shadowPaint);
-    // ==========================================
-    // ==========================================
-    // ==========================================
 
     super.render(canvas);
   }
@@ -100,15 +92,11 @@ class Tobi extends SpriteAnimationGroupComponent<String>
 
   @override
   void onTapDown(TapDownEvent event) {
-    // 2. Welches Item hat der Spieler an der Maus ausgewählt?
     final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
-      // 3. Fall: Ein Item wurde auf Tobi geklickt!
       if (activeItem.id == 'kaffee') {
         debugPrint("Tobi: 'Oh danke! Der Kaffee rettet meinen Tag!'");
-
-        // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);
       } else if (activeItem.id == 'mate') {
         game.overlays.add(TobiDialogs.noMate.toString());
@@ -117,7 +105,6 @@ class Tobi extends SpriteAnimationGroupComponent<String>
       }
       game.resetSelection();
     } else {
-      // 4. Fall: Klick auf Tobi OHNE Item (Normales Ansprechen)
       game.overlays.add(TobiDialogs.normalAction.toString());
     }
   }

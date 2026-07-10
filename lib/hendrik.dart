@@ -12,18 +12,11 @@ enum Direction { left, right, up, down }
 
 class Hendrik extends SpriteAnimationGroupComponent<Direction>
     with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks {
-  // ==========================================
-
   Hendrik({required Vector2 position}) : super(position: position, size: Vector2.all(boxSize));
-  // ==========================================
-  // ZENTRALE SKALIERUNGS-REGLER
-  // ==========================================
-  // Ändere NUR diese eine Zahl, um Hendrik insgesamt größer oder kleiner zu machen!
+
   static const double boxSize = 70.0;
 
-  // Hitbox-Verhältnisse basierend auf deinen funktionierenden 60er-Werten:
-  // Breite: 32/60 ≈ 53.3% | Höhe: 40/60 ≈ 66.6%
-  // X-Pos:  14/60 ≈ 23.3% | Y-Pos:  18/60 ≈ 30.0%
+  // Hitbox-Verhältnisse basierend auf den proportionalen Maßen des Charakters
   static const double _hitboxWidthFactor = 32 / 60;
   static const double _hitboxHeightFactor = 0.5;
   static const double _hitboxXFactor = 14 / 60;
@@ -99,8 +92,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     anchor = Anchor.center;
     current = Direction.down;
 
-    // --- AUTOMATISCHE HITBOX-SKALIERUNG ---
-    // Hier berechnen wir die Werte vollautomatisch über die Faktoren!
     _hitbox = RectangleHitbox(
       size: Vector2(
         boxSize * _hitboxWidthFactor,
@@ -114,24 +105,17 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   @override
   void render(Canvas canvas) {
-    // ==========================================
-    // FAKE SCHATTEN ZEICHNEN
-    // ==========================================
+    // Fake-Schatten unter dem Charakter zeichnen
     final Paint shadowPaint = Paint()
       ..color = const Color(0x66000000)
       ..style = PaintingStyle.fill;
 
     final double shadowWidth = boxSize * 0.55;
     final double shadowHeight = boxSize * 0.18;
-
     final double shadowX = (boxSize - shadowWidth) / 2;
-
-    // Standard-Höhe für Hoch/Runter
     double shadowY = boxSize - (shadowHeight * 1.2);
 
     if (current == Direction.left || current == Direction.right) {
-      // Wir vergrößern den Abzug (z.B. von 0.7 auf 1.5),
-      // um den Schatten auf der Y-Achse weiter nach oben (höher) zu schieben.
       shadowY = boxSize - (shadowHeight * 1.2);
     }
 
@@ -139,11 +123,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight),
       shadowPaint,
     );
-    // ==========================================
-    // ==========================================
-    // ==========================================
 
-    // Ab hier folgt dein ganz normaler, bestehender AnimationCode...
+    // Manuelles Zeichnen des skalierten Sprites unter Beibehaltung des Aspektverhältnisses
     final SpriteAnimationTicker? ticker = animationTicker;
     if (ticker != null) {
       final Sprite sprite = ticker.getSprite();
@@ -169,10 +150,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
       final double offsetX = (boxSize - renderWidth) / 2;
       double offsetY = (boxSize - renderHeight) / 2;
+
       if (current == Direction.left || current == Direction.right) {
-        // Wir ziehen einen kleinen Prozentsatz ab (z.B. 8% der Box-Größe),
-        // um das Sprite beim Seitwärtslaufen ein Stück nach oben (höher) zu schieben.
-        offsetY -= (boxSize * 0.08);
+        offsetY -= (boxSize * 0.08); // Verschiebt das Sprite beim Seitwärtslaufen leicht nach oben
       }
 
       sprite.render(
@@ -193,10 +173,10 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       super.update(dt);
       position += _velocity * _speed * dt;
     } else {
-      super.update(0);
+      super.update(0); // Friert die Animation im Stand ein
     }
 
-    priority = (y + height / 2).toInt();
+    priority = (y + height / 2).toInt(); // Dynamisches Y-Sorting
   }
 
   @override

@@ -28,7 +28,6 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     ),
   };
 
-  // Wir erstellen das Spiel-Objekt einmalig im State
   final OfficeGame _game = OfficeGame();
   bool _showEditor = true;
 
@@ -40,10 +39,10 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
         body: _showEditor
             ? CharacterEditor(onFinished: () => setState(() => _showEditor = false))
             : ListenableBuilder(
-                listenable: _game.overlayChangeNotifier, // Reagiert, wenn sich im Spiel was tut
+                listenable: _game.overlayChangeNotifier,
                 builder: (BuildContext context, Widget? child) {
                   return MouseRegion(
-                    // TRICK: Wenn ein Item aktiv ist, blenden wir den System-Cursor komplett aus!
+                    // Wenn ein Item ausgewählt ist, wird der System-Cursor für den Custom-Cursor versteckt
                     cursor: _game.selectedItem != null ? SystemMouseCursors.none : SystemMouseCursors.basic,
                     child: GameWidget<OfficeGame>(game: _game, overlayBuilderMap: overlayBuilderMap),
                   );

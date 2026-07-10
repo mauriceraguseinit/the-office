@@ -10,6 +10,7 @@ class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame
     size = Vector2(32, 32);
     anchor = Anchor.center;
   }
+
   Sprite? _cursorSprite;
   String? _currentLoadedPath;
 
@@ -36,12 +37,10 @@ class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame
   void render(Canvas canvas) {
     super.render(canvas);
 
-    // Wir prüfen, ob IRGENDEIN Overlay aktiv ist (z.B. 'inventory', 'intro', oder Dialog-Meldungen)
     final bool isAnyOverlayOpen = game.overlays.activeOverlays.isNotEmpty;
 
-    // Nur rendern, wenn ein Sprite existiert UND gerade absolut kein Overlay/Dialog im Weg ist
     if (_cursorSprite != null && game.selectedItem != null && !isAnyOverlayOpen) {
-      // TRICK: overridePaint mit FilterQuality.none sorgt für den perfekten, scharfen Pixel-Look in der Welt
+      // FilterQuality.none sorgt für den scharfen, unverpixelten Retro-Look beim Skalieren des Sprites
       _cursorSprite!.render(canvas, size: size, overridePaint: Paint()..filterQuality = FilterQuality.none);
     }
   }

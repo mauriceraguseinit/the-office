@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 class InventoryItem {
-  // Was passiert bei Erfolg?
-
   InventoryItem({
     required this.id,
     required this.name,

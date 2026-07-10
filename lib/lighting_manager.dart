@@ -11,22 +11,21 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
 
   final List<Vector2> lightSources;
   final CameraComponent targetCamera;
-
-  double ambientDarkness = 0.55;
+  double ambientDarkness = 0.85;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    size = Vector2(5000, 5000);
+
+    // Groß genug ansetzen, um die gesamte Spielwelt abzudecken
+    size = Vector2(20000, 20000);
     position = Vector2.zero();
-    priority = 500;
+    anchor = Anchor.topLeft;
   }
 
-  // 🟢 DER IMMUNITÄTS-TRICK AGAINST FLAME UPDATES:
-  // Wir klinken uns in den RenderTree-Lifecycle ein. Hier bestimmt die Komponente selbst,
-  // ob sie für die aktuell zeichnende Kamera überhaupt existiert.
   @override
   void renderTree(Canvas canvas) {
+    // Verhindert, dass Kameras fälschlicherweise das Lichtsystem der jeweils anderen zeichnen
     if (CameraComponent.currentCamera != targetCamera) {
       return;
     }
@@ -35,11 +34,18 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
 
   @override
   void render(Canvas canvas) {
-    final Rect visibleRect = targetCamera.visibleWorldRect;
+    final Rect localRect = size.toRect();
 
-    canvas.saveLayer(visibleRect, Paint());
-    canvas.drawRect(visibleRect, Paint()..color = Colors.black.withValues(alpha: ambientDarkness));
+    // saveLayer wird zwingend für das korrekte Compositing von BlendMode.dstOut benötigt
+    canvas.saveLayer(localRect, Paint());
 
+    // Ambient-Dunkelheit zeichnen
+    canvas.drawRect(
+      localRect,
+      Paint()..color = Colors.black.withValues(alpha: ambientDarkness),
+    );
+
+    // Lichtkegel in die Dunkelheit stanzen
     for (final Vector2 lightWorldPos in lightSources) {
       _renderLightCircle(canvas, lightWorldPos);
     }
@@ -48,7 +54,8 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
   }
 
   void _renderLightCircle(Canvas canvas, Vector2 worldPos) {
-    final double radius = 200.0;
+    final double radius = 250.0;
+    final Offset centerOffset = Offset(worldPos.x, worldPos.y);
 
     final List<Color> colors = <Color>[
       Colors.white.withValues(alpha: 1.0),
@@ -56,15 +63,13 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
       Colors.white.withValues(alpha: 0.0),
     ];
 
-    final Offset centerOffset = Offset(worldPos.x, worldPos.y);
-
     final Shader gradient = RadialGradient(
       colors: colors,
     ).createShader(Rect.fromCircle(center: centerOffset, radius: radius));
 
     final Paint paint = Paint()
       ..shader = gradient
-      ..blendMode = BlendMode.dstOut;
+      ..blendMode = BlendMode.dstOut; // Stanzt den radialen Verlauf aus der schwarzen Ebene aus
 
     canvas.drawCircle(centerOffset, radius, paint);
   }

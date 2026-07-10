@@ -13,6 +13,7 @@ enum ToiletDialogs { normalAction, thanks, wrongItem, noMate }
 
 class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
   Toilet({required super.position, super.size, this.hitBox = true});
+
   Map<String, Widget Function(BuildContext, Game)> get _dialogs {
     return <String, Widget Function(BuildContext, Game)>{
       for (final ToiletDialogs value in ToiletDialogs.values)
@@ -20,23 +21,22 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
           switch (value) {
             case ToiletDialogs.normalAction:
               return RetroSpeechBubble(
-                text: '[b]Toilette:[/b]\n\nNerv mich nicht. Ich bereite gerade meinen nächsten Zahnarzttermin vor.',
+                text: '[b]Toilette:[/b]\n\nBesetzt!',
                 onClose: () => game.overlays.remove(value.toString()),
               );
             case ToiletDialogs.wrongItem:
               return RetroSpeechBubble(
-                text: '[b]Toilette:[/b]\n\nWas soll ich damit?',
+                text: '[b]Toilette:[/b]\n\nDas gehört hier nicht rein.',
                 onClose: () => game.overlays.remove(value.toString()),
               );
             case ToiletDialogs.noMate:
               return RetroSpeechBubble(
-                text:
-                    '[b]Toilette:[/b]\n\nIch trinke seit 345,3 Tagen keine Mate mehr und gehe regelmäßig zu den Treffen der anonymen Mateholiker.\n\nLass mich in Ruhe!',
+                text: '[b]Toilette:[/b]\n\nGluckert protestierend.',
                 onClose: () => game.overlays.remove(value.toString()),
               );
             case ToiletDialogs.thanks:
               return RetroSpeechBubble(
-                text: '[b]Toilette:[/b]\n\nDanke',
+                text: '[b]Toilette:[/b]\n\nSpült dankbar.',
                 onClose: () => game.overlays.remove(value.toString()),
               );
           }
@@ -58,7 +58,7 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
     debugMode = false;
     anchor = Anchor.centerRight;
 
-    sprite = await .load('toilet.png');
+    sprite = await game.loadSprite('toilet.png');
 
     if (hitBox) {
       add(RectangleHitbox(size: Vector2(size.x, (size.y) / 2)));
@@ -67,16 +67,12 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
 
   @override
   void onTapDown(TapDownEvent event) {
-    // 2. Welches Item hat der Spieler an der Maus ausgewählt?
     final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
-      // 3. Fall: Ein Item wurde auf Tobi geklickt!
       if (activeItem.id == 'kaffee') {
-        debugPrint("Tobi: 'Oh danke! Der Kaffee rettet meinen Tag!'");
-
-        // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);
+        game.overlays.add(ToiletDialogs.thanks.toString());
       } else if (activeItem.id == 'mate') {
         game.overlays.add(ToiletDialogs.noMate.toString());
       } else {
@@ -84,7 +80,6 @@ class Toilet extends SpriteComponent with HasGameReference<OfficeGame>, HoverCal
       }
       game.resetSelection();
     } else {
-      // 4. Fall: Klick auf Tobi OHNE Item (Normales Ansprechen)
       game.overlays.add(ToiletDialogs.normalAction.toString());
     }
   }

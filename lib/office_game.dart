@@ -31,8 +31,8 @@ class OfficeGame extends FlameGame<World>
         MouseMovementDetector,
         SecondaryTapCallbacks {
   bool _isZoomedOut = false;
-  final double _normalZoom = 2.5; // Deine aktuelle Zoomstufe
-  final double _mapViewZoom = 1.5; // Die herausgezoomte Übersicht
+  final double _normalZoom = 2.5;
+  final double _mapViewZoom = 1.5;
 
   late CameraComponent minimapCamera;
 
@@ -51,17 +51,14 @@ class OfficeGame extends FlameGame<World>
   Future<void> onLoad() async {
     super.onLoad();
 
-    // 1. Map ganz normal laden und als EINZIGES Objekt zur World hinzufügen
     mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
-    // world.add(mapComponent);
 
     final List<TiledComponent<FlameGame<World>>> mapLayers = await MapSplitter.splitMapIntoLayers(
       fileName: 'office.tmx',
       destTileSize: Vector2.all(64),
     );
 
-    // Wir fügen NUR den Boden als statischen Layer im Hintergrund hinzu
-
+    // Nur den Boden als statischen Hintergrundlayer (Priorität -1000) hinzufügen
     for (final TiledComponent<FlameGame<World>> layerComponent in mapLayers) {
       bool isFloor = false;
 
@@ -82,7 +79,7 @@ class OfficeGame extends FlameGame<World>
 
     final RenderableTiledMap tileMap = mapComponent.tileMap;
 
-    // 0. Alle Tileset-Bilder vorab laden, damit wir sie synchron für Sprites nutzen können
+    // Alle Tileset-Bilder vorab synchron in den Cache laden
     for (final Tileset ts in tileMap.map.tilesets) {
       if (ts.image?.source != null) await images.load(ts.image!.source!);
       for (final Tile t in ts.tiles) {
@@ -90,11 +87,10 @@ class OfficeGame extends FlameGame<World>
       }
     }
 
-    // 2. Schleife: Alle anderen Kachel-Layer (Wände, Möbel etc.) für Y-Sorting verarbeiten
+    // Kachel-Layer (Wände, Möbel etc.) für Y-Sorting verarbeiten
     final int totalMapLayers = tileMap.renderableLayers.length;
 
     for (int layerIndex = 0; layerIndex < totalMapLayers; layerIndex++) {
-      // Zugriff über den Index gibt uns direkt das öffentliche Layer-Objekt
       final Layer layer = tileMap.renderableLayers[layerIndex].layer;
 
       if (layer is TileLayer && layer.name != 'Boden' && layer.visible) {
@@ -108,8 +104,6 @@ class OfficeGame extends FlameGame<World>
 
             if (tileData != null && tileData.tile != 0) {
               final int gid = tileData.tile;
-
-              // 1. Hole die Definitionen aus der Map
               final Tile? tileDefinition = tileMap.map.tileByGid(gid);
               final Tileset ts = tileMap.map.tilesetByTileGId(gid);
 
@@ -118,7 +112,7 @@ class OfficeGame extends FlameGame<World>
               final String imageSource = (tileDefinition.image ?? ts.image)!.source!;
               PositionComponent tileComponent;
 
-              // 2. PRÜFEN: Hat dieses Tile eine Tiled-Animation?
+              // Tile-Animationen verarbeiten falls vorhanden
               if (tileDefinition.animation.isNotEmpty) {
                 final List<SpriteAnimationFrame> frames = <SpriteAnimationFrame>[];
 
@@ -144,7 +138,7 @@ class OfficeGame extends FlameGame<World>
                   position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
                   size: Vector2.all(64.0),
                   anchor: Anchor.center,
-                  priority: (y * 64 + 64).toInt(),
+                  priority: (y * 64 + 64).toInt(), // Y-Sorting für animierte Kacheln
                 );
               } else {
                 final Rectangle<num> rect = ts.computeDrawRect(tileDefinition);
@@ -159,7 +153,7 @@ class OfficeGame extends FlameGame<World>
                   position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
                   size: Vector2.all(64.0),
                   anchor: Anchor.center,
-                  priority: (y * 64 + 64).toInt(),
+                  priority: (y * 64 + 64).toInt(), // Y-Sorting für statische Kacheln
                 );
               }
 
@@ -176,11 +170,11 @@ class OfficeGame extends FlameGame<World>
 
               world.add(tileComponent);
 
+              // Kollisionsboxen aus Tiled-Kacheldefinition auslesen
               final Tile? tileDefinitionForCollision = tileMap.map.tileByGid(gid);
 
               if (tileDefinitionForCollision != null && tileDefinitionForCollision.objectGroup != null) {
                 final ObjectGroup objectGroup = tileDefinitionForCollision.objectGroup as ObjectGroup;
-
                 final double tileX = x * 64.0;
                 final double tileY = y * 64.0;
 
@@ -215,7 +209,6 @@ class OfficeGame extends FlameGame<World>
       }
     }
 
-    ////// Ab hier folgt dein restlicher Code (Overlays, Items, Player-Spawn...)
     overlays.add('intro');
 
     ownedItems.add(
@@ -232,6 +225,7 @@ class OfficeGame extends FlameGame<World>
     final ObjectGroup? spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
     final ObjectGroup? interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
 
+    // Interaktive Objekte aus Tiled laden (Möbel, Deko, Türen...)
     interactiveObjects?.objects.forEach((TiledObject object) {
       if (object.class_ == 'Toilet') {
         final Toilet toilet = Toilet(
@@ -250,7 +244,6 @@ class OfficeGame extends FlameGame<World>
         if (tile == null) return;
 
         final Tileset ts = tileMap.map.tilesetByTileGId(cleanGid);
-
         final String imageSource = (tile.image ?? ts.image)!.source!;
 
         final Sprite sprite = tile.image != null
@@ -264,33 +257,25 @@ class OfficeGame extends FlameGame<World>
                 );
               }();
 
-        // 🔥 HIER IST DIE BRUTAL PRÄZISE ROTATIONS-BERECHNUNG:
+        // Rotations- und Pivot-Korrektur für Tiled-Objektplatzierungen
         final double angle = Units.radFromDegree(object.rotation);
-
-        // Vektor vom Tiled-Pivotpunkt (unten rechts) zur unrotierten Objektmitte:
-        // Da der Pivot unten rechts ist, müssen wir nach links (-width/2) und hoch (-height/2) zur Mitte wandern.
         final Vector2 localCenter = Vector2(-object.width / 2, 0);
-        // HINWEIS: Falls ein paar Objekte im Editor doch "bottomLeft" waren, kannst du stattdessen das hier nehmen:
-        // final localCenter = Vector2(object.width / 2, -object.height / 2);
 
-        // Wir rotieren diesen Richtungsvektor im Raum mit einer Drehmatrix (Clockwise für Screen-Space)
         final double cosA = cos(angle);
         final double sinA = sin(angle);
         final double rotatedX = localCenter.x * cosA - localCenter.y * sinA;
         final double rotatedY = localCenter.x * sinA + localCenter.y * cosA;
 
-        // Die exakte, mitgeschwungene Center-Position in der Spielwelt
         final Vector2 centerPosition = Vector2(object.x + rotatedX, object.y + rotatedY);
 
         final SpriteComponent item = SpriteComponent(
           sprite: sprite,
-          position: centerPosition, // Nutzt die dynamische Mitte
+          position: centerPosition,
           size: Vector2(object.width, object.height),
-          anchor: Anchor.center, // Bleibt Center, damit Flipping fehlerfrei klappt
+          anchor: Anchor.center,
           angle: angle,
         );
 
-        // Spiegelungen anwenden (Passiert nun perfekt in-place)
         final bool flipX = (rawGid & 0x80000000) != 0;
         final bool flipY = (rawGid & 0x40000000) != 0;
         final bool flipDiag = (rawGid & 0x20000000) != 0;
@@ -305,52 +290,38 @@ class OfficeGame extends FlameGame<World>
         if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
           final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
           for (final TiledObject collisionObject in objectGroup.objects) {
-            // Flame's RectangleHitbox übernimmt automatisch die lokale Position und Größe
             final RectangleHitbox hitbox = RectangleHitbox(
               position: Vector2(collisionObject.x, collisionObject.y),
               size: Vector2(collisionObject.width, collisionObject.height),
             );
-
-            // Optional: Wenn du visuell im Debug-Modus sehen willst, ob sie richtig sitzen:
-            // hitbox.renderShape = true;
-
             item.add(hitbox);
           }
         } else {
-          // Fallback: Falls in Tiled keine Box definiert wurde,
-          // machen wir einfach das gesamte Objekt solide.
           item.add(RectangleHitbox());
         }
 
-        // Für das Y-Sorting rechnen wir die echte Unterkante des Objekts im Raum aus
-        item.priority = object.y.toInt();
-
+        item.priority = object.y.toInt(); // Y-Sorting für Objekte
         world.add(item);
       }
     });
 
     _buildNpcs(spawnPoints);
 
-    // Spawnpoint auslesen
     final TiledObject? playerObject = spawnPoints?.objects.firstWhere(
       (TiledObject element) => element.name == 'playerStart',
     );
 
-    // Spieler erstellen
     player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0));
-    // player.priority wird dynamisch in Hendrik.update gesetzt
-
     world.add(player);
 
     final double virtualWidth = 1280;
     final double virtualHeight = 720;
-
     camera.viewport = FixedResolutionViewport(resolution: Vector2(virtualWidth, virtualHeight));
 
-    // Kamera folgt dem Spieler
     camera.follow(player, snap: true);
     camera.viewfinder.zoom = 2.5;
 
+    // Minimap initialisieren
     final CameraComponent rawMinimapCamera = CameraComponent(world: world);
     rawMinimapCamera.viewport = FixedResolutionViewport(resolution: Vector2(virtualWidth, virtualHeight));
     rawMinimapCamera.viewfinder.zoom = 0.2;
@@ -378,36 +349,24 @@ class OfficeGame extends FlameGame<World>
       sources.add(Vector2(500, 500));
     }
 
+    // Haupt-Lichtsystem (Priority auf 999999, um verlässlich über allen sortierten Wänden/Möbeln zu liegen)
     final LightingManager lighting = LightingManager(
       lightSources: sources,
       targetCamera: camera,
-    )..priority = 500;
+    )..priority = 999999;
     world.add(lighting);
 
-    // 2. Minimap-Lichtsystem erstellen und zur Welt hinzufügen
+    // Minimap-Lichtsystem
     final LightingManager lighting2 = LightingManager(
       lightSources: sources,
       targetCamera: rawMinimapCamera,
-    )..priority = 500;
+    )..priority = 999999;
     world.add(lighting2);
-
-    // 🟢 HIER IST DER MAGISCHE SCHLÜSSEL:
-    // Wir sagen der Hauptkamera: Ignoriere das Lichtsystem der Minimap!
-  }
-
-  @override
-  void onGameResize(Vector2 size) {
-    super.onGameResize(size);
-    try {
-      //minimap.position = Vector2(size.x - 220, size.y - 220);
-    } catch (_) {}
   }
 
   @override
   void onMouseMove(PointerHoverInfo info) {
     super.onMouseMove(info);
-    // Wir holen uns die exakten Pixel-Koordinaten direkt aus Flutter.
-    // Das klappt garantiert in jeder Flame-Version!
     mousePosition = Vector2(info.raw.localPosition.dx, info.raw.localPosition.dy);
   }
 
@@ -424,10 +383,9 @@ class OfficeGame extends FlameGame<World>
   @override
   void onSecondaryTapDown(SecondaryTapDownEvent event) {
     super.onSecondaryTapDown(event);
-    resetSelection(); // Löscht die Auswahl sofort bei Rechtsklick
+    resetSelection();
   }
 
-  // Methode um den PC-Status zu toggeln
   void toggleScreenLock() {
     isDeskLocked = !isDeskLocked;
     if (isDeskLocked) {
@@ -441,24 +399,20 @@ class OfficeGame extends FlameGame<World>
     _isZoomedOut = !_isZoomedOut;
     final double targetZoom = _isZoomedOut ? _mapViewZoom : _normalZoom;
 
-    // Vorherige Skalierungs-Effekte vom Viewfinder entfernen
     camera.viewfinder.removeAll(camera.viewfinder.children.whereType<ScaleEffect>());
 
-    // Da Zoom im Viewfinder über das 'scale'-Property gesteuert wird,
-    // übergeben wir den Zielwert als Vector2(zoom, zoom)
     camera.viewfinder.add(
       ScaleEffect.to(
         Vector2.all(targetZoom),
         EffectController(
-          duration: 0.4, // Animationsdauer in Sekunden
-          curve: Curves.easeInOut, // Sanfter Übergang
+          duration: 0.4,
+          curve: Curves.easeInOut,
         ),
       ),
     );
   }
 
   void _buildHud(double virtualWidth, double virtualHeight) {
-    // 4. UI-Texte erstellen
     statusText = TextComponent<TextRenderer>(
       text: 'PC-Status: Entsperrt (Gefahr!)',
       position: Vector2(20, 20),
@@ -469,9 +423,9 @@ class OfficeGame extends FlameGame<World>
           fontWeight: FontWeight.bold,
           shadows: <Shadow>[
             Shadow(
-              color: Colors.black, // Dunkler Schatten für maximalen Kontrast
-              offset: Offset(2.0, 2.0), // Versatz um 2 Pixel nach rechts und unten
-              blurRadius: 2.0, // Leicht weichgezeichnete Kante
+              color: Colors.black,
+              offset: Offset(2.0, 2.0),
+              blurRadius: 2.0,
             ),
           ],
         ),
@@ -486,21 +440,17 @@ class OfficeGame extends FlameGame<World>
           color: Colors.orange,
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          // HIER FÜGEN WIR DIE SCHATTEN HINZU:
           shadows: <Shadow>[
             Shadow(
-              color: Colors.black, // Dunkler Schatten für maximalen Kontrast
-              offset: Offset(2.0, 2.0), // Versatz um 2 Pixel nach rechts und unten
-              blurRadius: 2.0, // Leicht weichgezeichnete Kante
+              color: Colors.black,
+              offset: Offset(2.0, 2.0),
+              blurRadius: 2.0,
             ),
           ],
         ),
       ),
     );
 
-    // WICHTIG: Die Texte werden jetzt an das VIEWPORT der Kamera gehängt!
-    // Dadurch wandern sie garantiert in den absoluten Vordergrund (HUD)
-    // camera.viewport.add(statusText);
     camera.viewport.add(infoText..priority = 1000);
     camera.viewport.add(InventoryCursor());
   }
@@ -508,14 +458,12 @@ class OfficeGame extends FlameGame<World>
   void _buildNpcs(ObjectGroup? spawnPoints) {
     final TiledObject? positionTobi = spawnPoints?.objects.firstWhere((TiledObject element) => element.name == 'tobi');
 
-    // 1. Tobi ganz normal erstellen und zur World hinzufügen
     final Tobi tobiNpc = Tobi(
       position: Vector2(positionTobi?.x ?? 0, positionTobi?.y ?? 0),
       size: Vector2(Tobi.frameWidth * 0.13, Tobi.pngHeight * 0.13),
     );
     world.add(tobiNpc);
 
-    // TriggerZone als eigenständiges Objekt in die World legen
     final TriggerZone tobiTrigger = TriggerZone(
       target: tobiNpc,
       padding: 25.0,
@@ -525,7 +473,6 @@ class OfficeGame extends FlameGame<World>
     );
     world.add(tobiTrigger);
 
-    // 2. Daniels Tisch erstellen, rotieren und zur World hinzufügen
     final TiledObject? positionDaniel = spawnPoints?.objects.firstWhere(
       (TiledObject element) => element.name == 'daniel',
     );
@@ -536,10 +483,9 @@ class OfficeGame extends FlameGame<World>
     )..angle = Units.degree270;
     world.add(deskTopRight);
 
-    // TriggerZone für Daniel ebenfalls in die World legen
     final TriggerZone danielTrigger = TriggerZone(
       target: deskTopRight,
-      padding: 35.0, // Bei Tischen gerne etwas mehr Padding, da sie breiter sind
+      padding: 35.0,
       onAction: () {
         overlays.add(DanielDialogs.normalAction.toString());
       },

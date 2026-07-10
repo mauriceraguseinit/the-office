@@ -11,8 +11,10 @@ import '../office_game.dart';
 
 enum DanielDialogs { normalAction, mate, wrongItem }
 
-class DeskDaniel extends SpriteAnimationGroupComponent<String> with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
+class DeskDaniel extends SpriteAnimationGroupComponent<String>
+    with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
   DeskDaniel({required super.position, required super.size, this.hitBox = true});
+
   Map<String, Widget Function(BuildContext, Game)> get _dialogs {
     return <String, Widget Function(BuildContext, Game)>{
       for (final DanielDialogs value in DanielDialogs.values)
@@ -54,12 +56,12 @@ class DeskDaniel extends SpriteAnimationGroupComponent<String> with HasGameRefer
     }
 
     priority = (y + height).toInt();
+
     final SpriteAnimation anim = await game.loadSpriteAnimation(
       'desk_daniel.png',
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.915, textureSize: Vector2(frameWidth, pngHeight)),
     );
 
-    // Jetzt übergeben wir die Animationen an die Komponente
     animations = <String, SpriteAnimation>{'idle': anim};
     current = 'idle';
 
@@ -70,28 +72,19 @@ class DeskDaniel extends SpriteAnimationGroupComponent<String> with HasGameRefer
 
   @override
   void onTapDown(TapDownEvent event) {
-    // 2. Welches Item hat der Spieler an der Maus ausgewählt?
     final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
-      // 3. Fall: Ein Item wurde auf Tobi geklickt!
       if (activeItem.id == 'kaffee') {
         debugPrint("Daniel: 'Oh danke! Der Kaffee rettet meinen Tag!'");
-
-        // Item aus dem Inventar löschen und Auswahl zurücksetzen
         game.ownedItems.remove(activeItem);
-        game.resetSelection();
       } else if (activeItem.id == 'mate') {
         game.overlays.add(DanielDialogs.mate.toString());
-
-        // game.ownedItems.remove(activeItem);
       } else {
-        // Falsches Item erwischt
-        debugPrint("Daniel schaut das Item an: 'Was soll ich damit?'");
+        game.overlays.add(DanielDialogs.wrongItem.toString());
       }
       game.resetSelection();
     } else {
-      // 4. Fall: Klick auf Tobi OHNE Item (Normales Ansprechen)
       game.overlays.add(DanielDialogs.normalAction.toString());
     }
   }
