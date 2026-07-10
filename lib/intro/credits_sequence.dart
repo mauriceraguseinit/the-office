@@ -3,6 +3,7 @@ import 'package:flame/effects.dart'; // <-- Neu für das Ein-/Ausblenden
 import 'package:flame/text.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/config.dart';
 import 'intro_game.dart';
 
 // Ein kleiner Hilfs-Container, der das HasPaint Mix-in nutzt.
@@ -12,7 +13,14 @@ class OpacityContainer extends PositionComponent with HasPaint<Object> {
 }
 
 class CreditsSequence extends PositionComponent with HasGameReference<IntroGame> {
-  CreditsSequence({super.priority}) : super(position: Vector2(1280 / 2, 720 / 2), anchor: Anchor.center);
+  CreditsSequence({super.priority})
+    : super(
+        position: Vector2(
+          GameConfig.resolution.width / 2,
+          GameConfig.resolution.height / 2,
+        ),
+        anchor: Anchor.center,
+      );
 
   final List<Map<String, String>> _credits = <Map<String, String>>[
     <String, String>{'role': 'REGIE', 'name': 'Maurice Raguse'},

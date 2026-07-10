@@ -14,6 +14,7 @@ import 'package:the_office/interactiveObjects/fridge.dart';
 import 'package:the_office/interactiveObjects/toilet.dart';
 import 'package:the_office/npcs/tobi.dart';
 import 'package:the_office/trigger_zone.dart';
+import 'package:the_office/utils/config.dart';
 import 'package:the_office/utils/util.dart';
 
 import 'hendrik.dart';
@@ -280,28 +281,39 @@ class OfficeGame extends FlameGame<World>
     player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0));
     world.add(player);
 
-    final double virtualWidth = 1280;
-    final double virtualHeight = 720;
-    camera.viewport = FixedResolutionViewport(resolution: Vector2(virtualWidth, virtualHeight));
+    camera.viewport = FixedResolutionViewport(
+      resolution: Vector2(GameConfig.resolution.width, GameConfig.resolution.height),
+    );
 
     camera.follow(player, snap: true);
     camera.viewfinder.zoom = 2.5;
 
     final CameraComponent rawMinimapCamera = CameraComponent(world: world);
-    rawMinimapCamera.viewport = FixedResolutionViewport(resolution: Vector2(virtualWidth, virtualHeight));
+    rawMinimapCamera.viewport = FixedResolutionViewport(
+      resolution: Vector2(
+        GameConfig.resolution.width,
+        GameConfig.resolution.height,
+      ),
+    );
     rawMinimapCamera.viewfinder.zoom = 0.2;
     rawMinimapCamera.follow(player, snap: true);
 
     minimap = ClickableMinimap(
       minimapCamera: rawMinimapCamera,
       size: Vector2(200, 200),
-      position: Vector2(virtualWidth - 220, virtualHeight - 220),
+      position: Vector2(
+        GameConfig.resolution.width - 220,
+        GameConfig.resolution.height - 220,
+      ),
       onMinimapPressed: _toggleCameraZoom,
     );
     minimap.priority = 1000;
     camera.viewport.add(minimap);
 
-    _buildHud(virtualWidth, virtualHeight);
+    _buildHud(
+      GameConfig.resolution.width,
+      GameConfig.resolution.height,
+    );
 
     final List<TiledObject> lightPoints =
         mapComponent.tileMap.getLayer<ObjectGroup>('lights')?.objects ?? <TiledObject>[];

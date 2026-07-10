@@ -6,6 +6,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/config.dart';
 import 'credits_sequence.dart';
 
 class IntroGame extends FlameGame<World> {
@@ -14,8 +15,8 @@ class IntroGame extends FlameGame<World> {
   IntroGame({required this.onIntroComplete})
     : super(
         camera: CameraComponent.withFixedResolution(
-          width: 1280,
-          height: 720,
+          width: GameConfig.resolution.width,
+          height: GameConfig.resolution.height,
         ),
       );
   // Interner Tracker für den Audioplayer, um darauf lauschen zu können
@@ -44,7 +45,7 @@ class IntroGame extends FlameGame<World> {
     // --- DEIN BESTEHENDER MAP- & PARTIKEL-CODE ---
     final TiledComponent<FlameGame<World>> introMap = await TiledComponent.load(
       'intro.tmx',
-      Vector2(1280, 720),
+      Vector2(GameConfig.resolution.width, GameConfig.resolution.height),
     );
     world.add(introMap);
 
@@ -109,7 +110,10 @@ class IntroGame extends FlameGame<World> {
     world.add(RainParticleSystem(priority: 10));
     world.add(RainSplashParticleSystem(priority: 9));
 
-    camera.viewfinder.position = Vector2(1280 / 2, 720 / 2);
+    camera.viewfinder.position = Vector2(
+      GameConfig.resolution.width / 2,
+      GameConfig.resolution.height / 2,
+    );
     camera.viewfinder.anchor = Anchor.center;
 
     world.add(CreditsSequence(priority: 20));
@@ -281,8 +285,8 @@ class RainParticleSystem extends Component {
     for (int i = 0; i < _maxDrops; i++) {
       _drops.add(
         _RainDrop(
-          _random.nextDouble() * 1280,
-          _random.nextDouble() * 720,
+          _random.nextDouble() * GameConfig.resolution.width,
+          _random.nextDouble() * GameConfig.resolution.height,
           100 + _random.nextDouble() * 150,
           6 + _random.nextDouble() * 10,
         ),
@@ -297,13 +301,13 @@ class RainParticleSystem extends Component {
       drop.x += _windX * drop.speed * dt;
       drop.y += _fallY * drop.speed * dt;
 
-      if (drop.y > 720) {
+      if (drop.y > GameConfig.resolution.height) {
         drop.y = -20;
         drop.x = _random.nextDouble() * 1400;
       }
       if (drop.x < -20) {
         drop.x = 1300;
-        drop.y = _random.nextDouble() * 720;
+        drop.y = _random.nextDouble() * GameConfig.resolution.height;
       }
     }
   }
@@ -373,7 +377,7 @@ class RainSplashParticleSystem extends Component {
       _spawnTimer = 0.0;
 
       // Schlägt zufällig im unteren Drittel des Bildschirms auf (Bodenbereich)
-      final double impactX = _random.nextDouble() * 1280;
+      final double impactX = _random.nextDouble() * GameConfig.resolution.width;
       final double impactY = 620 + _random.nextDouble() * 80;
 
       // Pro Aufschlag fliegen 3 bis 4 Pixel-Fragmente weg

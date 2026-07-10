@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:the_office/utils/config.dart';
 
 import 'hud/character_editor.dart';
 import 'hud/inventory_overlay.dart';
@@ -70,14 +71,12 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
             overlayBuilderMap: <String, OverlayWidgetBuilder<IntroGame>>{
               'button': (BuildContext context, IntroGame introGame) {
                 // Virtuelle Auflösung des Intros abgreifen
-                const double virtualWidth = 1280.0;
-                const double virtualHeight = 720.0;
 
                 return LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     // Berechne den aktuellen Skalierungsfaktor des Bildschirmfensters
-                    final double scaleX = constraints.maxWidth / virtualWidth;
-                    final double scaleY = constraints.maxHeight / virtualHeight;
+                    final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
+                    final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
                     final double gameScale = math.min(scaleX, scaleY);
 
                     // Positioniert den Button absolut stabil am unteren Rand des skalierten Viewports

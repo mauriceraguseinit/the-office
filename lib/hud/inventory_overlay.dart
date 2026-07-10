@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../models/inventory_item.dart';
 import '../office_game.dart';
+import '../utils/config.dart';
 
 class InventoryOverlay extends StatefulWidget {
   const InventoryOverlay({super.key, required this.game});
@@ -20,17 +21,14 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    const double virtualWidth = 1280.0;
-    const double virtualHeight = 720.0;
-
     final List<InventoryItem> items = widget.game.ownedItems;
     final InventoryItem? selectedItem = widget.game.selectedItem;
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         // Berechne den Skalierungsfaktor passend zum FixedResolutionViewport von Flame
-        final double scaleX = constraints.maxWidth / virtualWidth;
-        final double scaleY = constraints.maxHeight / virtualHeight;
+        final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
+        final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
         final double gameScale = min(scaleX, scaleY);
 
         // Feste virtuelle Wunschmaße für das Inventarfenster

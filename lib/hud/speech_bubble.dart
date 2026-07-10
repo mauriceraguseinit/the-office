@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:the_office/hud/retro_button.dart';
 
+import '../utils/config.dart';
+
 class RetroSpeechBubble extends StatefulWidget {
   const RetroSpeechBubble({
     super.key,
@@ -165,16 +167,13 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
 
   @override
   Widget build(BuildContext context) {
-    const double virtualWidth = 1280.0;
-    const double virtualHeight = 720.0;
-
     return Center(
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           // Wir berechnen die maximale Größe, die das Overlay im echten Fenster einnehmen darf,
-          // basierend auf dem gleichen Seitenverhältnis (1280x720).
-          final double scaleX = constraints.maxWidth / virtualWidth;
-          final double scaleY = constraints.maxHeight / virtualHeight;
+          // basierend auf dem gleichen Seitenverhältnis (GameConfig.resolution).
+          final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
+          final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
           final double gameScale = min(scaleX, scaleY);
 
           // Deine festen virtuellen Wunschmaße für die Box

@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:the_office/hud/retro_button.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 
+import '../utils/config.dart';
+
 class CharacterEditor extends StatefulWidget {
   const CharacterEditor({super.key, required this.onFinished});
   final VoidCallback onFinished;
@@ -21,13 +23,14 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   // Step 2 State (Character)
   late AnimationController _wobbleController;
   double _heightScale = 1.0;
-  final double _minScale = 0.8; // Minimale Schrumpfung
-  final double _maxScale = 1.3; // Maximale Größe (Hälfte von deinem vorherigen Wert)
+  final double _minScale = 0.8;
+  final double _maxScale = 1.3;
   bool _isDraggingSlider = false;
 
   // Step 1 State (Name)
   final TextEditingController _controller = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
+  final FocusNode _textFieldFocusNode = FocusNode();
+  final FocusNode _desktopKeyboardFocusNode = FocusNode();
   final String _targetName = 'Hendrik';
   String _statusMessage = 'Bitte gib deinen Namen ein:';
   String _subMessage = '';
@@ -47,7 +50,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           vsync: this,
           duration: const Duration(milliseconds: 1000),
           lowerBound: 0.0,
-          upperBound: 3.0, // Genug Puffer für den Elastic-Ausschlag
+          upperBound: 3.0,
         )..addListener(() {
           if (!_isDraggingSlider) {
             setState(() {
@@ -58,7 +61,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     _wobbleController.value = 1.0;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      _textFieldFocusNode.requestFocus();
     });
   }
 
@@ -66,18 +69,15 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   void dispose() {
     _wobbleController.dispose();
     _controller.dispose();
-    _focusNode.dispose();
+    _textFieldFocusNode.dispose();
+    _desktopKeyboardFocusNode.dispose();
     super.dispose();
   }
 
   void _onSliderDragUpdate(DragUpdateDetails details, double maxHeight) {
     setState(() {
       _isDraggingSlider = true;
-
-      // Berechnet einen Wert von 0.0 (unten) bis 1.0 (oben)
       final double ratio = 1.0 - (details.localPosition.dy / maxHeight).clamp(0.0, 1.0);
-
-      // Mappt die Ratio auf das neue, sanftere Fenster (_minScale bis _maxScale)
       _heightScale = _minScale + (ratio * (_maxScale - _minScale));
       _wobbleController.value = _heightScale;
     });
@@ -86,26 +86,21 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   void _onSliderDragEnd(DragEndDetails details) {
     _isDraggingSlider = false;
 
-    // Listen mit den fiesen Sprüchen
     final List<String> spruecheGroesser = <String>[
       'Die Deckenhöhen in den Leveln sind genau 1,80m hoch. Sei dankbar, wenn wir dich nicht größer machen.',
       'Größer? In dieser Wirtschaftslage? Weißt du, wie viele Tokens eine größere Hitbox kostet?!',
     ];
 
     setState(() {
-      // Schauen wir mal, was der Spieler mit Hendrik angestellt hat
       if (_heightScale > 1.05) {
-        // Zufälligen Spruch aus der Liste wählen
         final math.Random random = math.Random();
         _genderMessage = spruecheGroesser[random.nextInt(spruecheGroesser.length)];
       } else if (_heightScale < 0.95) {
-        // Spruch fürs Schrumpfen
         _genderMessage =
             'Wenn du kleiner wirst, fällst du durch die Map. Vertrau mir! Das ist die perfekte Höhe für ein Sprite.';
       }
     });
 
-    // Startet das smoothe, langsame Zurückwabbeln
     _wobbleController.animateTo(1.0, duration: const Duration(milliseconds: 600), curve: Curves.elasticOut);
   }
 
@@ -124,17 +119,6 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         _validateName();
         return;
       }
-
-      // Ignore other special keys (modifier keys, etc.)
-      if (event.logicalKey.keyId > 0x100000000) return;
-
-      if (_controller.text.length < _targetName.length) {
-        setState(() {
-          _controller.text = _targetName.substring(0, _controller.text.length + 1);
-          _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
-          _subMessage = '';
-        });
-      }
     }
   }
 
@@ -150,6 +134,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         _isNameFinished = true;
         _showStep1NextButton = true;
       });
+      _textFieldFocusNode.unfocus();
     }
   }
 
@@ -169,7 +154,6 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
       _isResettingGender = true;
     });
 
-    // Reset to "Männlich" after a short delay
     Timer(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
@@ -183,10 +167,6 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    // Virtuelle Basisauflösung deines Flame-Spiels
-    const double virtualWidth = 1280.0;
-    const double virtualHeight = 720.0;
-
     Widget currentWidget;
     if (_currentStep == 1) {
       currentWidget = _buildStep1();
@@ -199,21 +179,17 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
       body: KeyboardListener(
-        focusNode: _focusNode,
+        focusNode: _desktopKeyboardFocusNode,
         onKeyEvent: _handleKeyEvent,
         child: Center(
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              // Berechne den Skalierungsfaktor analog zum FixedResolutionViewport
-              final double scaleX = constraints.maxWidth / virtualWidth;
-              final double scaleY = constraints.maxHeight / virtualHeight;
+              final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
+              final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
               final double gameScale = math.min(scaleX, scaleY);
-
-              // Die feste logische Größe des Editor-Fensters
               const double baseWidth = 600.0;
 
               return SizedBox(
-                // Skaliere die Hitboxen und den Layout-Raum physikalisch mit
                 width: baseWidth * gameScale,
                 child: FittedBox(
                   fit: BoxFit.contain,
@@ -259,7 +235,48 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
             decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1E1E1E), width: 3)),
             child: TextField(
               controller: _controller,
-              readOnly: true,
+              focusNode: _textFieldFocusNode,
+              readOnly: false,
+              enableSuggestions: false,
+              autocorrect: false,
+              keyboardType: TextInputType.text,
+              // Der Formatter fängt Tastatureingaben ab, bevor sie flackern können
+              inputFormatters: <TextInputFormatter>[
+                TextInputFormatter.withFunction((TextEditingValue oldValue, TextEditingValue newValue) {
+                  final int oldLen = oldValue.text.length;
+                  final int newLen = newValue.text.length;
+
+                  // Fall 1: User drückt Backspace (neuer Text ist kürzer)
+                  if (newLen < oldLen) {
+                    scheduleMicrotask(() {
+                      setState(() {
+                        _subMessage = 'Netter Versuch, aber Rückwärtsschreiben ist hier nicht erlaubt.';
+                      });
+                    });
+                    return oldValue; // Alten Zustand eiskalt beibehalten (kein Flackern!)
+                  }
+
+                  // Fall 2: "Hendrik" ist bereits komplett ausgefüllt
+                  if (oldLen >= _targetName.length) {
+                    return oldValue; // Keine weiteren Zeichen zulassen
+                  }
+
+                  // Fall 3: Ein Zeichen wird hinzugefügt -> Nächsten Buchstaben von "Hendrik" rausrücken
+                  final String updatedText = _targetName.substring(0, oldLen + 1);
+
+                  scheduleMicrotask(() {
+                    setState(() {
+                      _subMessage = '';
+                    });
+                  });
+
+                  return TextEditingValue(
+                    text: updatedText,
+                    selection: TextSelection.collapsed(offset: updatedText.length),
+                  );
+                }),
+              ],
+              onSubmitted: (_) => _validateName(),
               style: const TextStyle(
                 fontFamily: 'Courier New',
                 fontSize: 20,
@@ -305,10 +322,8 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            // Leftmost: Height Slider
             _buildHeightSlider(),
             const SizedBox(width: 30),
-            // Left: Hendrik Image (Frame 1 of down.png)
             Transform(
               alignment: Alignment.bottomCenter,
               transform: Matrix4.identity()..scaleByVector3(Vector3(1.0, _heightScale, 1.0)),
@@ -326,7 +341,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
                     alignment: Alignment.topLeft,
                     child: Image.asset(
                       'assets/images/down.png',
-                      width: 600, // 4 frames approx
+                      width: 600,
                       fit: BoxFit.fitWidth,
                     ),
                   ),
@@ -334,7 +349,6 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
               ),
             ),
             const SizedBox(width: 40),
-            // Right: Options
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,7 +412,6 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           ),
         ),
         const SizedBox(height: 40),
-        // Erst dieser Button startet das eigentliche Spiel über das Callback
         RetroButton(title: 'Abenteuer starten', onTap: widget.onFinished),
       ],
     );
@@ -426,13 +439,10 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
             child: Stack(
               clipBehavior: Clip.none,
               children: <Widget>[
-                // Track
                 Center(child: Container(width: 4, color: const Color(0xFF1E1E1E))),
-                // Handle
                 Positioned(
                   left: 2,
                   right: 2,
-                  // Berechnet den exakten Prozentwert innerhalb der neuen Grenzen
                   top: (sliderHeight * (1.0 - (_heightScale - _minScale) / (_maxScale - _minScale))) - 12.5,
                   child: Container(
                     height: 25,

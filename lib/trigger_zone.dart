@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:the_office/hud/speech_bubble.dart';
+import 'package:the_office/utils/config.dart';
 
 import 'hendrik.dart';
 import 'office_game.dart';
@@ -93,8 +94,8 @@ class TriggerZone extends PositionComponent with CollisionCallbacks, TapCallback
     final Vector2 virtualPosition = (game.camera.viewport as FixedResolutionViewport).globalToLocal(
       event.canvasPosition,
     );
-    final double minimapLeft = 1280 - 220;
-    final double minimapTop = 720 - 220;
+    final double minimapLeft = GameConfig.resolution.width - 220;
+    final double minimapTop = GameConfig.resolution.height - 220;
 
     if (virtualPosition.x >= minimapLeft && virtualPosition.y >= minimapTop) {
       return;
