@@ -79,15 +79,14 @@ class IntroGame extends FlameGame<World> {
         final Vector2 pos = Vector2(lightObject.x, lightObject.y);
         final Vector2 size = Vector2(lightObject.width, lightObject.height);
 
-        // Das Licht selbst
         world.add(GradientLight(position: pos, size: size, priority: 4));
-
-        // Der Fliegenschwarm direkt am selben Platz
         world.add(MothSwarm(position: pos, size: size, priority: 6));
       }
     }
 
+    // 3. Regen- und Aufschlag-Partikel hinzufügen
     world.add(RainParticleSystem(priority: 10));
+    world.add(RainSplashParticleSystem(priority: 9));
 
     camera.viewfinder.position = Vector2(1280 / 2, 720 / 2);
     camera.viewfinder.anchor = Anchor.center;
@@ -118,33 +117,31 @@ class GradientLight extends PositionComponent {
   }
 }
 
-/// Struktur für eine einzelne Fliege/Motte
 class _Moth {
   _Moth(this.angle, this.radius, this.speed, this.wobbleSpeed, this.size);
-  double angle; // Aktueller Winkel im Orbit um die Lampe
-  double radius; // Abstand zum Zentrum
-  final double speed; // Rotationsgeschwindigkeit
-  final double wobbleSpeed; // Wie hektisch sie ausbricht
-  final double size; // Pixel-Größe (z.B. 2x2 oder 3x3)
-  double time = 0; // Individueller Zeit-Tracker für das Rauschen
+  double angle;
+  double radius;
+  final double speed;
+  final double wobbleSpeed;
+  final double size;
+  double time = 0;
 }
 
 class MothSwarm extends PositionComponent {
   MothSwarm({required super.position, required super.size, super.priority});
 
   final List<_Moth> _moths = <_Moth>[];
-  final int _mothCount = 12; // Anzahl der Fliegen pro Lichtquelle
+  final int _mothCount = 12;
   final math.Random _random = math.Random();
 
   final Paint _mothPaint = Paint()
-    ..color =
-        const Color(0x5F332211) // Dunkle, gräuliche Punkte für die Insekten
+    ..color = const Color(0xDD332211)
     ..style = PaintingStyle.fill;
 
   @override
   void onMount() {
     super.onMount();
-    final double maxRadius = size.x / 4; // Sie fliegen eher im inneren, hellen Kern
+    final double maxRadius = size.x / 4;
 
     for (int i = 0; i < _mothCount; i++) {
       _moths.add(
@@ -153,7 +150,7 @@ class MothSwarm extends PositionComponent {
           _random.nextDouble() * maxRadius + 5,
           2.0 + _random.nextDouble() * 4.0,
           5.0 + _random.nextDouble() * 10.0,
-          2.0 + _random.nextInt(2).toDouble(), // 2 bis 3 Pixel groß
+          2.0 + _random.nextInt(2).toDouble(),
         ),
       );
     }
@@ -162,10 +159,8 @@ class MothSwarm extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
-
     for (final _Moth moth in _moths) {
       moth.time += dt * moth.wobbleSpeed;
-      // Grund-Kreisbewegung
       moth.angle += moth.speed * dt;
     }
   }
@@ -173,22 +168,16 @@ class MothSwarm extends PositionComponent {
   @override
   void render(Canvas canvas) {
     super.render(canvas);
-
     final double center = size.x / 2;
 
     for (final _Moth moth in _moths) {
-      // Durch Sinus/Kosinus-Modulation auf Radius und Winkel entsteht das unberechenbare "Haken-Schlagen"
       final double chaoticRadius = moth.radius + math.sin(moth.time) * 8.0;
       final double chaoticAngle = moth.angle + math.cos(moth.time * 0.7) * 0.5;
 
       final double x = center + math.cos(chaoticAngle) * chaoticRadius;
       final double y = center + math.sin(chaoticAngle) * chaoticRadius;
 
-      // Zeichne eckige Pixel-Fliegen für den passenden 8-Bit Look
-      canvas.drawRect(
-        Rect.fromLTWH(x, y, moth.size, moth.size),
-        _mothPaint,
-      );
+      canvas.drawRect(Rect.fromLTWH(x, y, moth.size, moth.size), _mothPaint);
     }
   }
 }
@@ -273,7 +262,6 @@ class RainParticleSystem extends Component {
   @override
   void update(double dt) {
     super.update(dt);
-
     for (final _RainDrop drop in _drops) {
       drop.x += _windX * drop.speed * dt;
       drop.y += _fallY * drop.speed * dt;
@@ -297,6 +285,91 @@ class RainParticleSystem extends Component {
         Offset(drop.x, drop.y),
         Offset(drop.x + _windX * drop.length, drop.y + _fallY * drop.length),
         _rainPaint,
+      );
+    }
+  }
+}
+
+/// Struktur für ein einzelnes Spritzer-Teilchen
+class _Splash {
+  _Splash(this.x, this.y, this.vx, this.vy, this.maxAge);
+  double x;
+  double y;
+  final double vx; // Horizontale Pixel-Geschwindigkeit
+  double vy; // Vertikale Pixel-Geschwindigkeit (mit Gravitation)
+  final double maxAge; // Lebensdauer in Sekunden
+  double age = 0.0;
+}
+
+/// Erzeugt kleine 8-Bit Aufschlag-Animationen am unteren Bildschirmrand
+class RainSplashParticleSystem extends Component {
+  RainSplashParticleSystem({super.priority});
+
+  final List<_Splash> _splashes = <_Splash>[];
+  final math.Random _random = math.Random();
+
+  double _spawnTimer = 0.0;
+  final double _spawnInterval = 0.05; // Wie oft spritzt es irgendwo (alle 0.05s)
+
+  final Paint _splashPaint = Paint()
+    ..color =
+        const Color(0xB3B9D1E3) // Etwas helleres, gischtartiges Retro-Blau
+    ..style = PaintingStyle.fill;
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    // 1. Bestehende Partikel aktualisieren
+    for (int i = _splashes.length - 1; i >= 0; i--) {
+      final _Splash splash = _splashes[i];
+      splash.age += dt;
+
+      if (splash.age >= splash.maxAge) {
+        _splashes.removeAt(i);
+        continue;
+      }
+
+      // Bewegung anwenden + kleine Gravitation für die Flugkurve
+      splash.vy += 300 * dt;
+      splash.x += splash.vx * dt;
+      splash.y += splash.vy * dt;
+    }
+
+    // 2. Neue Spritzer erzeugen
+    _spawnTimer += dt;
+    if (_spawnTimer >= _spawnInterval) {
+      _spawnTimer = 0.0;
+
+      // Schlägt zufällig im unteren Drittel des Bildschirms auf (Bodenbereich)
+      final double impactX = _random.nextDouble() * 1280;
+      final double impactY = 620 + _random.nextDouble() * 80;
+
+      // Pro Aufschlag fliegen 3 bis 4 Pixel-Fragmente weg
+      final int particlesPerSplash = 3 + _random.nextInt(2);
+      for (int i = 0; i < particlesPerSplash; i++) {
+        _splashes.add(
+          _Splash(
+            impactX,
+            impactY,
+            (_random.nextDouble() - 0.5) * 120, // Verteilt sich nach links/rechts
+            -60 - _random.nextDouble() * 80, // Fliegt nach oben weg
+            0.15 + _random.nextDouble() * 0.15, // Verschwindet nach max 0.3 Sekunden
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+
+    for (final _Splash splash in _splashes) {
+      // Quadratische 2x2 Pixel-Punkte für den passenden 8-Bit Look
+      canvas.drawRect(
+        Rect.fromLTWH(splash.x, splash.y, 2.5, 2.5),
+        _splashPaint,
       );
     }
   }
