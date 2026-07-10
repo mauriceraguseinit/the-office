@@ -1,8 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flame/game.dart';
+// Ganz oben zu deinen Imports hinzufügen
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:the_office/utils/config.dart';
+// ignore: depend_on_referenced_packages, avoid_web_libraries_in_flutter
+import 'package:web/web.dart' as web;
 
 import 'hud/character_editor.dart';
 import 'hud/inventory_overlay.dart';
@@ -17,7 +22,15 @@ enum Scenes {
   game,
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb) {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
   runApp(const TheOfficeApp());
 }
 
@@ -63,7 +76,24 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: switch (_showScene) {
-          Scenes.editor => CharacterEditor(onFinished: () => setState(() => _showScene = Scenes.intro)),
+          Scenes.editor => CharacterEditor(
+            onFinished: () {
+              // WENN es im Browser läuft, starte den Fullscreen-Modus
+              if (kIsWeb) {
+                try {
+                  web.document.documentElement?.requestFullscreen();
+
+                  // Orientierung auf Landscape sperren
+                  web.window.screen.orientation.lock('landscape');
+                } catch (e) {
+                  debugPrint('Vollbild wurde vom Browser blockiert oder nicht unterstützt: $e');
+                }
+              }
+
+              // Danach normal weiter zur Intro-Szene
+              setState(() => _showScene = Scenes.intro);
+            },
+          ),
 
           Scenes.intro => GameWidget<IntroGame>(
             game: _introGame,
