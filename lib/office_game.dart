@@ -51,10 +51,9 @@ class OfficeGame extends FlameGame<World>
     super.onLoad();
 
     mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
-
     final RenderableTiledMap tileMap = mapComponent.tileMap;
 
-    // Boden manuell rendern
+    // --- BODEN MANUELL RENDERN ---
     final Layer? bodenLayer =
         tileMap.renderableLayers
                 .where((dynamic layer) => layer.layer is TileLayer && layer.layer.name == 'Boden')
@@ -107,7 +106,7 @@ class OfficeGame extends FlameGame<World>
       }
     }
 
-    // Kachel-Layer (Wände, Möbel etc.) für Y-Sorting verarbeiten
+    // --- KACHEL-LAYER (WÄNDE, MÖBEL ETC.) FÜR Y-SORTING VERARBEITEN ---
     final int totalMapLayers = tileMap.renderableLayers.length;
 
     for (int layerIndex = 0; layerIndex < totalMapLayers; layerIndex++) {
@@ -158,7 +157,7 @@ class OfficeGame extends FlameGame<World>
                   position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
                   size: Vector2.all(64.0),
                   anchor: Anchor.center,
-                  priority: (y * 64 + 64).toInt(), // Y-Sorting für animierte Kacheln
+                  priority: (y * 64 + 64).toInt(),
                 );
               } else {
                 final Rectangle<num> rect = ts.computeDrawRect(tileDefinition);
@@ -173,7 +172,7 @@ class OfficeGame extends FlameGame<World>
                   position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
                   size: Vector2.all(64.0),
                   anchor: Anchor.center,
-                  priority: (y * 64 + 64).toInt(), // Y-Sorting für statische Kacheln
+                  priority: (y * 64 + 64).toInt(),
                 );
               }
 
@@ -244,96 +243,27 @@ class OfficeGame extends FlameGame<World>
 
     final ObjectGroup? spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
     final ObjectGroup? interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
+    final ObjectGroup? interactiveObjects2 = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects2');
 
+    // --- REINE KOLLISIONSBOXEN AUS DEM DEDIZIERTEN TILED-LAYER LADEN ---
     final ObjectGroup? collisionLayer = mapComponent.tileMap.getLayer<ObjectGroup>('collision');
     collisionLayer?.objects.forEach((TiledObject object) {
       final PositionComponent staticobstacle = PositionComponent(
         position: Vector2(object.x, object.y),
         size: Vector2(object.width, object.height),
-      )..add(RectangleHitbox());
+      )..add(RectangleHitbox()..debugMode = false);
 
       staticobstacle.priority = 1;
       world.add(staticobstacle..debugMode = false);
     });
 
-    // Interaktive Objekte aus Tiled laden (Möbel, Deko, Türen...)
+    // --- INTERAKTIVE OBJEKTE AUS BEIDEN LAYERN LADEN ---
     interactiveObjects?.objects.forEach((TiledObject object) {
-      if (object.class_ == 'Toilet') {
-        final Toilet toilet = Toilet(
-          position: Vector2(object.x, object.y),
-          size: Vector2(object.size.x, object.size.y),
-        );
-        world.add(toilet);
-        world.add(
-          TriggerZone(target: toilet, onAction: () => overlays.add(ToiletDialogs.normalAction.toString()), padding: 5),
-        );
-      } else if (object.gid != null && object.gid! > 0) {
-        final int rawGid = object.gid!;
-        final int cleanGid = rawGid & 0x0FFFFFFF;
+      _processInteractiveObject(object, tileMap, priorityOffset: 0);
+    });
 
-        final Tile? tile = tileMap.map.tileByGid(cleanGid);
-        if (tile == null) return;
-
-        final Tileset ts = tileMap.map.tilesetByTileGId(cleanGid);
-        final String imageSource = (tile.image ?? ts.image)!.source!;
-
-        final Sprite sprite = tile.image != null
-            ? Sprite(images.fromCache(imageSource))
-            : () {
-                final Rectangle<num> rect = ts.computeDrawRect(tile);
-                return Sprite(
-                  images.fromCache(imageSource),
-                  srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
-                  srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
-                );
-              }();
-
-        // Rotations- und Pivot-Korrektur für Tiled-Objektplatzierungen
-        final double angle = Units.radFromDegree(object.rotation);
-        final Vector2 localCenter = Vector2(-object.width / 2, 0);
-
-        final double cosA = cos(angle);
-        final double sinA = sin(angle);
-        final double rotatedX = localCenter.x * cosA - localCenter.y * sinA;
-        final double rotatedY = localCenter.x * sinA + localCenter.y * cosA;
-
-        final Vector2 centerPosition = Vector2(object.x + rotatedX, object.y + rotatedY);
-
-        final SpriteComponent item = SpriteComponent(
-          sprite: sprite,
-          position: centerPosition,
-          size: Vector2(object.width, object.height),
-          anchor: Anchor.center,
-          angle: angle,
-        );
-
-        final bool flipX = (rawGid & 0x80000000) != 0;
-        final bool flipY = (rawGid & 0x40000000) != 0;
-        final bool flipDiag = (rawGid & 0x20000000) != 0;
-
-        if (flipDiag) {
-          item.angle += Units.degree90;
-          item.flipHorizontally();
-        }
-        if (flipX) item.flipHorizontally();
-        if (flipY) item.flipVertically();
-
-        if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
-          final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
-          for (final TiledObject collisionObject in objectGroup.objects) {
-            final RectangleHitbox hitbox = RectangleHitbox(
-              position: Vector2(collisionObject.x, collisionObject.y),
-              size: Vector2(collisionObject.width, collisionObject.height),
-            );
-            item.add(hitbox);
-          }
-        } else {
-          item.add(RectangleHitbox());
-        }
-
-        item.priority = object.y.toInt(); // Y-Sorting für Objekte
-        world.add(item);
-      }
+    interactiveObjects2?.objects.forEach((TiledObject object) {
+      _processInteractiveObject(object, tileMap, priorityOffset: 100000);
     });
 
     _buildNpcs(spawnPoints);
@@ -380,19 +310,95 @@ class OfficeGame extends FlameGame<World>
       sources.add(Vector2(500, 500));
     }
 
-    // Haupt-Lichtsystem (Priority auf 999999, um verlässlich über allen sortierten Wänden/Möbeln zu liegen)
     final LightingManager lighting = LightingManager(
       lightSources: sources,
       targetCamera: camera,
     )..priority = 999999;
     world.add(lighting);
 
-    // Minimap-Lichtsystem
     final LightingManager lighting2 = LightingManager(
       lightSources: sources,
       targetCamera: rawMinimapCamera,
     )..priority = 999999;
     world.add(lighting2);
+  }
+
+  // --- HILFSFUNKTION FÜR DAS GENERIEREN DER INTERAKTIVEN OBJEKTE ---
+  void _processInteractiveObject(TiledObject object, RenderableTiledMap tileMap, {required int priorityOffset}) {
+    if (object.class_ == 'Toilet') {
+      final Toilet toilet = Toilet(
+        position: Vector2(object.x, object.y),
+        size: Vector2(object.size.x, object.size.y),
+      );
+      world.add(toilet);
+      world.add(
+        TriggerZone(target: toilet, onAction: () => overlays.add(ToiletDialogs.normalAction.toString()), padding: 5),
+      );
+    } else if (object.gid != null && object.gid! > 0) {
+      final int rawGid = object.gid!;
+      final int cleanGid = rawGid & 0x0FFFFFFF;
+
+      final Tile? tile = tileMap.map.tileByGid(cleanGid);
+      if (tile == null) return;
+
+      final Tileset ts = tileMap.map.tilesetByTileGId(cleanGid);
+      final String imageSource = (tile.image ?? ts.image)!.source!;
+
+      final Sprite sprite = tile.image != null
+          ? Sprite(images.fromCache(imageSource))
+          : () {
+              final Rectangle<num> rect = ts.computeDrawRect(tile);
+              return Sprite(
+                images.fromCache(imageSource),
+                srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+                srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+              );
+            }();
+
+      final double angle = Units.radFromDegree(object.rotation);
+      final Vector2 localCenter = Vector2(-object.width / 2, 0);
+
+      final double cosA = cos(angle);
+      final double sinA = sin(angle);
+      final double rotatedX = localCenter.x * cosA - localCenter.y * sinA;
+      final double rotatedY = localCenter.x * sinA + localCenter.y * cosA;
+
+      final Vector2 centerPosition = Vector2(object.x + rotatedX, object.y + rotatedY);
+
+      final SpriteComponent item = SpriteComponent(
+        sprite: sprite,
+        position: centerPosition,
+        size: Vector2(object.width, object.height),
+        anchor: Anchor.center,
+        angle: angle,
+      );
+
+      final bool flipX = (rawGid & 0x80000000) != 0;
+      final bool flipY = (rawGid & 0x40000000) != 0;
+      final bool flipDiag = (rawGid & 0x20000000) != 0;
+
+      if (flipDiag) {
+        item.angle += Units.degree90;
+        item.flipHorizontally();
+      }
+      if (flipX) item.flipHorizontally();
+      if (flipY) item.flipVertically();
+
+      if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
+        final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
+        for (final TiledObject collisionObject in objectGroup.objects) {
+          final RectangleHitbox hitbox = RectangleHitbox(
+            position: Vector2(collisionObject.x, collisionObject.y),
+            size: Vector2(collisionObject.width, collisionObject.height),
+          );
+
+          item.add(hitbox);
+        }
+      }
+
+      item.priority = object.y.toInt() + priorityOffset;
+      world.add(item);
+    }
   }
 
   @override
