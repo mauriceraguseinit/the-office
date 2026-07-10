@@ -44,7 +44,7 @@ class _RetroButtonState extends State<RetroButton> {
           style: TextStyle(
             color: _isPressed ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5),
 
-            fontFamily: 'Courier New',
+            fontFamily: 'PressStart2P',
 
             fontWeight: FontWeight.bold,
 

@@ -510,6 +510,7 @@ class OfficeGame extends FlameGame<World>
       position: Vector2(20, 20),
       textRenderer: TextPaint(
         style: const TextStyle(
+          fontFamily: 'PressStart2P',
           color: Colors.white,
           fontSize: 24,
           fontWeight: FontWeight.bold,
@@ -525,11 +526,12 @@ class OfficeGame extends FlameGame<World>
     );
 
     final TextComponent<TextPaint> infoText = TextComponent<TextPaint>(
-      text: 'BEWEGUNG: WASD/Pfeiltasten | LEERTASTE: PC Sperren/Entsperren\nAKTION: Taste E\nINVENTAR: Taste I',
+      text: 'BEWEGUNG: WASD/Pfeiltasten\nAKTION: Taste E\nINVENTAR: Taste I',
       position: Vector2(20, 60),
       textRenderer: TextPaint(
         style: const TextStyle(
           color: Colors.orange,
+          fontFamily: 'PressStart2P',
           fontSize: 16,
           fontWeight: FontWeight.bold,
           shadows: <Shadow>[

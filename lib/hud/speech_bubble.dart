@@ -110,7 +110,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
         TextSpan(
           text: rawText[i],
           style: TextStyle(
-            fontFamily: 'Courier New', // Garantiert die Retro-Schrift für JEDEN Buchstaben
+            fontFamily: 'PressStart2P', // Garantiert die Retro-Schrift für JEDEN Buchstaben
             fontSize: 18,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             color: currentColor,
@@ -219,7 +219,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
                                       TextSpan(
                                         children: _displayedCharacters,
                                         style: const TextStyle(
-                                          fontFamily: 'Courier New',
+                                          fontFamily: 'PressStart2P',
                                           fontSize: 18,
                                           fontWeight: FontWeight.normal,
                                           color: Color(0xFF1E1E1E),
@@ -269,7 +269,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
                                 'X',
                                 style: TextStyle(
                                   color: Color(0xFFF5F5F5),
-                                  fontFamily: 'Courier New',
+                                  fontFamily: 'PressStart2P',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),

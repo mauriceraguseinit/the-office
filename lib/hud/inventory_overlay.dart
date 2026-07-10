@@ -76,7 +76,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                     const Text(
                                       'INVENTAR',
                                       style: TextStyle(
-                                        fontFamily: 'Courier New',
+                                        fontFamily: 'PressStart2P',
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF1E1E1E),
@@ -151,7 +151,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                       child: Text(
                                         _hoverText,
                                         style: const TextStyle(
-                                          fontFamily: 'Courier New',
+                                          fontFamily: 'PressStart2P',
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.orange,
@@ -178,7 +178,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                         'X',
                                         style: TextStyle(
                                           color: Color(0xFFF5F5F5),
-                                          fontFamily: 'Courier New',
+                                          fontFamily: 'PressStart2P',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
                                         ),

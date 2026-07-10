@@ -52,7 +52,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     'intro': (BuildContext context, OfficeGame game) => RetroSpeechBubble(
       actions: <RetroAction>[RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
       text:
-          'Willkommen im Büro.\n\nHeute wird es wieder sehr heiß!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
+          'Willkommen im Büro.\n\nHeute wird es durch den Regen schwül und warm!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.',
       onClose: () => game.overlays.remove('intro'),
     ),
   };
