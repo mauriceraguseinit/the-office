@@ -16,7 +16,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   static const double boxSize = 70.0;
 
-  // Hitbox-Verhältnisse basierend auf den proportionalen Maßen des Charakters
   static const double _hitboxWidthFactor = 32 / 60;
   static const double _hitboxHeightFactor = 0.5;
   static const double _hitboxXFactor = 14 / 60;
@@ -28,9 +27,16 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   late RectangleHitbox _hitbox;
 
+  /// Stoppt die Touch-Bewegung beim Loslassen des Bildschirms
+  void stopTouchMovement() {
+    _velocity.setZero();
+  }
+
   @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
+
+    if (other is TriggerZone) return;
 
     final Iterable<ShapeHitbox> hitboxes = other.children.whereType<ShapeHitbox>();
     final bool hasActiveCollision = hitboxes.any(
@@ -38,6 +44,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     );
 
     if (hasActiveCollision) {
+      // Schiebe Hendrik ein Stück zurück, um nicht im Objekt stecken zu bleiben
       position -= _velocity * _speed * _currentDt;
     }
   }
@@ -48,38 +55,22 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     final SpriteAnimation animDown = await game.loadSpriteAnimation(
       'down.png',
-      SpriteAnimationData.sequenced(
-        amount: 4,
-        stepTime: 0.15,
-        textureSize: Vector2(206, 229),
-      ),
+      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(206, 229)),
     );
 
     final SpriteAnimation animUp = await game.loadSpriteAnimation(
       'up.png',
-      SpriteAnimationData.sequenced(
-        amount: 4,
-        stepTime: 0.15,
-        textureSize: Vector2(190, 256),
-      ),
+      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(190, 256)),
     );
 
     final SpriteAnimation animLeft = await game.loadSpriteAnimation(
       'left.png',
-      SpriteAnimationData.sequenced(
-        amount: 7,
-        stepTime: 0.15,
-        textureSize: Vector2(286, 512),
-      ),
+      SpriteAnimationData.sequenced(amount: 7, stepTime: 0.15, textureSize: Vector2(286, 512)),
     );
 
     final SpriteAnimation animRight = await game.loadSpriteAnimation(
       'right.png',
-      SpriteAnimationData.sequenced(
-        amount: 7,
-        stepTime: 0.15,
-        textureSize: Vector2(286, 512),
-      ),
+      SpriteAnimationData.sequenced(amount: 7, stepTime: 0.15, textureSize: Vector2(286, 512)),
     );
 
     animations = <Direction, SpriteAnimation>{
@@ -93,10 +84,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     current = Direction.down;
 
     _hitbox = RectangleHitbox(
-      size: Vector2(
-        boxSize * _hitboxWidthFactor,
-        boxSize * _hitboxHeightFactor,
-      ),
+      size: Vector2(boxSize * _hitboxWidthFactor, boxSize * _hitboxHeightFactor),
       position: Vector2(boxSize * _hitboxXFactor, boxSize * _hitboxYFactor),
     )..debugMode = false;
 
@@ -105,7 +93,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   @override
   void render(Canvas canvas) {
-    // Fake-Schatten unter dem Charakter zeichnen
     final Paint shadowPaint = Paint()
       ..color = const Color(0x66000000)
       ..style = PaintingStyle.fill;
@@ -113,25 +100,14 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     final double shadowWidth = boxSize * 0.55;
     final double shadowHeight = boxSize * 0.18;
     final double shadowX = (boxSize - shadowWidth) / 2;
-    double shadowY = boxSize - (shadowHeight * 1.2);
+    final double shadowY = boxSize - (shadowHeight * 1.2);
 
-    if (current == Direction.left || current == Direction.right) {
-      shadowY = boxSize - (shadowHeight * 1.2);
-    }
+    canvas.drawOval(Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight), shadowPaint);
 
-    canvas.drawOval(
-      Rect.fromLTWH(shadowX, shadowY, shadowWidth, shadowHeight),
-      shadowPaint,
-    );
-
-    // Manuelles Zeichnen des skalierten Sprites unter Beibehaltung des Aspektverhältnisses
     final SpriteAnimationTicker? ticker = animationTicker;
     if (ticker != null) {
       final Sprite sprite = ticker.getSprite();
-
-      final double spriteWidth = sprite.srcSize.x;
-      final double spriteHeight = sprite.srcSize.y;
-      final double aspectRatio = spriteWidth / spriteHeight;
+      final double aspectRatio = sprite.srcSize.x / sprite.srcSize.y;
 
       double renderWidth = boxSize;
       double renderHeight = boxSize;
@@ -152,28 +128,48 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       double offsetY = (boxSize - renderHeight) / 2;
 
       if (current == Direction.left || current == Direction.right) {
-        offsetY -= (boxSize * 0.08); // Verschiebt das Sprite beim Seitwärtslaufen leicht nach oben
+        offsetY -= (boxSize * 0.08);
       }
 
-      sprite.render(
-        canvas,
-        position: Vector2(offsetX, offsetY),
-        size: Vector2(renderWidth, renderHeight),
-      );
+      sprite.render(canvas, position: Vector2(offsetX, offsetY), size: Vector2(renderWidth, renderHeight));
     } else {
       super.render(canvas);
     }
   }
 
+  /// Setzt die Geschwindigkeit direkt anhand des Richtungsvektors vom Bildschirm-Zentrum
+  void updateTouchVelocity(Vector2 screenDirection) {
+    // Deadzone (in physikalischen Pixeln): Wenn man sehr nah an der Mitte drückt, stoppt er
+    if (screenDirection.length > 30.0) {
+      _velocity.setFrom(screenDirection);
+      _velocity.normalize(); // Macht die diagonale Bewegung genauso schnell wie die gerade
+
+      // Blickrichtung basierend auf der dominierenden Achse setzen
+      if (_velocity.x.abs() > _velocity.y.abs()) {
+        current = _velocity.x > 0 ? Direction.right : Direction.left;
+      } else {
+        current = _velocity.y > 0 ? Direction.down : Direction.up;
+      }
+    } else {
+      _velocity.setZero();
+    }
+  }
+
+  /// Stoppt die Touch-Bewegung beim Loslassen des Bildschirms
+
   @override
   void update(double dt) {
     _currentDt = dt;
 
+    // HINWEIS: Sämtlicher alter TouchTarget-Code wurde entfernt!
+    // Die Velocity wird jetzt rein über updateTouchVelocity von außen gesteuert.
+
+    // --- BEWEGUNG AUSFÜHREN ---
     if (_velocity.length > 0) {
       super.update(dt);
       position += _velocity * _speed * dt;
     } else {
-      super.update(0); // Friert die Animation im Stand ein
+      super.update(0); // Animation im Stand einfrieren
     }
 
     priority = (y + height / 2).toInt(); // Dynamisches Y-Sorting
@@ -189,9 +185,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.keyE)) {
       final Iterable<TriggerZone> zones = game.world.children.whereType<TriggerZone>();
       for (final TriggerZone zone in zones) {
-        if (zone.checkInteraction(this)) {
-          return false;
-        }
+        if (zone.checkInteraction(this)) return false;
       }
     }
 

@@ -31,7 +31,9 @@ class OfficeGame extends FlameGame<World>
         HasKeyboardHandlerComponents<World>,
         HasCollisionDetection<Broadphase<ShapeHitbox>>,
         MouseMovementDetector,
-        SecondaryTapCallbacks {
+        SecondaryTapCallbacks,
+        DragCallbacks, // Ermöglicht das Gedrückthalten und Ziehen auf Touch/Maus
+        TapCallbacks {
   bool _isZoomedOut = false;
   final double _normalZoom = 2.5;
   final double _mapViewZoom = 1.5;
@@ -338,9 +340,7 @@ class OfficeGame extends FlameGame<World>
     world.add(lighting2);
   }
 
-  // --- REINIGUNG: Redundanzen bei der Sprite-Generierung komplett entfernt ---
   void _processInteractiveObject(TiledObject object, RenderableTiledMap tileMap, {required int priorityOffset}) {
-    // Falls das Objekt im Tiled-Editor gar keine Grafik-ID zugewiesen hat, brechen wir direkt ab
     if (object.gid == null || object.gid! <= 0) return;
 
     final int rawGid = object.gid!;
@@ -352,7 +352,6 @@ class OfficeGame extends FlameGame<World>
     final Tileset ts = tileMap.map.tilesetByTileGId(cleanGid);
     final String imageSource = (tile.image ?? ts.image)!.source!;
 
-    // Generiere das Sprite genau EINMAL für alle interaktiven Objekte
     final Sprite tiledSprite = tile.image != null
         ? Sprite(images.fromCache(imageSource))
         : () {
@@ -364,7 +363,6 @@ class OfficeGame extends FlameGame<World>
             );
           }();
 
-    // 1. Zuweisung: Toilette
     if (object.class_ == 'Toilet') {
       final Toilet toilet = Toilet(
         sprite: tiledSprite,
@@ -378,7 +376,6 @@ class OfficeGame extends FlameGame<World>
       return;
     }
 
-    // 2. Zuweisung: Kühlschrank
     if (object.class_ == 'Fridge') {
       final Fridge fridge = Fridge(
         sprite: tiledSprite,
@@ -392,7 +389,6 @@ class OfficeGame extends FlameGame<World>
       return;
     }
 
-    // 3. Zuweisung: Kaffeemaschine
     if (object.class_ == 'CoffeeMachine') {
       final CoffeeMachine coffeeMachine = CoffeeMachine(
         sprite: tiledSprite,
@@ -411,7 +407,6 @@ class OfficeGame extends FlameGame<World>
       return;
     }
 
-    // --- 4. GENERISCHER RENDERING-CODE FÜR STATISCHE DEKO-OBJEKTE OHNE SPEZIFISCHE LOGIK-KLASSE ---
     final double angle = Units.radFromDegree(object.rotation);
     final Vector2 localCenter = Vector2(-object.width / 2, 0);
 
@@ -480,11 +475,9 @@ class OfficeGame extends FlameGame<World>
 
   void toggleScreenLock() {
     isDeskLocked = !isDeskLocked;
-    if (isDeskLocked) {
-      statusText.text = 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)';
-    } else {
-      statusText.text = 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)';
-    }
+    statusText.text = isDeskLocked
+        ? 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)'
+        : 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)';
   }
 
   void _toggleCameraZoom() {
@@ -492,15 +485,8 @@ class OfficeGame extends FlameGame<World>
     final double targetZoom = _isZoomedOut ? _mapViewZoom : _normalZoom;
 
     camera.viewfinder.removeAll(camera.viewfinder.children.whereType<ScaleEffect>());
-
     camera.viewfinder.add(
-      ScaleEffect.to(
-        Vector2.all(targetZoom),
-        EffectController(
-          duration: 0.4,
-          curve: Curves.easeInOut,
-        ),
-      ),
+      ScaleEffect.to(Vector2.all(targetZoom), EffectController(duration: 0.4, curve: Curves.easeInOut)),
     );
   }
 
@@ -514,19 +500,13 @@ class OfficeGame extends FlameGame<World>
           color: Colors.white,
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          shadows: <Shadow>[
-            Shadow(
-              color: Colors.black,
-              offset: Offset(2.0, 2.0),
-              blurRadius: 2.0,
-            ),
-          ],
+          shadows: <Shadow>[Shadow(color: Colors.black, offset: Offset(2.0, 2.0), blurRadius: 2.0)],
         ),
       ),
     );
 
     final TextComponent<TextPaint> infoText = TextComponent<TextPaint>(
-      text: 'BEWEGUNG: WASD/Pfeiltasten\nAKTION: Taste E\nINVENTAR: Taste I',
+      text: 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I',
       position: Vector2(20, 60),
       textRenderer: TextPaint(
         style: const TextStyle(
@@ -534,13 +514,7 @@ class OfficeGame extends FlameGame<World>
           fontFamily: 'PressStart2P',
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          shadows: <Shadow>[
-            Shadow(
-              color: Colors.black,
-              offset: Offset(2.0, 2.0),
-              blurRadius: 2.0,
-            ),
-          ],
+          shadows: <Shadow>[Shadow(color: Colors.black, offset: Offset(2.0, 2.0), blurRadius: 2.0)],
         ),
       ),
     );
@@ -561,9 +535,7 @@ class OfficeGame extends FlameGame<World>
     final TriggerZone tobiTrigger = TriggerZone(
       target: tobiNpc,
       padding: 25.0,
-      onAction: () {
-        overlays.add(TobiDialogs.normalAction.toString());
-      },
+      onAction: () => overlays.add(TobiDialogs.normalAction.toString()),
     );
     world.add(tobiTrigger);
 
@@ -580,10 +552,47 @@ class OfficeGame extends FlameGame<World>
     final TriggerZone danielTrigger = TriggerZone(
       target: deskTopRight,
       padding: 35.0,
-      onAction: () {
-        overlays.add(DanielDialogs.normalAction.toString());
-      },
+      onAction: () => overlays.add(DanielDialogs.normalAction.toString()),
     );
     world.add(danielTrigger);
+  }
+
+  // --- TOUCH / MAUS GEDRÜCKT HALTEN LOGIK (ECHTE BILDSCHIRMMITTE) ---
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    _handleTouchInput(event.canvasPosition);
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
+    _handleTouchInput(event.canvasEndPosition);
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    player.stopTouchMovement();
+  }
+
+  @override
+  void onDragCancel(DragCancelEvent event) {
+    super.onDragCancel(event);
+    player.stopTouchMovement();
+  }
+
+  void _handleTouchInput(Vector2 canvasPosition) {
+    if (selectedItem != null) return;
+
+    // 1. Die absolute, physikalische Mitte des Fensters/Bildschirms abgreifen
+    final Vector2 screenCenter = canvasSize / 2;
+
+    // 2. Richtung berechnen: Wo ist der Finger relativ zur Bildschirmmitte?
+    final Vector2 direction = canvasPosition - screenCenter;
+
+    // 3. Den reinen Richtungsvektor direkt an Hendrik übergeben
+    player.updateTouchVelocity(direction);
   }
 }
