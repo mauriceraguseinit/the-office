@@ -245,6 +245,17 @@ class OfficeGame extends FlameGame<World>
     final ObjectGroup? spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
     final ObjectGroup? interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
 
+    final ObjectGroup? collisionLayer = mapComponent.tileMap.getLayer<ObjectGroup>('collision');
+    collisionLayer?.objects.forEach((TiledObject object) {
+      final PositionComponent staticobstacle = PositionComponent(
+        position: Vector2(object.x, object.y),
+        size: Vector2(object.width, object.height),
+      )..add(RectangleHitbox());
+
+      staticobstacle.priority = 1;
+      world.add(staticobstacle..debugMode = false);
+    });
+
     // Interaktive Objekte aus Tiled laden (Möbel, Deko, Türen...)
     interactiveObjects?.objects.forEach((TiledObject object) {
       if (object.class_ == 'Toilet') {
