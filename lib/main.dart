@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'hud/character_editor.dart';
 import 'hud/inventory_overlay.dart';
 import 'hud/speech_bubble.dart';
-import 'intro_game.dart';
+import 'intro/intro_game.dart';
 import 'office_game.dart';
 
 enum Scenes {
@@ -36,7 +36,11 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
   @override
   void initState() {
     super.initState();
-    _introGame = IntroGame();
+    _introGame = IntroGame(
+      onIntroComplete: () {
+        setState(() => _showScene = Scenes.game);
+      },
+    );
   }
 
   Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = <String, OverlayWidgetBuilder<OfficeGame>>{
@@ -67,7 +71,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
                   child: Padding(
                     padding: const EdgeInsets.all(32),
                     child: RetroButton(
-                      title: 'Weiter',
+                      title: 'Überspringen',
                       onTap: () => setState(() => _showScene = Scenes.game),
                     ),
                   ),

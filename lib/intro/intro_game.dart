@@ -2,29 +2,52 @@ import 'dart:math' as math;
 
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 
+import 'credits_sequence.dart';
+
 class IntroGame extends FlameGame<World> {
-  IntroGame()
+  // 2. Callback für das Ende des Intros definieren
+
+  IntroGame({required this.onIntroComplete})
     : super(
         camera: CameraComponent.withFixedResolution(
           width: 1280,
           height: 720,
         ),
       );
+  // Interner Tracker für den Audioplayer, um darauf lauschen zu können
+
+  AudioPlayer? _bgmPlayer;
+  final VoidCallback onIntroComplete;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
+    // 3. Audio-Dateien vorab in den Cache laden
+    await FlameAudio.audioCache.load('intro.mp3');
+
+    // 4. Musik abspielen und Player-Instanz merken
+    // Wir nutzen 'play' statt 'loop', da es nur einmal laufen soll
+    _bgmPlayer = await FlameAudio.play('intro.mp3');
+    await _bgmPlayer?.setVolume(0.2);
+
+    // 5. Auf das Ende des Tracks lauschen
+    _bgmPlayer?.onPlayerComplete.listen((_) {
+      debugPrint('🎵 Intro-Musik beendet. Wechsel zum Hauptspiel...');
+      onIntroComplete(); // Löst den automatischen Wechsel aus
+    });
+
+    // --- DEIN BESTEHENDER MAP- & PARTIKEL-CODE ---
     final TiledComponent<FlameGame<World>> introMap = await TiledComponent.load(
       'intro.tmx',
       Vector2(1280, 720),
     );
     world.add(introMap);
 
-    // 1. Kaputte Flacker-Lampen laden (Object-Layer 'flickerings')
     final ObjectGroup? flickeringLayer = introMap.tileMap.getLayer<ObjectGroup>('flickerings');
     if (flickeringLayer != null) {
       for (final TiledObject tiledObject in flickeringLayer.objects) {
@@ -72,7 +95,6 @@ class IntroGame extends FlameGame<World> {
       }
     }
 
-    // 2. Weiche Ambient-Lichter & Fliegenschwärme laden (Object-Layer 'lights')
     final ObjectGroup? lightsLayer = introMap.tileMap.getLayer<ObjectGroup>('lights');
     if (lightsLayer != null) {
       for (final TiledObject lightObject in lightsLayer.objects) {
@@ -84,12 +106,21 @@ class IntroGame extends FlameGame<World> {
       }
     }
 
-    // 3. Regen- und Aufschlag-Partikel hinzufügen
     world.add(RainParticleSystem(priority: 10));
     world.add(RainSplashParticleSystem(priority: 9));
 
     camera.viewfinder.position = Vector2(1280 / 2, 720 / 2);
     camera.viewfinder.anchor = Anchor.center;
+
+    world.add(CreditsSequence(priority: 20));
+  }
+
+  // 6. Ressourcen sauber freigeben, falls das Intro vorzeitig übersprungen wird
+  @override
+  void onRemove() {
+    _bgmPlayer?.stop();
+    _bgmPlayer?.dispose();
+    super.onRemove();
   }
 }
 
