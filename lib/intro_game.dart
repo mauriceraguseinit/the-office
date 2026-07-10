@@ -32,10 +32,10 @@ class IntroGame extends FlameGame<World> {
 
         final int gid = tiledObject.gid!;
         Sprite? tileSprite;
-        final tiledMapData = introMap.tileMap.map;
+        final TiledMap tiledMapData = introMap.tileMap.map;
         Tileset? tileset;
 
-        for (final ts in tiledMapData.tilesets) {
+        for (final Tileset ts in tiledMapData.tilesets) {
           if (ts.firstGid != null && gid >= ts.firstGid!) {
             if (tileset == null || ts.firstGid! > tileset.firstGid!) {
               tileset = ts;
@@ -44,9 +44,9 @@ class IntroGame extends FlameGame<World> {
         }
 
         if (tileset != null && tileset.firstGid != null) {
-          final localId = gid - tileset.firstGid!;
-          final tile = tileset.tiles.cast<Tile?>().firstWhere(
-            (t) => t?.localId == localId,
+          final int localId = gid - tileset.firstGid!;
+          final Tile? tile = tileset.tiles.cast<Tile?>().firstWhere(
+            (Tile? t) => t?.localId == localId,
             orElse: () => null,
           );
 
