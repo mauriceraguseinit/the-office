@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:the_office/interactiveObjects/toilet.dart';
 import 'package:the_office/npcs/tobi.dart';
 import 'package:the_office/trigger_zone.dart';
-import 'package:the_office/utils/map_splitter.dart';
 import 'package:the_office/utils/util.dart';
 
 import 'hendrik.dart';
@@ -55,15 +54,10 @@ class OfficeGame extends FlameGame<World>
 
     final RenderableTiledMap tileMap = mapComponent.tileMap;
 
-    final List<TiledComponent<FlameGame<World>>> mapLayers = await MapSplitter.splitMapIntoLayers(
-      fileName: 'office.tmx',
-      destTileSize: Vector2.all(64),
-    );
-
     // Boden manuell rendern
     final Layer? bodenLayer =
         tileMap.renderableLayers
-                .where((layer) => layer.layer is TileLayer && layer.layer.name == 'Boden')
+                .where((dynamic layer) => layer.layer is TileLayer && layer.layer.name == 'Boden')
                 .firstOrNull
                 ?.layer
             as TileLayer?;
