@@ -3,9 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:the_office/hud/retro_button.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3;
-
-import 'speech_bubble.dart';
 
 class CharacterEditor extends StatefulWidget {
   const CharacterEditor({super.key, required this.onFinished});
@@ -184,6 +183,10 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    // Virtuelle Basisauflösung deines Flame-Spiels
+    const double virtualWidth = 1280.0;
+    const double virtualHeight = 720.0;
+
     Widget currentWidget;
     if (_currentStep == 1) {
       currentWidget = _buildStep1();
@@ -199,14 +202,35 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         focusNode: _focusNode,
         onKeyEvent: _handleKeyEvent,
         child: Center(
-          child: Container(
-            width: 600,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              border: Border.all(color: Colors.orange, width: 6),
-            ),
-            child: currentWidget,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              // Berechne den Skalierungsfaktor analog zum FixedResolutionViewport
+              final double scaleX = constraints.maxWidth / virtualWidth;
+              final double scaleY = constraints.maxHeight / virtualHeight;
+              final double gameScale = math.min(scaleX, scaleY);
+
+              // Die feste logische Größe des Editor-Fensters
+              const double baseWidth = 600.0;
+
+              return SizedBox(
+                // Skaliere die Hitboxen und den Layout-Raum physikalisch mit
+                width: baseWidth * gameScale,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: baseWidth,
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        border: Border.all(color: Colors.orange, width: 6),
+                      ),
+                      child: currentWidget,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:the_office/hud/retro_button.dart';
 
 class RetroSpeechBubble extends StatefulWidget {
   const RetroSpeechBubble({
@@ -163,97 +165,127 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 450,
-        height: 220,
-        padding: const EdgeInsets.all(4),
-        decoration: const BoxDecoration(color: Color(0xFF1E1E1E)),
-        child: Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            border: Border.all(color: const Color(0xFF1E1E1E), width: 4),
-          ),
-          child: Stack(
-            children: <Widget>[
-              Positioned.fill(
-                top: 24,
-                left: 12,
-                right: 12,
-                bottom: 12,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: SingleChildScrollView(
-                          controller: _scrollController,
-                          physics: const BouncingScrollPhysics(),
+    const double virtualWidth = 1280.0;
+    const double virtualHeight = 720.0;
 
-                          // WICHTIG: Text.rich verwenden statt normalem Text!
-                          // In deiner speech_bubble.dart beim Erstellen des Text.rich:
-                          child: Text.rich(
-                            TextSpan(
-                              children: _displayedCharacters,
-                              // HIER: Der Style muss direkt auf die Kinder vererbt werden
-                              style: const TextStyle(
-                                fontFamily: 'Courier New',
-                                fontSize: 18,
-                                fontWeight: FontWeight.normal,
-                                color: Color(0xFF1E1E1E), // Zwingt alle normalen Buchstaben, dunkelgrau zu sein!
-                                height: 1.4,
+    return Center(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          // Wir berechnen die maximale Größe, die das Overlay im echten Fenster einnehmen darf,
+          // basierend auf dem gleichen Seitenverhältnis (1280x720).
+          final double scaleX = constraints.maxWidth / virtualWidth;
+          final double scaleY = constraints.maxHeight / virtualHeight;
+          final double gameScale = min(scaleX, scaleY);
+
+          // Deine festen virtuellen Wunschmaße für die Box
+          const double baseWidth = 450.0;
+          const double baseHeight = 220.0;
+
+          // NUTZE FITTEDBOX STATT TRANSFORM.SCALE:
+          // Das sorgt dafür, dass die Hitboxen (Gesten) exakt mit der Grafik mitskalieren.
+          return SizedBox(
+            width: baseWidth * gameScale,
+            height: baseHeight * gameScale,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: SizedBox(
+                width: baseWidth,
+                height: baseHeight,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(color: Color(0xFF1E1E1E)),
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      border: Border.all(color: const Color(0xFF1E1E1E), width: 4),
+                    ),
+                    child: Stack(
+                      children: <Widget>[
+                        Positioned.fill(
+                          top: 24,
+                          left: 12,
+                          right: 12,
+                          bottom: 12,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Expanded(
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: SingleChildScrollView(
+                                    controller: _scrollController,
+                                    physics: const BouncingScrollPhysics(),
+                                    child: Text.rich(
+                                      TextSpan(
+                                        children: _displayedCharacters,
+                                        style: const TextStyle(
+                                          fontFamily: 'Courier New',
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.normal,
+                                          color: Color(0xFF1E1E1E),
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              if (widget.actions.isNotEmpty && _isTypewriterFinished) ...<Widget>[
+                                const SizedBox(height: 12),
+                                Center(
+                                  child: Wrap(
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    alignment: WrapAlignment.center,
+                                    children: widget.actions.map((RetroAction action) {
+                                      return RetroButton(title: action.title, onTap: action.onTap);
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+
+                        // Das "X" zum Schließen hat jetzt wieder eine perfekt sitzende Hitbox!
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: widget.onClose,
+                            behavior:
+                                HitTestBehavior.opaque, // Zwingt Flutter, die gesamte Box als Trefffläche zu werten
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ), // Etwas mehr Padding spendiert für besseres Klicken
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E1E1E),
+                                border: Border.all(color: const Color(0xFFF5F5F5), width: 1),
+                              ),
+                              child: const Text(
+                                'X',
+                                style: TextStyle(
+                                  color: Color(0xFFF5F5F5),
+                                  fontFamily: 'Courier New',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-
-                    if (widget.actions.isNotEmpty && _isTypewriterFinished) ...<Widget>[
-                      const SizedBox(height: 12),
-                      Center(
-                        child: Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          alignment: WrapAlignment.center,
-                          children: widget.actions.map((RetroAction action) {
-                            return RetroButton(title: action.title, onTap: action.onTap);
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              Positioned(
-                top: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: widget.onClose,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      border: Border.all(color: const Color(0xFFF5F5F5), width: 1),
-                    ),
-                    child: const Text(
-                      ' X ',
-                      style: TextStyle(
-                        color: Color(0xFFF5F5F5),
-                        fontFamily: 'Courier New',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -264,43 +296,4 @@ class RetroAction {
   RetroAction({required this.title, required this.onTap});
   final String title;
   final VoidCallback onTap;
-}
-
-class RetroButton extends StatefulWidget {
-  const RetroButton({super.key, required this.title, required this.onTap});
-  final String title;
-  final VoidCallback onTap;
-  @override
-  State<RetroButton> createState() => _RetroButtonState();
-}
-
-class _RetroButtonState extends State<RetroButton> {
-  bool _isPressed = false;
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 30),
-        margin: EdgeInsets.only(top: _isPressed ? 4 : 0, bottom: _isPressed ? 0 : 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: _isPressed ? const Color(0xFFF5F5F5) : const Color(0xFF1E1E1E),
-          border: Border.all(color: _isPressed ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5), width: 2),
-        ),
-        child: Text(
-          widget.title.toUpperCase(),
-          style: TextStyle(
-            color: _isPressed ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5),
-            fontFamily: 'Courier New',
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
 }

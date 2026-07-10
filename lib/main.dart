@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import 'hud/character_editor.dart';
 import 'hud/inventory_overlay.dart';
+import 'hud/retro_button.dart';
 import 'hud/speech_bubble.dart';
 import 'intro/intro_game.dart';
 import 'office_game.dart';
@@ -66,15 +69,34 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
             initialActiveOverlays: const <String>['button'],
             overlayBuilderMap: <String, OverlayWidgetBuilder<IntroGame>>{
               'button': (BuildContext context, IntroGame introGame) {
-                return Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: RetroButton(
-                      title: 'Überspringen',
-                      onTap: () => setState(() => _showScene = Scenes.game),
-                    ),
-                  ),
+                // Virtuelle Auflösung des Intros abgreifen
+                const double virtualWidth = 1280.0;
+                const double virtualHeight = 720.0;
+
+                return LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    // Berechne den aktuellen Skalierungsfaktor des Bildschirmfensters
+                    final double scaleX = constraints.maxWidth / virtualWidth;
+                    final double scaleY = constraints.maxHeight / virtualHeight;
+                    final double gameScale = math.min(scaleX, scaleY);
+
+                    // Positioniert den Button absolut stabil am unteren Rand des skalierten Viewports
+                    return Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        // Auch das Padding schrumpft/wächst passend mit
+                        padding: EdgeInsets.all(32 * gameScale),
+                        child: Transform.scale(
+                          scale: gameScale,
+                          alignment: Alignment.bottomCenter,
+                          child: RetroButton(
+                            title: 'Überspringen',
+                            onTap: () => setState(() => _showScene = Scenes.game),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             },
