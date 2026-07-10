@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="1280" tileheight="720" infinite="0" nextlayerid="2" nextobjectid="1">
- <tileset firstgid="1" name="intro" tilewidth="1280" tileheight="720" tilecount="1" columns="1">
-  <image source="../images/intro.png" width="1280" height="720"/>
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="1280" tileheight="720" infinite="0" nextlayerid="4" nextobjectid="8">
+ <tileset firstgid="1" name="intro" tilewidth="1280" tileheight="720" tilecount="2" columns="1">
+  <tile id="1">
+   <image source="../images/intro.png" width="1280" height="720"/>
+  </tile>
+  <tile id="2">
+   <image source="../images/intro_logo_dark.png" width="103" height="47"/>
+  </tile>
  </tileset>
  <layer id="1" name="Kachelebene 1" width="1" height="1">
   <data encoding="csv">
-1
+2
 </data>
  </layer>
+ <objectgroup id="2" name="flickerings">
+  <object id="3" name="logo" gid="3" x="785" y="224.909" width="103" height="47"/>
+ </objectgroup>
+ <objectgroup id="3" name="lights">
+  <object id="6" x="20" y="402.667" width="97.3333" height="85.3333">
+   <ellipse/>
+  </object>
+  <object id="7" x="753" y="410" width="79" height="68">
+   <ellipse/>
+  </object>
+ </objectgroup>
 </map>
