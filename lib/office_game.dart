@@ -106,22 +106,72 @@ class OfficeGame extends FlameGame<World>
 
             if (tileDefinition == null) continue;
 
-            final String imageSource = (tileDefinition.image ?? ts.image)!.source!;
-            final Rectangle<num> rect = ts.computeDrawRect(tileDefinition);
-            final Sprite sprite = Sprite(
-              images.fromCache(imageSource),
-              srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
-              srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
-            );
+            final PositionComponent tileComponent;
 
-            final SpriteComponent tileComponent = SpriteComponent(
-              sprite: sprite,
-              position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0), // ← +32 Offset!
-              size: Vector2.all(64.0), // ← Genau 64.0
-              anchor: Anchor.center,
+            if (tileDefinition.animation.isNotEmpty) {
+              final List<SpriteAnimationFrame> frames = <SpriteAnimationFrame>[];
 
-              priority: -1000,
-            );
+              for (final Frame frame in tileDefinition.animation) {
+                final int frameGid = ts.firstGid! + frame.tileId;
+
+                final Tile? frameTile = tileMap.map.tileByGid(frameGid);
+                if (frameTile == null) {
+                  continue;
+                }
+
+                final Rectangle<num> frameRect = ts.computeDrawRect(frameTile);
+
+                final Sprite frameSprite = Sprite(
+                  images.fromCache((frameTile.image ?? ts.image)!.source!),
+                  srcPosition: Vector2(
+                    frameRect.left.toDouble(),
+                    frameRect.top.toDouble(),
+                  ),
+                  srcSize: Vector2(
+                    frameRect.width.toDouble(),
+                    frameRect.height.toDouble(),
+                  ),
+                );
+
+                frames.add(
+                  SpriteAnimationFrame(
+                    frameSprite,
+                    frame.duration / 1000.0,
+                  ),
+                );
+              }
+
+              tileComponent = SpriteAnimationComponent(
+                animation: SpriteAnimation(frames),
+                position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
+                size: Vector2.all(64.0),
+                anchor: Anchor.center,
+                priority: -1000,
+              );
+            } else {
+              final String imageSource = (tileDefinition.image ?? ts.image)!.source!;
+              final Rectangle<num> rect = ts.computeDrawRect(tileDefinition);
+
+              final Sprite sprite = Sprite(
+                images.fromCache(imageSource),
+                srcPosition: Vector2(
+                  rect.left.toDouble(),
+                  rect.top.toDouble(),
+                ),
+                srcSize: Vector2(
+                  rect.width.toDouble(),
+                  rect.height.toDouble(),
+                ),
+              );
+
+              tileComponent = SpriteComponent(
+                sprite: sprite,
+                position: Vector2(x * 64.0 + 32.0, y * 64.0 + 32.0),
+                size: Vector2.all(64.0),
+                anchor: Anchor.center,
+                priority: -1000,
+              );
+            }
 
             world.add(tileComponent);
           }
