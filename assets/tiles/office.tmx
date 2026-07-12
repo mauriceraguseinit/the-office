@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="153">
- <tileset firstgid="1" name="Office" tilewidth="128" tileheight="128" tilecount="25" columns="1" objectalignment="right">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="156">
+ <tileset firstgid="1" name="Office" tilewidth="128" tileheight="128" tilecount="25" columns="1" objectalignment="center">
   <grid orientation="orthogonal" width="64" height="64"/>
   <tile id="7">
    <image source="../images/wall.png" width="64" height="64"/>
@@ -199,12 +199,6 @@
   <object id="12" name="playerStart" x="2682.55" y="711.269">
    <point/>
   </object>
-  <object id="13" name="tobi" x="2398.67" y="810">
-   <point/>
-  </object>
-  <object id="14" name="daniel" x="2558.67" y="574.667">
-   <point/>
-  </object>
  </objectgroup>
  <layer id="8" name="moebel" width="64" height="49">
   <data encoding="csv">
@@ -366,43 +360,43 @@
 </data>
  </layer>
  <objectgroup id="12" name="interactiveObjects">
-  <object id="15" type="Toilet" gid="81" x="1726" y="647.333" width="64" height="64"/>
-  <object id="46" gid="102" x="3134.14" y="831" width="128" height="128" rotation="270"/>
-  <object id="47" gid="102" x="3008.45" y="959.455" width="128" height="128" rotation="90"/>
-  <object id="48" gid="102" x="2817" y="447.726" width="128" height="128" rotation="180"/>
-  <object id="49" gid="102" x="2945.33" y="448" width="128" height="128" rotation="180"/>
-  <object id="50" gid="102" x="3072.67" y="447.333" width="128" height="128" rotation="180"/>
-  <object id="51" gid="102" x="2944.67" y="574.333" width="128" height="128"/>
-  <object id="52" gid="102" x="3072.67" y="574.333" width="128" height="128"/>
-  <object id="53" gid="102" x="3200.67" y="573.667" width="128" height="128"/>
-  <object id="54" gid="102" x="1577.78" y="1247.05" width="128" height="128" rotation="323.999"/>
-  <object id="55" gid="102" x="1729.33" y="1216.67" width="128" height="128" rotation="90"/>
-  <object id="56" gid="102" x="1729.33" y="1344.33" width="128" height="128" rotation="90"/>
-  <object id="57" gid="102" x="1857" y="1088.5" width="128" height="128" rotation="270"/>
-  <object id="58" gid="102" x="1857" y="1216.16" width="128" height="128" rotation="270"/>
-  <object id="59" gid="102" x="2112.16" y="1215.92" width="128" height="128" rotation="90"/>
-  <object id="60" gid="102" x="2112.16" y="1343.58" width="128" height="128" rotation="90"/>
-  <object id="61" gid="102" x="2239.84" y="1087.75" width="128" height="128" rotation="270"/>
-  <object id="62" gid="102" x="2239.84" y="1215.41" width="128" height="128" rotation="270"/>
-  <object id="63" gid="102" x="2496.12" y="1216.16" width="128" height="128" rotation="90"/>
-  <object id="64" gid="102" x="2496.12" y="1343.82" width="128" height="128" rotation="90"/>
-  <object id="65" gid="102" x="2623.79" y="1087.99" width="128" height="128" rotation="270"/>
-  <object id="66" gid="102" x="2623.79" y="1215.65" width="128" height="128" rotation="270"/>
-  <object id="67" gid="102" x="2112.16" y="576.255" width="128" height="128" rotation="90"/>
-  <object id="68" gid="102" x="2112.16" y="703.915" width="128" height="128" rotation="90"/>
-  <object id="69" gid="102" x="2239.84" y="448.085" width="128" height="128" rotation="270"/>
-  <object id="70" gid="102" x="2239.84" y="575.745" width="128" height="128" rotation="270"/>
-  <object id="71" gid="102" x="2496.5" y="576.088" width="128" height="128" rotation="90"/>
-  <object id="72" gid="102" x="2496.5" y="703.748" width="128" height="128" rotation="90"/>
-  <object id="74" gid="102" x="2624.17" y="575.578" width="128" height="128" rotation="270"/>
-  <object id="121" gid="103" x="1253.9" y="1328.67" width="75.4872" height="69"/>
-  <object id="141" gid="105" x="1344.19" y="1142.15" width="96" height="109"/>
-  <object id="143" type="Fridge" gid="106" x="1344.17" y="1238" width="32" height="83"/>
+  <object id="15" type="Toilet" gid="81" x="1693.5" y="652.333" width="64" height="64"/>
+  <object id="46" gid="102" x="3135.11" y="895.515" width="128" height="128" rotation="270"/>
+  <object id="47" gid="102" x="3008.33" y="895.273" width="128" height="128" rotation="90"/>
+  <object id="48" gid="102" x="2881" y="443.726" width="128" height="128" rotation="180"/>
+  <object id="49" gid="102" x="3009.33" y="444" width="128" height="128" rotation="180"/>
+  <object id="50" gid="102" x="3136.67" y="443.333" width="128" height="128" rotation="180"/>
+  <object id="51" gid="102" x="2879.34" y="570.333" width="128" height="128"/>
+  <object id="52" gid="102" x="3007.34" y="570.333" width="128" height="128"/>
+  <object id="53" gid="102" x="3135.34" y="569.667" width="128" height="128"/>
+  <object id="54" gid="102" x="1512.78" y="1294.05" width="128" height="128" rotation="323.999"/>
+  <object id="55" gid="102" x="1729.2" y="1152" width="128" height="128" rotation="90"/>
+  <object id="56" gid="102" x="1729.2" y="1279.66" width="128" height="128" rotation="90"/>
+  <object id="57" gid="102" x="1855.18" y="1152.2" width="128" height="128" rotation="270"/>
+  <object id="58" gid="102" x="1855.18" y="1279.86" width="128" height="128" rotation="270"/>
+  <object id="59" gid="102" x="2112.83" y="1151.55" width="128" height="128" rotation="90"/>
+  <object id="60" gid="102" x="2112.83" y="1279.2" width="128" height="128" rotation="90"/>
+  <object id="61" gid="102" x="2238.69" y="1151.39" width="128" height="128" rotation="270"/>
+  <object id="62" gid="102" x="2238.69" y="1279.05" width="128" height="128" rotation="270"/>
+  <object id="63" gid="102" x="2497.3" y="1151.8" width="128" height="128" rotation="90"/>
+  <object id="64" gid="102" x="2497.3" y="1279.46" width="128" height="128" rotation="90"/>
+  <object id="65" gid="102" x="2622.61" y="1151.44" width="128" height="128" rotation="270"/>
+  <object id="66" gid="102" x="2622.61" y="1279.1" width="128" height="128" rotation="270"/>
+  <object id="67" gid="102" x="2111.8" y="511.528" width="128" height="128" rotation="90"/>
+  <object id="68" gid="102" x="2111.8" y="639.188" width="128" height="128" rotation="90"/>
+  <object id="69" gid="102" x="2237.48" y="511.903" width="128" height="128" rotation="270"/>
+  <object id="70" gid="102" x="2237.48" y="639.563" width="128" height="128" rotation="270"/>
+  <object id="71" gid="102" x="2496.5" y="511.088" width="128" height="128" rotation="90"/>
+  <object id="72" gid="102" x="2496.5" y="638.748" width="128" height="128" rotation="90"/>
+  <object id="74" gid="102" x="2623.84" y="639.078" width="128" height="128" rotation="270"/>
+  <object id="121" gid="103" x="1214.57" y="1327.67" width="75.4872" height="69"/>
+  <object id="141" gid="105" x="1296.19" y="1142.48" width="96" height="109"/>
+  <object id="143" type="Fridge" gid="106" x="1328.5" y="1237.33" width="32" height="83"/>
   <object id="151" type="Daniel" gid="116" x="2609.45" y="511.348" width="125.333" height="97.3333" rotation="270"/>
   <object id="152" type="Tobi" gid="120" x="2423.33" y="894" width="47.3333" height="62.6667"/>
  </objectgroup>
  <objectgroup id="18" name="interactiveObjects2">
-  <object id="146" type="CoffeeMachine" gid="107" x="1341.92" y="1115.42" width="26" height="34"/>
+  <object id="146" type="CoffeeMachine" gid="107" x="1328.92" y="1115.42" width="26" height="34"/>
  </objectgroup>
  <objectgroup id="17" name="collision">
   <object id="75" x="2176.04" y="817.333" width="383.936" height="13.6667"/>
@@ -454,7 +448,7 @@
   <object id="126" x="1224.91" y="1312.18" width="13.8182" height="12.7273"/>
   <object id="127" x="1191.64" y="1312.18" width="15.0909" height="12.1818"/>
   <object id="128" x="1295.5" y="1373.43" width="33.5" height="24.3182"/>
-  <object id="133" x="1682.33" y="640.667" width="25.3333" height="16.3333"/>
+  <object id="133" name="klo" x="1682.33" y="640.667" width="25.3333" height="16.3333"/>
   <object id="132" x="1574" y="1387.33" width="24.3333" height="18.3333"/>
   <object id="134" x="1410.67" y="563.667" width="57" height="11.3333"/>
   <object id="135" x="2005" y="422.333" width="14.3333" height="18.6667"/>
@@ -464,6 +458,9 @@
   <object id="139" name="trash" x="2407.09" y="809.091" width="22.5455" height="7.09091"/>
   <object id="140" name="pflanzenbox" x="2004" y="806.375" width="17.75" height="10.5"/>
   <object id="150" name="kühlschrankbox" x="1315.64" y="1196.91" width="27.8182" height="79.8182"/>
+  <object id="153" name="tobi" x="2410.33" y="907.833" width="25.3333" height="16.3333"/>
+  <object id="154" name="daniel" x="2563.33" y="449.333" width="63.8333" height="124.833"/>
+  <object id="155" name="daniel" x="2625.08" y="488.584" width="32.8333" height="45.833"/>
  </objectgroup>
  <objectgroup id="13" name="lights">
   <object id="16" x="2561.33" y="448.5">

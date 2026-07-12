@@ -427,6 +427,7 @@ class OfficeGame extends FlameGame<World>
     final InteractiveObject? interactiveObject = _createInteractiveObject(
       object: object,
       renderComponent: renderComp,
+      angle: angle,
       priorityOffset: priorityOffset,
     );
 
@@ -457,11 +458,6 @@ class OfficeGame extends FlameGame<World>
           anchor: Anchor.center,
         );
 
-        final Vector2 npcPosition = _getAnimatedNpcPosition(
-          object: object,
-          angle: angle,
-        );
-
         final InteractiveObject? npc = _createAnimatedNpc(
           className: object.class_,
           renderComponent: animationGroup,
@@ -480,22 +476,7 @@ class OfficeGame extends FlameGame<World>
 
         return;
       default:
-        /*
-       * Nicht-interaktive Tiled-Objekte:
-       * Die bisher funktionierende Pivot-Korrektur beibehalten.
-       */
-        final Vector2 localCenter = Vector2(-object.width / 2, 0);
-
-        final double cosA = cos(angle);
-        final double sinA = sin(angle);
-
-        final double rotatedX = localCenter.x * cosA - localCenter.y * sinA;
-        final double rotatedY = localCenter.x * sinA + localCenter.y * cosA;
-
-        final Vector2 centerPosition = Vector2(
-          object.x + rotatedX,
-          object.y + rotatedY,
-        );
+        final Vector2 centerPosition = Vector2(object.x, object.y);
 
         renderComp
           ..anchor = Anchor.center
@@ -586,24 +567,15 @@ class OfficeGame extends FlameGame<World>
     );
   }
 
-  Vector2 _getAnimatedNpcPosition({
-    required TiledObject object,
-    required double angle,
-  }) {
-    return _getTiledObjectCenter(
-      object: object,
-      angle: angle,
-    );
-  }
-
   InteractiveObject? _createInteractiveObject({
     required TiledObject object,
     required PositionComponent renderComponent,
+    required double angle,
     required int priorityOffset,
   }) {
-    final Vector2 position = Vector2(
-      object.x,
-      object.y + object.height / 2,
+    final Vector2 position = _getTiledObjectCenter(
+      object: object,
+      angle: angle,
     );
     final Vector2 size = Vector2(object.width, object.height);
 
