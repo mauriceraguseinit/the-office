@@ -182,7 +182,6 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               // Berechne die Höhe basierend auf dem verfügbaren Platz abzüglich Insets
-              final double effectiveHeight = constraints.maxHeight;
 
               final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
               const double baseWidth = 600.0;
