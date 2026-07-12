@@ -43,6 +43,16 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
           },
           child: Stack(
             children: <Widget>[
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) {
+                    if (widget.game.selectedItem != null) {
+                      widget.game.overlays.remove('inventory');
+                    }
+                  },
+                ),
+              ),
               // 1. Das eigentliche Inventar-Fenster im Hintergrund (Mit skalierter Hitbox)
               Center(
                 child: MouseRegion(
@@ -223,7 +233,9 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
 
     if (activeSelection == null) {
       widget.game.selectItem(item);
-      setState(() {});
+      setState(() {
+        _hoverText = 'BENUTZE ${item.name.toUpperCase()} MIT...';
+      });
     } else if (activeSelection.id == item.id) {
       widget.game.resetSelection();
       setState(() {});

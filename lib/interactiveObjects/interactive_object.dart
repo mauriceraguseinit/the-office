@@ -102,12 +102,24 @@ abstract class InteractiveObject extends PositionComponent
       if (showTooFar) {
         game.overlays.add(TriggerZoneDialogs.tooFar.toString());
       }
+
+      // Klick auf ein Objekt – auch zu weit entfernt –
+      // beendet die aktuell gehaltene Inventar-Auswahl.
+      if (game.selectedItem != null) {
+        game.resetSelection();
+      }
+
       return false;
     }
 
-    // Hendrik richtet sich nun auf das echte Ziel aus – nicht auf eine TriggerZone.
+    final bool usedInventoryItem = game.selectedItem != null;
+
     player.lookAt(interactionCenter);
     onAction();
+
+    if (usedInventoryItem) {
+      game.resetSelection();
+    }
 
     return true;
   }

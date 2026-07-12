@@ -425,6 +425,43 @@ class OfficeGame extends FlameGame<World>
     world.add(lighting2);
   }
 
+  bool _isInteractiveObjectAtCanvasPosition(Vector2 canvasPosition) {
+    final Vector2 worldPosition = camera.globalToLocal(canvasPosition);
+
+    return world.children.whereType<InteractiveObject>().any(
+      (InteractiveObject object) => object.containsPoint(worldPosition),
+    );
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+
+    // Auf Mobile steuert der Entdeckungsmodus die Auswahl.
+    if (isTouchDevice) {
+      return;
+    }
+
+    // Ohne aktives Inventar-Item gibt es nichts zurückzusetzen.
+    if (selectedItem == null) {
+      return;
+    }
+
+    // Dialoge und Inventar dürfen die aktuelle Auswahl nicht beeinflussen.
+    if (overlays.activeOverlays.isNotEmpty) {
+      return;
+    }
+
+    // Beim Klick auf ein interaktives Objekt bleibt das Item aktiv.
+    // Das Objekt verarbeitet den Klick dann über tryInteract()/onAction().
+    if (_isInteractiveObjectAtCanvasPosition(event.canvasPosition)) {
+      return;
+    }
+
+    // Klick auf freie Welt: Item ablegen bzw. Auswahl beenden.
+    resetSelection();
+  }
+
   void _processInteractiveObject(
     TiledObject object,
     RenderableTiledMap tileMap, {
@@ -742,7 +779,7 @@ class OfficeGame extends FlameGame<World>
     mousePosition = Vector2(info.raw.localPosition.dx, info.raw.localPosition.dy);
   }
 
-  void selectItem(InventoryItem item) {
+  void selectItem(InventoryItem? item) {
     selectedItem = item;
     overlayChangeNotifier.notifyListeners();
   }
