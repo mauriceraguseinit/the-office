@@ -15,6 +15,7 @@ abstract class InteractiveObject extends PositionComponent
     required super.position,
     required PositionComponent renderComponent,
     super.size,
+    required this.displayName,
     this.priorityOffset = 0,
     this.interactionPadding = 5,
   }) : _renderComponent = renderComponent {
@@ -22,6 +23,8 @@ abstract class InteractiveObject extends PositionComponent
   }
 
   final PositionComponent _renderComponent;
+  final String displayName;
+
   final int priorityOffset;
   final double interactionPadding;
 
@@ -111,17 +114,30 @@ abstract class InteractiveObject extends PositionComponent
 
   @override
   void onTapDown(TapDownEvent event) {
+    if (game.isTouchDevice) {
+      game.setHighlightedObject(this);
+      return;
+    }
+
     tryInteract();
   }
 
   @override
   void onHoverEnter() {
-    _isHovered = true;
+    if (!game.isTouchDevice) {
+      game.setHighlightedObject(this);
+    }
   }
 
   @override
   void onHoverExit() {
-    _isHovered = false;
+    if (!game.isTouchDevice && game.highlightedObject == this) {
+      game.setHighlightedObject(null);
+    }
+  }
+
+  void setHighlighted(bool highlighted) {
+    _isHovered = highlighted;
   }
 
   Sprite? _currentSprite() {

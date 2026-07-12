@@ -12,6 +12,7 @@ class CoffeeMachine extends InteractiveObject {
     required super.position,
     required super.renderComponent,
     super.size,
+    required super.displayName,
     super.priorityOffset,
   });
 

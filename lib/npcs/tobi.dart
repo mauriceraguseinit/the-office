@@ -12,6 +12,7 @@ class Tobi extends InteractiveObject {
     required super.position,
     required super.size,
     this.hitBox = true,
+    required super.displayName,
     required super.renderComponent,
     super.priorityOffset,
   });

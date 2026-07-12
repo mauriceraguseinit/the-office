@@ -13,6 +13,7 @@ class DeskDaniel extends InteractiveObject {
     required super.size,
     this.hitBox = true,
     required super.renderComponent,
+    required super.displayName,
     super.priorityOffset,
   });
 

@@ -9,6 +9,7 @@ import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame/text.dart';
 import 'package:flame_tiled/flame_tiled.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/interactiveObjects/fridge.dart';
 import 'package:the_office/interactiveObjects/toilet.dart';
@@ -34,13 +35,16 @@ class OfficeGame extends FlameGame<World>
         HasCollisionDetection<Broadphase<ShapeHitbox>>,
         MouseMovementDetector,
         SecondaryTapCallbacks,
-        DragCallbacks, // Ermöglicht das Gedrückthalten und Ziehen auf Touch/Maus
-        TapCallbacks {
+        DragCallbacks,
+        TapCallbacks,
+        DoubleTapCallbacks {
   bool _isZoomedOut = false;
+  final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
   final double _normalZoom = 2.5;
   final double _mapViewZoom = 1.5;
 
   late CameraComponent minimapCamera;
+  late TextComponent<TextRenderer> interactionNameText;
 
   List<InventoryItem> ownedItems = <InventoryItem>[];
   InventoryItem? selectedItem;
@@ -48,10 +52,32 @@ class OfficeGame extends FlameGame<World>
   late TextComponent<TextRenderer> statusText;
   bool isDeskLocked = false;
   late Hendrik player;
+  InteractiveObject? highlightedObject;
+  bool _mobileMovementArmed = false;
+  bool _isExploring = false;
+  bool get isTouchDevice {
+    return defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
+  void setHighlightedObject(InteractiveObject? object) {
+    if (highlightedObject == object) {
+      return;
+    }
+
+    // Vorherige Markierung entfernen.
+    highlightedObject?.setHighlighted(false);
+
+    // Neue Markierung setzen.
+    highlightedObject = object;
+    highlightedObject?.setHighlighted(true);
+
+    // Tiled-Objektname im HUD anzeigen.
+    final String displayName = object?.displayName.trim() ?? '';
+    interactionNameText.text = displayName;
+  }
+
   late ClickableMinimap minimap;
   late TiledComponent<FlameGame<World>> mapComponent;
-
-  final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
 
   @override
   Future<void> onLoad() async {
@@ -476,6 +502,7 @@ class OfficeGame extends FlameGame<World>
     // Dort liegen Hitbox, Hover, Klick-Interaktion und Dialoge zentral.
     final InteractiveObject? interactiveObject = _createInteractiveObject(
       object: object,
+      displayName: object.name,
       renderComponent: renderComp,
       angle: angle,
       priorityOffset: priorityOffset,
@@ -510,6 +537,7 @@ class OfficeGame extends FlameGame<World>
 
         final InteractiveObject? npc = _createAnimatedNpc(
           className: object.class_,
+          displayName: object.name,
           renderComponent: animationGroup,
           position: _getTiledObjectCenter(
             object: object,
@@ -563,6 +591,7 @@ class OfficeGame extends FlameGame<World>
 
   InteractiveObject? _createAnimatedNpc({
     required String className,
+    required String displayName,
     required PositionComponent renderComponent,
     required Vector2 position,
     required Vector2 size,
@@ -571,6 +600,7 @@ class OfficeGame extends FlameGame<World>
     switch (className) {
       case 'Daniel':
         return DeskDaniel(
+          displayName: displayName,
           renderComponent: renderComponent,
           position: position,
           size: size,
@@ -579,6 +609,7 @@ class OfficeGame extends FlameGame<World>
 
       case 'Tobi':
         return Tobi(
+          displayName: displayName,
           renderComponent: renderComponent,
           position: position,
           size: size,
@@ -619,6 +650,7 @@ class OfficeGame extends FlameGame<World>
 
   InteractiveObject? _createInteractiveObject({
     required TiledObject object,
+    required String displayName,
     required PositionComponent renderComponent,
     required double angle,
     required int priorityOffset,
@@ -632,6 +664,7 @@ class OfficeGame extends FlameGame<World>
     switch (object.class_) {
       case 'Toilet':
         return Toilet(
+          displayName: displayName,
           renderComponent: renderComponent,
           position: position,
           size: size,
@@ -640,6 +673,7 @@ class OfficeGame extends FlameGame<World>
 
       case 'Fridge':
         return Fridge(
+          displayName: displayName,
           renderComponent: renderComponent,
           position: position,
           size: size,
@@ -648,6 +682,7 @@ class OfficeGame extends FlameGame<World>
 
       case 'CoffeeMachine':
         return CoffeeMachine(
+          displayName: displayName,
           renderComponent: renderComponent,
           position: position,
           size: size,
@@ -657,6 +692,21 @@ class OfficeGame extends FlameGame<World>
       default:
         return null;
     }
+  }
+
+  void _updateMobileExploration(Vector2 canvasPosition) {
+    final Vector2 worldPosition = camera.globalToLocal(canvasPosition);
+
+    InteractiveObject? objectUnderFinger;
+
+    for (final InteractiveObject object in world.children.whereType<InteractiveObject>()) {
+      if (object.containsPoint(worldPosition)) {
+        objectUnderFinger = object;
+        break;
+      }
+    }
+
+    setHighlightedObject(objectUnderFinger);
   }
 
   bool tryInteractWithNearestObject() {
@@ -757,6 +807,33 @@ class OfficeGame extends FlameGame<World>
     camera.viewport.add(infoText..priority = 1000);
     camera.viewport.add(InventoryCursor());
 
+    interactionNameText = TextComponent<TextRenderer>(
+      text: '',
+      position: Vector2(
+        virtualWidth / 2,
+        virtualHeight - 140,
+      ),
+      anchor: Anchor.center,
+      priority: 1001,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          fontFamily: 'PressStart2P',
+          color: Color(0xFFFFFFAA),
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          shadows: <Shadow>[
+            Shadow(
+              color: Colors.black,
+              offset: Offset(2, 2),
+              blurRadius: 2,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    camera.viewport.add(interactionNameText);
+
     final MobileInventoryButton mobileBagButton = MobileInventoryButton(
       position: Vector2(virtualWidth / 2, virtualHeight - 80),
       onPressed: () {
@@ -770,27 +847,93 @@ class OfficeGame extends FlameGame<World>
   // --- TOUCH / MAUS GEDRÜCKT HALTEN LOGIK (ECHTE BILDSCHIRMMITTE) ---
 
   @override
+  @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-    _handleTouchInput(event.canvasPosition);
+
+    // Desktop: bisheriges Verhalten unverändert.
+    if (!isTouchDevice) {
+      _handleTouchInput(event.canvasPosition);
+      return;
+    }
+
+    // Mobile: Nach Doppeltipp bewegt der nächste Swipe Hendrik.
+    if (_mobileMovementArmed) {
+      _isExploring = false;
+      _handleTouchInput(event.canvasPosition);
+      return;
+    }
+
+    // Mobile: normaler Swipe ist der Entdeckungsmodus.
+    _isExploring = true;
+    _updateMobileExploration(event.canvasPosition);
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-    _handleTouchInput(event.canvasEndPosition);
+
+    // Desktop: bisheriges Verhalten unverändert.
+    if (!isTouchDevice) {
+      _handleTouchInput(event.canvasEndPosition);
+      return;
+    }
+
+    // Mobile: Nach Doppeltipp bewegt der Swipe Hendrik.
+    if (_mobileMovementArmed) {
+      _isExploring = false;
+      _handleTouchInput(event.canvasEndPosition);
+      return;
+    }
+
+    // Mobile: Finger bewegt sich über die Welt und markiert Objekte.
+    _isExploring = true;
+    _updateMobileExploration(event.canvasEndPosition);
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
+
     player.stopTouchMovement();
+
+    if (isTouchDevice && _isExploring) {
+      setHighlightedObject(null);
+    }
+
+    _isExploring = false;
+
+    // Ein Doppeltipp schaltet nur genau einen Bewegungs-Swipe frei.
+    if (isTouchDevice) {
+      _mobileMovementArmed = false;
+    }
+  }
+
+  @override
+  void onDoubleTapDown(DoubleTapDownEvent event) {
+    super.onDoubleTapDown(event);
+
+    if (!isTouchDevice || overlays.activeOverlays.isNotEmpty) {
+      return;
+    }
+
+    // Der nächste Swipe ist Bewegung statt Erkundung.
+    _mobileMovementArmed = true;
+    _isExploring = false;
+
+    // Alte Hervorhebung entfernen.
+    setHighlightedObject(null);
   }
 
   @override
   void onDragCancel(DragCancelEvent event) {
     super.onDragCancel(event);
+
     player.stopTouchMovement();
+    setHighlightedObject(null);
+
+    _isExploring = false;
+    _mobileMovementArmed = false;
   }
 
   void _handleTouchInput(Vector2 canvasPosition) {

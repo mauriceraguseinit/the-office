@@ -13,6 +13,7 @@ class Fridge extends InteractiveObject {
     required super.renderComponent,
     super.size,
     super.priorityOffset,
+    required super.displayName,
   });
 
   @override
