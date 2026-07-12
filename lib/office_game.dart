@@ -465,7 +465,10 @@ class OfficeGame extends FlameGame<World>
         final InteractiveObject? npc = _createAnimatedNpc(
           className: object.class_,
           renderComponent: animationGroup,
-          position: npcPosition,
+          position: _getTiledObjectCenter(
+            object: object,
+            angle: angle,
+          ),
           size: objectSize,
           priorityOffset: priorityOffset,
         );
@@ -556,30 +559,41 @@ class OfficeGame extends FlameGame<World>
     }
   }
 
+  Vector2 _getTiledObjectCenter({
+    required TiledObject object,
+    required double angle,
+  }) {
+    // Der Mittelpunkt relativ zum in Tiled gespeicherten Ursprung.
+    // width/height enthalten bereits die Objekt-Skalierung.
+    final Vector2 localCenter = Vector2(
+      object.width / 2,
+      object.height / 2,
+    );
+
+    // Flame und Tiled verwenden beide Bildschirmkoordinaten:
+    // X nach rechts, Y nach unten.
+    final double cosA = cos(angle);
+    final double sinA = sin(angle);
+
+    final Vector2 rotatedCenter = Vector2(
+      localCenter.x * cosA - localCenter.y * sinA,
+      localCenter.x * sinA + localCenter.y * cosA,
+    );
+
+    return Vector2(
+      object.x + rotatedCenter.x,
+      object.y + rotatedCenter.y,
+    );
+  }
+
   Vector2 _getAnimatedNpcPosition({
     required TiledObject object,
     required double angle,
   }) {
-    switch (object.class_) {
-      case 'Daniel':
-        final Vector2 offset = Vector2(
-          object.width,
-          -object.height,
-        );
-
-        final double rotatedY = offset.x * sin(angle) + offset.y * cos(angle);
-
-        return Vector2(
-          object.x,
-          object.y + rotatedY,
-        );
-
-      case 'Tobi':
-        return Vector2(object.x + object.width, object.y);
-
-      default:
-        return Vector2(object.x, object.y);
-    }
+    return _getTiledObjectCenter(
+      object: object,
+      angle: angle,
+    );
   }
 
   InteractiveObject? _createInteractiveObject({

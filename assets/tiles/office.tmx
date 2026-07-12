@@ -120,7 +120,7 @@
    </animation>
   </tile>
  </tileset>
- <tileset firstgid="116" name="daniel" tilewidth="538" tileheight="404" tilecount="4" columns="4">
+ <tileset firstgid="116" name="daniel" tilewidth="538" tileheight="404" tilecount="4" columns="4" objectalignment="center">
   <image source="../images/desk_daniel.png" width="2152" height="404"/>
   <tile id="0">
    <animation>
@@ -131,7 +131,7 @@
    </animation>
   </tile>
  </tileset>
- <tileset firstgid="120" name="tobi" tilewidth="372" tileheight="495" tilecount="4" columns="4">
+ <tileset firstgid="120" name="tobi" tilewidth="372" tileheight="495" tilecount="4" columns="4" objectalignment="center">
   <image source="../images/tobi_idle.png" width="1488" height="495"/>
   <tile id="0">
    <animation>
@@ -398,7 +398,7 @@
   <object id="121" gid="103" x="1253.9" y="1328.67" width="75.4872" height="69"/>
   <object id="141" gid="105" x="1344.19" y="1142.15" width="96" height="109"/>
   <object id="143" type="Fridge" gid="106" x="1344.17" y="1238" width="32" height="83"/>
-  <object id="151" type="Daniel" gid="116" x="2658.45" y="574.014" width="125.333" height="97.3333" rotation="270"/>
+  <object id="151" type="Daniel" gid="116" x="2609.45" y="511.348" width="125.333" height="97.3333" rotation="270"/>
   <object id="152" type="Tobi" gid="120" x="2423.33" y="894" width="47.3333" height="62.6667"/>
  </objectgroup>
  <objectgroup id="18" name="interactiveObjects2">
