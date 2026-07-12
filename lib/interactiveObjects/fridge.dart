@@ -1,4 +1,3 @@
-import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/hud/speech_bubble.dart';
@@ -11,7 +10,7 @@ enum FridgeDialogs { normalAction, thanks, wrongItem, noMate }
 class Fridge extends InteractiveObject {
   Fridge({
     required super.position,
-    required super.sprite,
+    required super.renderComponent,
     super.size,
     super.priorityOffset,
   });
@@ -48,7 +47,7 @@ class Fridge extends InteractiveObject {
   }
 
   @override
-  void onTapDown(TapDownEvent event) {
+  void onAction() {
     final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {

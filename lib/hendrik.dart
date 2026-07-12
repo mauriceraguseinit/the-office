@@ -4,7 +4,6 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
-import 'package:the_office/trigger_zone.dart';
 
 import 'office_game.dart';
 
@@ -33,10 +32,23 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   }
 
   @override
+  void lookAt(Vector2 target) {
+    final Vector2 direction = target - absoluteCenter;
+
+    if (direction.length2 == 0) {
+      return;
+    }
+
+    if (direction.x.abs() > direction.y.abs()) {
+      current = direction.x > 0 ? Direction.right : Direction.left;
+    } else {
+      current = direction.y > 0 ? Direction.down : Direction.up;
+    }
+  }
+
+  @override
   void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
-
-    if (other is TriggerZone) return;
 
     final Iterable<ShapeHitbox> hitboxes = other.children.whereType<ShapeHitbox>();
     final bool hasActiveCollision = hitboxes.any(
@@ -183,10 +195,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     }
 
     if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.keyE)) {
-      final Iterable<TriggerZone> zones = game.world.children.whereType<TriggerZone>();
-      for (final TriggerZone zone in zones) {
-        if (zone.checkInteraction(this)) return false;
-      }
+      _velocity.setZero();
+      game.tryInteractWithNearestObject();
+      return false;
     }
 
     _velocity.setZero();

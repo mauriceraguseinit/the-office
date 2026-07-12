@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="151">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="153">
  <tileset firstgid="1" name="Office" tilewidth="128" tileheight="128" tilecount="25" columns="1" objectalignment="right">
   <grid orientation="orthogonal" width="64" height="64"/>
   <tile id="7">
@@ -120,6 +120,28 @@
    </animation>
   </tile>
  </tileset>
+ <tileset firstgid="116" name="daniel" tilewidth="538" tileheight="404" tilecount="4" columns="4">
+  <image source="../images/desk_daniel.png" width="2152" height="404"/>
+  <tile id="0">
+   <animation>
+    <frame tileid="0" duration="1000"/>
+    <frame tileid="1" duration="1000"/>
+    <frame tileid="2" duration="1000"/>
+    <frame tileid="3" duration="1000"/>
+   </animation>
+  </tile>
+ </tileset>
+ <tileset firstgid="120" name="tobi" tilewidth="372" tileheight="495" tilecount="4" columns="4">
+  <image source="../images/tobi_idle.png" width="1488" height="495"/>
+  <tile id="0">
+   <animation>
+    <frame tileid="0" duration="150"/>
+    <frame tileid="1" duration="150"/>
+    <frame tileid="2" duration="150"/>
+    <frame tileid="3" duration="150"/>
+   </animation>
+  </tile>
+ </tileset>
  <layer id="1" name="Boden" width="64" height="49">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -174,7 +196,7 @@
 </data>
  </layer>
  <objectgroup id="9" name="spawnPoints">
-  <object id="12" name="playerStart" x="1160.79" y="1144.36">
+  <object id="12" name="playerStart" x="2682.55" y="711.269">
    <point/>
   </object>
   <object id="13" name="tobi" x="2398.67" y="810">
@@ -376,6 +398,8 @@
   <object id="121" gid="103" x="1253.9" y="1328.67" width="75.4872" height="69"/>
   <object id="141" gid="105" x="1344.19" y="1142.15" width="96" height="109"/>
   <object id="143" type="Fridge" gid="106" x="1344.17" y="1238" width="32" height="83"/>
+  <object id="151" type="Daniel" gid="116" x="2658.45" y="574.014" width="125.333" height="97.3333" rotation="270"/>
+  <object id="152" type="Tobi" gid="120" x="2423.33" y="894" width="47.3333" height="62.6667"/>
  </objectgroup>
  <objectgroup id="18" name="interactiveObjects2">
   <object id="146" type="CoffeeMachine" gid="107" x="1341.92" y="1115.42" width="26" height="34"/>

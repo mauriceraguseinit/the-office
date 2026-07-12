@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:the_office/utils/config.dart';
 // ignore: depend_on_referenced_packages, avoid_web_libraries_in_flutter
-import 'package:web/web.dart' as web;
+import 'package:the_office/utils/web_helper.dart' as web_helper;
 
 import 'hud/character_editor.dart';
 import 'hud/inventory_overlay.dart';
@@ -60,22 +60,11 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
 
   // Die native Browser-Logik synchron umschalten
   void _toggleFullscreen() {
-    if (!kIsWeb) return;
+    web_helper.toggleFullscreen(setFullscreen);
+  }
 
-    try {
-      if (web.document.fullscreenElement == null) {
-        // In den Vollbildmodus wechseln
-        web.document.documentElement?.requestFullscreen();
-        web.window.screen.orientation.lock('landscape');
-        setState(() => _isFullscreen = true);
-      } else {
-        // Vollbildmodus verlassen
-        web.document.exitFullscreen();
-        setState(() => _isFullscreen = false);
-      }
-    } catch (e) {
-      debugPrint('Fullscreen-Toggle fehlgeschlagen: $e');
-    }
+  void setFullscreen(bool isFullscreen) {
+    setState(() => _isFullscreen = isFullscreen);
   }
 
   Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = <String, OverlayWidgetBuilder<OfficeGame>>{

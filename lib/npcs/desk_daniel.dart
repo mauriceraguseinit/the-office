@@ -1,21 +1,23 @@
-import 'package:flame/collisions.dart';
-import 'package:flame/components.dart';
-import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/models/inventory_item.dart';
-import 'package:the_office/trigger_zone.dart';
 
-import '../office_game.dart';
+import '../interactiveObjects/interactive_object.dart';
 
 enum DanielDialogs { normalAction, mate, wrongItem }
 
-class DeskDaniel extends SpriteAnimationGroupComponent<String>
-    with HasGameReference<OfficeGame>, HoverCallbacks, Interactable {
-  DeskDaniel({required super.position, required super.size, this.hitBox = true});
+class DeskDaniel extends InteractiveObject {
+  DeskDaniel({
+    required super.position,
+    required super.size,
+    this.hitBox = true,
+    required super.renderComponent,
+    super.priorityOffset,
+  });
 
-  Map<String, Widget Function(BuildContext, Game)> get _dialogs {
+  @override
+  Map<String, Widget Function(BuildContext, Game)> get dialogs {
     return <String, Widget Function(BuildContext, Game)>{
       for (final DanielDialogs value in DanielDialogs.values)
         value.toString(): (BuildContext context, Game game) {
@@ -49,29 +51,7 @@ class DeskDaniel extends SpriteAnimationGroupComponent<String>
   static double get frameWidth => pngWidth / frame;
 
   @override
-  Future<void> onLoad() async {
-    super.onLoad();
-    for (String key in _dialogs.keys) {
-      game.overlays.addEntry(key, _dialogs[key]!);
-    }
-
-    priority = (y + height).toInt();
-
-    final SpriteAnimation anim = await game.loadSpriteAnimation(
-      'desk_daniel.png',
-      SpriteAnimationData.sequenced(amount: 4, stepTime: 0.915, textureSize: Vector2(frameWidth, pngHeight)),
-    );
-
-    animations = <String, SpriteAnimation>{'idle': anim};
-    current = 'idle';
-
-    if (hitBox) {
-      add(RectangleHitbox());
-    }
-  }
-
-  @override
-  void onTapDown(TapDownEvent event) {
+  void onAction() {
     final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
