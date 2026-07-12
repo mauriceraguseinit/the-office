@@ -128,6 +128,12 @@ abstract class InteractiveObject extends PositionComponent
   void onTapDown(TapDownEvent event) {
     if (game.isTouchDevice) {
       game.setHighlightedObject(this);
+
+      // Ein aktives Inventar-Item wird beim Tap direkt auf das Objekt angewendet.
+      //if (game.selectedItem != null) {
+      tryInteract();
+      //}
+
       return;
     }
 

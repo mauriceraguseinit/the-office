@@ -64,16 +64,12 @@ class OfficeGame extends FlameGame<World>
       return;
     }
 
-    // Vorherige Markierung entfernen.
     highlightedObject?.setHighlighted(false);
 
-    // Neue Markierung setzen.
     highlightedObject = object;
     highlightedObject?.setHighlighted(true);
 
-    // Tiled-Objektname im HUD anzeigen.
-    final String displayName = object?.displayName.trim() ?? '';
-    interactionNameText.text = displayName;
+    _refreshInteractionHint();
   }
 
   late ClickableMinimap minimap;
@@ -781,12 +777,34 @@ class OfficeGame extends FlameGame<World>
 
   void selectItem(InventoryItem? item) {
     selectedItem = item;
+    _refreshInteractionHint();
     overlayChangeNotifier.notifyListeners();
   }
 
   void resetSelection() {
     selectedItem = null;
+    _refreshInteractionHint();
     overlayChangeNotifier.notifyListeners();
+  }
+
+  String _buildInteractionHint() {
+    final String objectName = highlightedObject?.displayName.trim() ?? '';
+    final InventoryItem? item = selectedItem;
+
+    // Inventar offen: nur Objektname (oder leer), kein Benutze-Text.
+    if (overlays.isActive('inventory')) {
+      return objectName;
+    }
+
+    if (item == null) return objectName;
+
+    final String itemName = item.name.toUpperCase();
+    if (objectName.isEmpty) return 'BENUTZE $itemName MIT...';
+    return 'BENUTZE $itemName MIT ${objectName.toUpperCase()}';
+  }
+
+  void _refreshInteractionHint() {
+    interactionNameText.text = _buildInteractionHint();
   }
 
   @override
@@ -874,7 +892,7 @@ class OfficeGame extends FlameGame<World>
     final MobileInventoryButton mobileBagButton = MobileInventoryButton(
       position: Vector2(virtualWidth / 2, virtualHeight - 80),
       onPressed: () {
-        overlays.add('inventory');
+        openInventory();
       },
     );
 
@@ -883,7 +901,16 @@ class OfficeGame extends FlameGame<World>
 
   // --- TOUCH / MAUS GEDRÜCKT HALTEN LOGIK (ECHTE BILDSCHIRMMITTE) ---
 
-  @override
+  void closeInventory() {
+    overlays.remove('inventory');
+    _refreshInteractionHint();
+  }
+
+  void openInventory() {
+    overlays.add('inventory');
+    _refreshInteractionHint();
+  }
+
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);

@@ -23,6 +23,9 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
   Widget build(BuildContext context) {
     final List<InventoryItem> items = widget.game.ownedItems;
     final InventoryItem? selectedItem = widget.game.selectedItem;
+    if (_hoverText.isEmpty && selectedItem != null) {
+      _hoverText = 'BENUTZE ${selectedItem.name.toUpperCase()} MIT...';
+    }
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -47,9 +50,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTapDown: (_) {
-                    if (widget.game.selectedItem != null) {
-                      widget.game.overlays.remove('inventory');
-                    }
+                    widget.game.closeInventory();
                   },
                 ),
               ),
@@ -58,7 +59,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                 child: MouseRegion(
                   onExit: (_) {
                     if (widget.game.selectedItem != null) {
-                      widget.game.overlays.remove('inventory');
+                      widget.game.closeInventory();
                     }
                   },
                   child: SizedBox(
@@ -176,7 +177,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                   top: 0,
                                   right: 0,
                                   child: GestureDetector(
-                                    onTap: () => widget.game.overlays.remove('inventory'),
+                                    onTap: () => widget.game.closeInventory(),
                                     behavior: HitTestBehavior.opaque,
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -228,16 +229,35 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _syncHoverTextFromSelection(rebuild: false);
+  }
+
+  void _syncHoverTextFromSelection({bool rebuild = true}) {
+    final InventoryItem? selected = widget.game.selectedItem;
+    final String next = selected != null ? 'BENUTZE ${selected.name.toUpperCase()} MIT...' : '';
+    if (rebuild) {
+      setState(() => _hoverText = next);
+    } else {
+      _hoverText = next;
+    }
+  }
+
   void _handleItemClick(InventoryItem item) {
     final InventoryItem? activeSelection = widget.game.selectedItem;
 
     if (activeSelection == null) {
       widget.game.selectItem(item);
+      _syncHoverTextFromSelection();
       setState(() {
-        _hoverText = 'BENUTZE ${item.name.toUpperCase()} MIT...';
+        // _hoverText = 'BENUTZE ${item.name.toUpperCase()} MIT...';
       });
     } else if (activeSelection.id == item.id) {
       widget.game.resetSelection();
+
+      _syncHoverTextFromSelection();
       setState(() {});
     } else {
       if (activeSelection.combinesWith == item.id || item.combinesWith == activeSelection.id) {
@@ -247,7 +267,9 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
         widget.game.ownedItems.remove(activeSelection);
         widget.game.ownedItems.remove(item);
         widget.game.resetSelection();
-        widget.game.overlays.remove('inventory');
+        _syncHoverTextFromSelection();
+        widget.game.closeInventory();
+        widget.game.setHighlightedObject(widget.game.highlightedObject);
       } else {
         setState(() => _hoverText = 'DAS GEHT SO NICHT!');
       }

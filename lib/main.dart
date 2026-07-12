@@ -126,8 +126,9 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
                 Scenes.game => ListenableBuilder(
                   listenable: _game.overlayChangeNotifier,
                   builder: (BuildContext context, Widget? child) {
+                    final bool showItemCursor = !_game.isTouchDevice && _game.selectedItem != null;
                     return MouseRegion(
-                      cursor: _game.selectedItem != null ? SystemMouseCursors.none : SystemMouseCursors.basic,
+                      cursor: showItemCursor ? SystemMouseCursors.none : SystemMouseCursors.basic,
                       child: GameWidget<OfficeGame>(game: _game, overlayBuilderMap: overlayBuilderMap),
                     );
                   },
