@@ -167,41 +167,42 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    Widget currentWidget;
-    if (_currentStep == 1) {
-      currentWidget = _buildStep1();
-    } else if (_currentStep == 2) {
-      currentWidget = _buildStep2();
-    } else {
-      currentWidget = _buildStep3();
-    }
+    final double bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bool isKeyboardVisible = bottomInset > 0;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true, // Erlaube das Resizing
+      extendBody: true, // WICHTIG: Zeichne über System-Bereiche
       backgroundColor: const Color(0xFF1E1E1E),
-      body: KeyboardListener(
-        focusNode: _desktopKeyboardFocusNode,
-        onKeyEvent: _handleKeyEvent,
-        child: Center(
+      body: SafeArea(
+        bottom: !isKeyboardVisible, // Deaktiviere Safe Area am unteren Rand, wenn Keyboard da ist
+        child: KeyboardListener(
+          focusNode: _desktopKeyboardFocusNode,
+          onKeyEvent: _handleKeyEvent,
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
+              // Berechne die Höhe basierend auf dem verfügbaren Platz abzüglich Insets
+              final double effectiveHeight = constraints.maxHeight;
+
               final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
-              final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
-              final double gameScale = math.min(scaleX, scaleY);
               const double baseWidth = 600.0;
 
-              return SizedBox(
-                width: baseWidth * gameScale,
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: SizedBox(
-                    width: baseWidth,
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        border: Border.all(color: Colors.orange, width: 6),
+              return Center(
+                child: SizedBox(
+                  width: baseWidth * scaleX,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: SizedBox(
+                      width: baseWidth,
+                      child: Container(
+                        // Padding auf 0, wenn Keyboard aktiv
+                        padding: EdgeInsets.all(isKeyboardVisible ? 0 : 24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          border: isKeyboardVisible ? null : Border.all(color: Colors.orange, width: 6),
+                        ),
+                        child: _buildCurrentStep(),
                       ),
-                      child: currentWidget,
                     ),
                   ),
                 ),
@@ -211,6 +212,13 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         ),
       ),
     );
+  }
+
+  // Hilfsmethode, um den Code sauber zu halten
+  Widget _buildCurrentStep() {
+    if (_currentStep == 1) return _buildStep1();
+    if (_currentStep == 2) return _buildStep2();
+    return _buildStep3();
   }
 
   Widget _buildStep1() {
@@ -320,44 +328,50 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         const SizedBox(height: 40),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildHeightSlider(),
-            const SizedBox(width: 30),
-            Transform(
-              alignment: Alignment.bottomCenter,
-              transform: Matrix4.identity()..scaleByVector3(Vector3(1.0, _heightScale, 1.0)),
-              child: Container(
-                width: 150,
-                height: 180,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFF1E1E1E), width: 3),
-                  color: Colors.white,
-                ),
-                child: ClipRect(
-                  child: OverflowBox(
-                    maxWidth: double.infinity,
-                    maxHeight: double.infinity,
-                    alignment: Alignment.topLeft,
-                    child: Image.asset(
-                      'assets/images/down.png',
-                      width: 600,
-                      fit: BoxFit.fitWidth,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: <Widget>[
+                _buildHeightSlider(),
+                const SizedBox(width: 30),
+                Transform(
+                  alignment: Alignment.bottomCenter,
+                  transform: Matrix4.identity()..scaleByVector3(Vector3(1.0, _heightScale, 1.0)),
+                  child: Container(
+                    width: 150,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF1E1E1E), width: 3),
+                      color: Colors.white,
+                    ),
+                    child: ClipRect(
+                      child: OverflowBox(
+                        maxWidth: double.infinity,
+                        maxHeight: double.infinity,
+                        alignment: Alignment.topLeft,
+                        child: Image.asset(
+                          'assets/images/down.png',
+                          width: 600,
+                          fit: BoxFit.fitWidth,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
+
             const SizedBox(width: 40),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   const Text(
-                    'GESCHLECHT:',
+                    'GESCHLECHT',
                     style: TextStyle(
                       fontFamily: 'PressStart2P',
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E1E1E),
                     ),
@@ -368,24 +382,25 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
                   _buildGenderOption('Divers', Icons.transgender),
                   _buildGenderOption('Kampfjet', Icons.airplanemode_active),
                   const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Text(
-                      _genderMessage,
-                      style: const TextStyle(
-                        fontFamily: 'PressStart2P',
-                        fontSize: 14,
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
           ],
         ),
+        Padding(
+          padding: const EdgeInsets.only(top: 10.0),
+          child: Text(
+            _genderMessage,
+            style: const TextStyle(
+              fontFamily: 'PressStart2P',
+              fontSize: 14,
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
         const SizedBox(height: 30),
+
         RetroButton(title: 'Charakter Erstellen', onTap: () => setState(() => _currentStep = 3)),
       ],
     );
@@ -400,9 +415,21 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           style: TextStyle(fontFamily: 'PressStart2P', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
         ),
         const SizedBox(height: 30),
-        const Text(
-          'Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\n\nViel Spaß im Abenteuer, Hendrik!',
+        const Text.rich(
           textAlign: TextAlign.center,
+          TextSpan(
+            children: <InlineSpan>[
+              TextSpan(
+                text:
+                    'Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\n\nViel Spaß im Abenteuer,\n\n',
+              ),
+              TextSpan(
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                text: 'Hendrik!',
+              ),
+            ],
+          ),
+
           style: TextStyle(
             fontFamily: 'PressStart2P',
             fontSize: 16,
