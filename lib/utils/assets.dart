@@ -14,7 +14,7 @@ class GameImages {
   static const String playerLeft = 'left.png';
   static const String playerRight = 'right.png';
 
-  static const List<String> preloadList = [
+  static const List<String> preloadList = <String>[
     coffeeMachine,
     mateFull,
     mateEmpty,

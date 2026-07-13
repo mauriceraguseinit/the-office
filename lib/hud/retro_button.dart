@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:the_office/utils/styles.dart';
 
 class RetroButton extends StatefulWidget {
   const RetroButton({super.key, required this.title, required this.onTap});
@@ -40,15 +41,8 @@ class _RetroButtonState extends State<RetroButton> {
 
         child: Text(
           widget.title.toUpperCase(),
-
-          style: TextStyle(
+          style: GameStyles.buttonStyle.copyWith(
             color: _isPressed ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5),
-
-            fontFamily: 'PressStart2P',
-
-            fontWeight: FontWeight.bold,
-
-            fontSize: 14,
           ),
         ),
       ),

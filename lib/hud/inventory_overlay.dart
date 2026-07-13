@@ -9,6 +9,7 @@ import '../managers/service_locator.dart';
 import '../models/inventory_item.dart';
 import '../office_game.dart';
 import '../utils/config.dart';
+import '../utils/styles.dart';
 
 class InventoryOverlay extends StatefulWidget {
   const InventoryOverlay({super.key, required this.game});
@@ -87,16 +88,11 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
-                                    const Text(
+                                    Text(
                                       'INVENTAR',
-                                      style: TextStyle(
-                                        fontFamily: 'PressStart2P',
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E1E1E),
-                                      ),
+                                      style: GameStyles.inventoryTitleStyle,
                                     ),
-                                    const Divider(color: Color(0xFF1E1E1E), thickness: 4),
+                                    Divider(color: Color(0xFF1E1E1E), thickness: 4),
 
                                     Expanded(
                                       child: GridView.builder(
@@ -164,12 +160,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                       alignment: Alignment.centerLeft,
                                       child: Text(
                                         _hoverText,
-                                        style: const TextStyle(
-                                          fontFamily: 'PressStart2P',
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.orange,
-                                        ),
+                                        style: GameStyles.inventoryHoverStyle,
                                       ),
                                     ),
                                   ],
@@ -188,13 +179,10 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                         color: const Color(0xFF1E1E1E),
                                         border: Border.all(color: const Color(0xFFF5F5F5), width: 2),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'X',
-                                        style: TextStyle(
-                                          color: Color(0xFFF5F5F5),
-                                          fontFamily: 'PressStart2P',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                        style: GameStyles.buttonStyle.copyWith(
+                                          color: const Color(0xFFF5F5F5),
                                         ),
                                       ),
                                     ),

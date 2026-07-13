@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:the_office/hud/retro_button.dart';
+import 'package:the_office/utils/styles.dart';
 
 import '../utils/config.dart';
 
@@ -109,9 +110,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
       characters.add(
         TextSpan(
           text: rawText[i],
-          style: TextStyle(
-            fontFamily: 'PressStart2P', // Garantiert die Retro-Schrift für JEDEN Buchstaben
-            fontSize: 18,
+          style: GameStyles.dialogStyle.copyWith(
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             color: currentColor,
           ),
@@ -218,13 +217,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
                                     child: Text.rich(
                                       TextSpan(
                                         children: _displayedCharacters,
-                                        style: const TextStyle(
-                                          fontFamily: 'PressStart2P',
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.normal,
-                                          color: Color(0xFF1E1E1E),
-                                          height: 1.4,
-                                        ),
+                                        style: GameStyles.dialogStyle,
                                       ),
                                     ),
                                   ),
@@ -265,12 +258,10 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
                                 color: const Color(0xFF1E1E1E),
                                 border: Border.all(color: const Color(0xFFF5F5F5), width: 1),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'X',
-                                style: TextStyle(
-                                  color: Color(0xFFF5F5F5),
-                                  fontFamily: 'PressStart2P',
-                                  fontWeight: FontWeight.bold,
+                                style: GameStyles.buttonStyle.copyWith(
+                                  color: const Color(0xFFF5F5F5),
                                   fontSize: 12,
                                 ),
                               ),

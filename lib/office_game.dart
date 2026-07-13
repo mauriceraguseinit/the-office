@@ -67,8 +67,6 @@ class OfficeGame extends FlameGame<World>
 
     state.highlightedObject = object;
     state.highlightedObject?.setHighlighted(true);
-
-    _refreshInteractionHint();
   }
 
   late TiledComponent<FlameGame<World>> mapComponent;
@@ -86,8 +84,6 @@ class OfficeGame extends FlameGame<World>
       state.highlightedObject?.setHighlighted(false);
       state.highlightedObject = null;
     }
-
-    _refreshInteractionHint();
   }
 
   void showPlayerMessage(String message) {
@@ -191,36 +187,12 @@ class OfficeGame extends FlameGame<World>
 
   void selectItem(InventoryItem? item) {
     state.selectItem(item);
-    _refreshInteractionHint();
     overlayChangeNotifier.notifyListeners();
   }
 
   void resetSelection() {
     state.resetSelection();
-    _refreshInteractionHint();
     overlayChangeNotifier.notifyListeners();
-  }
-
-  String _buildInteractionHint() {
-    final String objectName = state.isPlayerHighlighted
-        ? 'Hendrik'
-        : (state.highlightedObject?.displayName.trim() ?? '');
-    final InventoryItem? item = state.selectedItem;
-
-    // Inventar offen: nur Objektname (oder leer), kein Benutze-Text.
-    if (overlays.isActive('inventory')) {
-      return objectName;
-    }
-
-    if (item == null) return objectName;
-
-    final String itemName = item.name.toUpperCase();
-    if (objectName.isEmpty) return 'BENUTZE $itemName MIT...';
-    return 'BENUTZE $itemName MIT ${objectName.toUpperCase()}';
-  }
-
-  void _refreshInteractionHint() {
-    hud.updateInteractionHint(_buildInteractionHint());
   }
 
   @override
@@ -231,9 +203,6 @@ class OfficeGame extends FlameGame<World>
 
   void toggleScreenLock() {
     state.toggleDeskLock();
-    hud.updateStatusText(
-      state.isDeskLocked ? 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)' : 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)',
-    );
   }
 
   void _toggleCameraZoom() {
@@ -256,12 +225,10 @@ class OfficeGame extends FlameGame<World>
 
   void closeInventory() {
     overlays.remove('inventory');
-    _refreshInteractionHint();
   }
 
   void openInventory() {
     overlays.add('inventory');
-    _refreshInteractionHint();
   }
 
   Vector2 mousePositionWidget = Vector2.zero();
