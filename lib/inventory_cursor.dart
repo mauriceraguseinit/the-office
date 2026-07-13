@@ -21,7 +21,7 @@ class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame
     final InventoryItem? selectedItem = game.selectedItem;
 
     if (selectedItem != null) {
-      position = game.mousePosition;
+      position = game.mousePositionWidget;
 
       final String filename = selectedItem.assetPath.split('/').last;
       if (_currentLoadedPath != filename) {

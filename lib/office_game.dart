@@ -416,6 +416,7 @@ class OfficeGame extends FlameGame<World>
   }
 
   bool _isInteractiveObjectAtCanvasPosition(Vector2 canvasPosition) {
+    // Canvas-/Viewport-Koordinaten korrekt in Weltkoordinaten überführen.
     final Vector2 worldPosition = camera.globalToLocal(canvasPosition);
 
     return world.children.whereType<InteractiveObject>().any(
@@ -624,7 +625,10 @@ class OfficeGame extends FlameGame<World>
   @override
   void onMouseMove(PointerHoverInfo info) {
     super.onMouseMove(info);
-    mousePosition = Vector2(info.raw.localPosition.dx, info.raw.localPosition.dy);
+
+    mousePositionWidget = camera.viewport.globalToLocal(
+      info.eventPosition.widget,
+    );
   }
 
   void selectItem(InventoryItem? item) {
@@ -763,6 +767,7 @@ class OfficeGame extends FlameGame<World>
     _refreshInteractionHint();
   }
 
+  Vector2 mousePositionWidget = Vector2.zero();
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
