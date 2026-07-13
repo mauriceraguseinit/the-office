@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
+import '../utils/assets.dart';
 
 /// Ein reiner Touch-Button für die mobile Steuerung unten in der Mitte
 /// Ein robuster Pixel-Look Touch-Button, der den Rucksack manuell zeichnet (kein Emoji-Fehler!)
@@ -16,7 +17,7 @@ class MobileInventoryButton extends PositionComponent with TapCallbacks {
   @override
   Future<void> onLoad() async {
     // Das Icon laden
-    final Sprite sprite = await Sprite.load('backpack.png');
+    final Sprite sprite = await Sprite.load(GameImages.backpack);
     add(
       SpriteComponent(
         sprite: sprite,

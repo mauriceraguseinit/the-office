@@ -6,6 +6,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 
+import '../utils/assets.dart';
 import '../utils/config.dart';
 import 'credits_sequence.dart';
 
@@ -29,11 +30,11 @@ class IntroGame extends FlameGame<World> {
     super.onLoad();
 
     // 3. Audio-Dateien vorab in den Cache laden
-    await FlameAudio.audioCache.load('intro.mp3');
+    await FlameAudio.audioCache.load(GameAudio.intro);
 
     // 4. Musik abspielen und Player-Instanz merken
     // Wir nutzen 'play' statt 'loop', da es nur einmal laufen soll
-    _bgmPlayer = await FlameAudio.play('intro.mp3');
+    _bgmPlayer = await FlameAudio.play(GameAudio.intro);
     await _bgmPlayer?.setVolume(0.2);
 
     // 5. Auf das Ende des Tracks lauschen
@@ -44,7 +45,7 @@ class IntroGame extends FlameGame<World> {
 
     // --- DEIN BESTEHENDER MAP- & PARTIKEL-CODE ---
     final TiledComponent<FlameGame<World>> introMap = await TiledComponent.load(
-      'intro.tmx',
+      GameTiles.intro,
       Vector2(GameConfig.resolution.width, GameConfig.resolution.height),
     );
     world.add(introMap);

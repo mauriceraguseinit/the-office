@@ -9,6 +9,7 @@ import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/tiled_map_loader.dart';
+import 'package:the_office/utils/assets.dart';
 import 'package:the_office/utils/config.dart';
 
 import 'hendrik.dart';
@@ -118,16 +119,9 @@ class OfficeGame extends FlameGame<World>
       ),
     );
     // 1. Assets vorab in den Cache laden
-    await images.loadAll(<String>[
-      'coffeeMachine.png',
-      'mate_full.png',
-      'mate_empty.png',
-      'wall.png',
-      'tobi_idle.png',
-      'desk_daniel.png',
-    ]);
+    await images.loadAll(GameImages.preloadList);
 
-    mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
+    mapComponent = await TiledComponent.load(GameTiles.office, Vector2.all(64));
     final RenderableTiledMap tileMap = mapComponent.tileMap;
 
     // 2. Alle Tiled-Tilesets vorab laden

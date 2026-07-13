@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import '../models/inventory_item.dart';
+import '../utils/assets.dart';
 
 enum InventoryItemType {
   mate,
@@ -28,19 +29,19 @@ class InventoryItemCatalogue {
         return InventoryItem(
           id: InventoryItemType.mate.toString(),
           name: 'Mate',
-          assetPath: 'assets/images/mate_full.png',
+          assetPath: 'assets/images/${GameImages.mateFull}',
         );
       case InventoryItemType.mateEmpty:
         return InventoryItem(
           id: InventoryItemType.mateEmpty.toString(),
           name: 'leere Mate',
-          assetPath: 'assets/images/mate_empty.png',
+          assetPath: 'assets/images/${GameImages.mateEmpty}',
         );
       case InventoryItemType.mateWater:
         return InventoryItem(
           id: InventoryItemType.mateWater.toString(),
           name: 'Klowasser-Mate',
-          assetPath: 'assets/images/mate_water.png',
+          assetPath: 'assets/images/${GameImages.mateWater}',
         );
     }
   }

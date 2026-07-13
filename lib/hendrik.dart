@@ -11,6 +11,7 @@ import 'managers/game_state.dart';
 import 'managers/service_locator.dart';
 import 'models/inventory_item.dart';
 import 'office_game.dart';
+import 'utils/assets.dart';
 
 enum Direction { left, right, up, down }
 
@@ -88,22 +89,22 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     super.onLoad();
 
     final SpriteAnimation animDown = await game.loadSpriteAnimation(
-      'down.png',
+      GameImages.playerDown,
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(206, 229)),
     );
 
     final SpriteAnimation animUp = await game.loadSpriteAnimation(
-      'up.png',
+      GameImages.playerUp,
       SpriteAnimationData.sequenced(amount: 4, stepTime: 0.15, textureSize: Vector2(190, 256)),
     );
 
     final SpriteAnimation animLeft = await game.loadSpriteAnimation(
-      'left.png',
+      GameImages.playerLeft,
       SpriteAnimationData.sequenced(amount: 7, stepTime: 0.15, textureSize: Vector2(286, 512)),
     );
 
     final SpriteAnimation animRight = await game.loadSpriteAnimation(
-      'right.png',
+      GameImages.playerRight,
       SpriteAnimationData.sequenced(amount: 7, stepTime: 0.15, textureSize: Vector2(286, 512)),
     );
 
