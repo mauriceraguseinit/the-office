@@ -7,6 +7,8 @@ import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
 
 import 'interactiveObjects/inventory_item_catalogue.dart';
+import 'managers/game_state.dart';
+import 'managers/service_locator.dart';
 import 'models/inventory_item.dart';
 import 'office_game.dart';
 
@@ -16,6 +18,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks, HoverCallbacks {
   Hendrik({required Vector2 position}) : super(position: position, size: Vector2.all(boxSize));
 
+  final GameState _state = sl<GameState>();
   static const double boxSize = 70.0;
   bool _isHighlighted = false;
   static const double _hitboxWidthFactor = 32 / 60;
@@ -296,7 +299,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   }
 
   void useSelectedItemOnPlayer() {
-    final InventoryItem? item = game.state.selectedItem;
+    final InventoryItem? item = _state.selectedItem;
 
     if (item == null) {
       return;
@@ -304,8 +307,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     switch (InventoryItemCatalogue.itemTypeForId(item.id)) {
       case InventoryItemType.mate:
-        game.state.ownedItems.remove(item);
-        game.state.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
+        _state.ownedItems.remove(item);
+        _state.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
         game.resetSelection();
         game.showPlayerMessage(
           '[b]Hendrik:[/b]\n\n'

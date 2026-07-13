@@ -19,6 +19,7 @@ import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'lighting_manager.dart';
 import 'managers/game_state.dart';
 import 'managers/input_manager.dart';
+import 'managers/service_locator.dart';
 import 'models/inventory_item.dart';
 
 class OfficeGame extends FlameGame<World>
@@ -32,7 +33,7 @@ class OfficeGame extends FlameGame<World>
         DragCallbacks,
         TapCallbacks,
         DoubleTapCallbacks {
-  final GameState state = GameState();
+  final GameState state = sl<GameState>();
   late final InputManager inputManager;
   bool _isZoomedOut = false;
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
@@ -98,6 +99,7 @@ class OfficeGame extends FlameGame<World>
 
   @override
   Future<void> onLoad() async {
+    registerGameInstance(this);
     inputManager = InputManager(this);
     super.onLoad();
 
