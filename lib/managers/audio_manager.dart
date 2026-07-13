@@ -12,17 +12,18 @@ class AudioManager {
   Future<void> init() async {
     await FlameAudio.audioCache.loadAll(<String>[
       GameAudio.intro,
+      GameAudio.background,
     ]);
   }
 
-  Future<AudioPlayer?> playBgm(String fileName, {bool loop = true}) async {
+  Future<AudioPlayer?> playBgm(String fileName, {bool loop = true, double? volume}) async {
     if (_isBgmMuted) return null;
 
     if (loop) {
-      await FlameAudio.bgm.play(fileName, volume: bgmVolume);
+      await FlameAudio.bgm.play(fileName, volume: volume ?? bgmVolume);
       return null;
     } else {
-      return await FlameAudio.play(fileName, volume: bgmVolume);
+      return await FlameAudio.play(fileName, volume: volume ?? bgmVolume);
     }
   }
 

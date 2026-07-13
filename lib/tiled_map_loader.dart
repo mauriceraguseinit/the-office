@@ -307,10 +307,33 @@ mixin TiledMapLoader on FlameGame<World> {
 
     if (interactiveObject != null) {
       interactiveObject.angle = angle;
+      _addTileCollisionHitboxes(interactiveObject, tile, objectSize);
       world.add(interactiveObject);
     } else {
       // 3. Fallback: Nur als Deko/Hindernis hinzufügen, wenn es kein interaktives Objekt ist
-      _setupAsDecoration(world, renderComp, object, angle, priorityOffset, cleanGid, tileMap);
+      _setupAsDecoration(world, renderComp, object, angle, priorityOffset, tile);
+    }
+  }
+
+  void _addTileCollisionHitboxes(PositionComponent component, Tile tile, Vector2 size) {
+    if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
+      final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
+      for (final TiledObject tiledObject in objectGroup.objects) {
+        // Tiled-Koordinaten sind relativ zum Top-Left (0,0) des Tiles.
+        // Da unsere Komponenten Anchor.center nutzen, müssen wir den Offset berechnen.
+        final Vector2 hitboxPos = Vector2(
+          tiledObject.x - size.x / 2,
+          tiledObject.y - size.y / 2,
+        );
+
+        component.add(
+          RectangleHitbox(
+            position: hitboxPos,
+            size: Vector2(tiledObject.width, tiledObject.height),
+            collisionType: CollisionType.active, // Active, damit Hendrik blockiert wird
+          )..debugMode = false,
+        );
+      }
     }
   }
 
@@ -353,8 +376,7 @@ mixin TiledMapLoader on FlameGame<World> {
     TiledObject object,
     double angle,
     int priorityOffset,
-    int cleanGid,
-    RenderableTiledMap tileMap,
+    Tile tile,
   ) {
     renderComp
       ..anchor = Anchor.center
@@ -362,17 +384,7 @@ mixin TiledMapLoader on FlameGame<World> {
       ..angle = angle
       ..priority = object.y.toInt() + priorityOffset;
 
-    final Tile? tileForCollision = tileMap.map.tileByGid(cleanGid);
-    if (tileForCollision?.objectGroup is ObjectGroup) {
-      for (final TiledObject collisionObject in (tileForCollision!.objectGroup as ObjectGroup).objects) {
-        renderComp.add(
-          RectangleHitbox(
-            position: Vector2(collisionObject.x, collisionObject.y),
-            size: Vector2(collisionObject.width, collisionObject.height),
-          ),
-        );
-      }
-    }
+    _addTileCollisionHitboxes(renderComp, tile, renderComp.size);
     world.add(renderComp);
   }
 

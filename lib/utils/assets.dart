@@ -37,4 +37,5 @@ class GameTiles {
 
 class GameAudio {
   static const String intro = 'intro.mp3';
+  static const String background = 'background.mp3';
 }

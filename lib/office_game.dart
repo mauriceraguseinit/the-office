@@ -5,6 +5,7 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import 'hud/speech_bubble.dart';
 import 'interactiveObjects/interactive_object.dart';
 import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'lighting_manager.dart';
+import 'managers/audio_manager.dart';
 import 'managers/game_state.dart';
 import 'managers/input_manager.dart';
 import 'managers/service_locator.dart';
@@ -40,6 +42,7 @@ class OfficeGame extends FlameGame<World>
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
   final double _normalZoom = 2.5;
   final double _mapViewZoom = 1.5;
+  AudioPlayer? _bgmPlayer;
 
   late OfficeHud hud;
   Vector2 mousePosition = Vector2.zero();
@@ -99,6 +102,12 @@ class OfficeGame extends FlameGame<World>
     registerGameInstance(this);
     inputManager = InputManager(this);
     super.onLoad();
+
+    _bgmPlayer = await sl<AudioManager>().playBgm(
+      GameAudio.background,
+      loop: true,
+      volume: 0.05,
+    );
 
     overlays.addEntry(
       TriggerZoneDialogs.tooFar.toString(),
@@ -260,5 +269,12 @@ class OfficeGame extends FlameGame<World>
   void onDragCancel(DragCancelEvent event) {
     super.onDragCancel(event);
     inputManager.onDragCancel(event);
+  }
+
+  @override
+  void onRemove() {
+    _bgmPlayer?.stop();
+    _bgmPlayer?.dispose();
+    super.onRemove();
   }
 }
