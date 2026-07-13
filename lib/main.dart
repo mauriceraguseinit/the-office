@@ -13,6 +13,7 @@ import 'hud/inventory_overlay.dart';
 import 'hud/retro_button.dart';
 import 'hud/speech_bubble.dart';
 import 'intro/intro_game.dart';
+import 'managers/audio_manager.dart';
 import 'managers/service_locator.dart';
 import 'office_game.dart';
 
@@ -25,6 +26,7 @@ enum Scenes {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setupServiceLocator();
+  await sl<AudioManager>().init();
   if (!kIsWeb) {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     await SystemChrome.setPreferredOrientations(<DeviceOrientation>[

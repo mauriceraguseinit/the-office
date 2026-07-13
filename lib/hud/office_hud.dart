@@ -46,7 +46,7 @@ class OfficeHud extends PositionComponent with HasGameReference<OfficeGame> {
       position: Vector2(20, 20),
       textRenderer: GameStyles.statusRenderer,
     );
-    add(statusText..priority = 1000);
+    //add(statusText..priority = 1000);
 
     // 4. Inventory Cursor
     add(InventoryCursor()..priority = 1000);

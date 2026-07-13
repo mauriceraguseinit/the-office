@@ -6,6 +6,8 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 
+import '../managers/audio_manager.dart';
+import '../managers/service_locator.dart';
 import '../utils/assets.dart';
 import '../utils/config.dart';
 import 'credits_sequence.dart';
@@ -29,13 +31,8 @@ class IntroGame extends FlameGame<World> {
   Future<void> onLoad() async {
     super.onLoad();
 
-    // 3. Audio-Dateien vorab in den Cache laden
-    await FlameAudio.audioCache.load(GameAudio.intro);
-
-    // 4. Musik abspielen und Player-Instanz merken
-    // Wir nutzen 'play' statt 'loop', da es nur einmal laufen soll
-    _bgmPlayer = await FlameAudio.play(GameAudio.intro);
-    await _bgmPlayer?.setVolume(0.2);
+    // 4. Musik über AudioManager abspielen
+    _bgmPlayer = await sl<AudioManager>().playBgm(GameAudio.intro, loop: false);
 
     // 5. Auf das Ende des Tracks lauschen
     _bgmPlayer?.onPlayerComplete.listen((_) {
