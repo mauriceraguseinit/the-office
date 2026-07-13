@@ -11,8 +11,6 @@ import 'package:flame/text.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:the_office/interactiveObjects/fridge.dart';
-import 'package:the_office/interactiveObjects/toilet.dart';
 import 'package:the_office/utils/config.dart';
 import 'package:the_office/utils/util.dart';
 
@@ -20,13 +18,11 @@ import 'hendrik.dart';
 import 'hud/clickable_minimap.dart';
 import 'hud/mobile_inventory_button.dart';
 import 'hud/speech_bubble.dart';
-import 'interactiveObjects/coffee_machine.dart';
 import 'interactiveObjects/interactive_object.dart';
+import 'interactiveObjects/interactive_objects_catalogue.dart';
 import 'inventory_cursor.dart';
 import 'lighting_manager.dart';
 import 'models/inventory_item.dart';
-import 'npcs/desk_daniel.dart';
-import 'npcs/tobi.dart';
 
 class OfficeGame extends FlameGame<World>
     with
@@ -92,6 +88,9 @@ class OfficeGame extends FlameGame<World>
       'coffeeMachine.png',
       'mate_full.png',
       'mate_empty.png',
+      'wall.png',
+      'tobi_idle.png',
+      'desk_daniel.png',
     ]);
 
     mapComponent = await TiledComponent.load('office.tmx', Vector2.all(64));
@@ -334,21 +333,20 @@ class OfficeGame extends FlameGame<World>
     );
     ownedItems.add(InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'));
 
-    final ObjectGroup? spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
-    final ObjectGroup? interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
-    final ObjectGroup? interactiveObjects2 = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects2');
-
+    // collision objects layer
     final ObjectGroup? collisionLayer = mapComponent.tileMap.getLayer<ObjectGroup>('collision');
     collisionLayer?.objects.forEach((TiledObject object) {
       final PositionComponent staticObstacle = PositionComponent(
         position: Vector2(object.x, object.y),
         size: Vector2(object.width, object.height),
       )..add(RectangleHitbox()..debugMode = false);
-
       staticObstacle.priority = 1;
       world.add(staticObstacle..debugMode = false);
     });
 
+    // interactive objects layers
+    final ObjectGroup? interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
+    final ObjectGroup? interactiveObjects2 = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects2');
     interactiveObjects?.objects.forEach((TiledObject object) {
       _processInteractiveObject(object, tileMap, priorityOffset: 0);
     });
@@ -357,17 +355,18 @@ class OfficeGame extends FlameGame<World>
       _processInteractiveObject(object, tileMap, priorityOffset: 100000);
     });
 
+    // spawn points layer
+    final ObjectGroup? spawnPoints = mapComponent.tileMap.getLayer<ObjectGroup>('spawnPoints');
     final TiledObject? playerObject = spawnPoints?.objects.firstWhere(
       (TiledObject element) => element.name == 'playerStart',
     );
-
     player = Hendrik(position: Vector2(playerObject?.x ?? 0, playerObject?.y ?? 0));
     world.add(player);
 
+    //camera configuration
     camera.viewport = FixedResolutionViewport(
       resolution: Vector2(GameConfig.resolution.width, GameConfig.resolution.height),
     );
-
     camera.follow(player, snap: true);
     camera.viewfinder.zoom = 2.5;
 
@@ -393,21 +392,16 @@ class OfficeGame extends FlameGame<World>
     minimap.priority = 1000;
     camera.viewport.add(minimap);
 
-    _buildHud(
-      GameConfig.resolution.width,
-      GameConfig.resolution.height,
-    );
+    _buildHud();
 
+    // build lights
     final List<TiledObject> lightPoints =
         mapComponent.tileMap.getLayer<ObjectGroup>('lights')?.objects ?? <TiledObject>[];
-
     final List<Vector2> sources = lightPoints.map((TiledObject obj) => Vector2(obj.x, obj.y)).toList();
-
     if (sources.isEmpty) {
       debugPrint('⚠️  WARNUNG: Keine Lichter in Tiled gefunden! Nutze Fallback-Licht.');
       sources.add(Vector2(500, 500));
     }
-
     final LightingManager lighting = LightingManager(
       lightSources: sources,
       targetCamera: camera,
@@ -470,188 +464,92 @@ class OfficeGame extends FlameGame<World>
 
     if (tile == null) return;
 
-    final Tileset tileset = tileMap.map.tilesetByTileGId(cleanGid);
-    final Rectangle<num> rect = tileset.computeDrawRect(tile);
-
     final Vector2 objectSize = Vector2(object.width, object.height);
     final double angle = Units.radFromDegree(object.rotation);
 
-    // Das eigentliche Sprite bzw. die Animation aus dem Tiled-Tile erzeugen.
-    final PositionComponent renderComp;
+    // 1. Die visuelle Komponente (Sprite oder Animation) vorbereiten
+    final PositionComponent renderComp = _createRenderComponent(tile, tileMap, cleanGid, objectSize);
 
-    if (tile.animation.isNotEmpty) {
-      final List<SpriteAnimationFrame> frames = tile.animation.map(
-        (Frame frame) {
-          final Tile? frameTile = tileMap.map.tileByGid(
-            tileset.firstGid! + frame.tileId,
-          );
-
-          final Tile targetTile = frameTile ?? tile;
-          final Rectangle<num> frameRect = tileset.computeDrawRect(targetTile);
-
-          final Sprite sprite = Sprite(
-            images.fromCache((targetTile.image ?? tileset.image)!.source!),
-            srcPosition: Vector2(
-              frameRect.left.toDouble(),
-              frameRect.top.toDouble(),
-            ),
-            srcSize: Vector2(
-              frameRect.width.toDouble(),
-              frameRect.height.toDouble(),
-            ),
-          );
-
-          return SpriteAnimationFrame(
-            sprite,
-            frame.duration / 1000.0,
-          );
-        },
-      ).toList();
-
-      renderComp = SpriteAnimationComponent(
-        animation: SpriteAnimation(frames),
-        size: objectSize,
-        anchor: Anchor.center,
-      );
-    } else {
-      renderComp = SpriteComponent(
-        sprite: Sprite(
-          images.fromCache((tile.image ?? tileset.image)!.source!),
-          srcPosition: Vector2(
-            rect.left.toDouble(),
-            rect.top.toDouble(),
-          ),
-          srcSize: Vector2(
-            rect.width.toDouble(),
-            rect.height.toDouble(),
-          ),
-        ),
-        size: objectSize,
-        anchor: Anchor.center,
-      );
-    }
-
-    // Toilet, Fridge und CoffeeMachine laufen alle über InteractiveObject.
-    // Dort liegen Hitbox, Hover, Klick-Interaktion und Dialoge zentral.
-    final InteractiveObject? interactiveObject = _createInteractiveObject(
-      object: object,
+    // 2. Den Katalog delegieren lassen (er kümmert sich um NPCs vs. Objekte)
+    final InteractiveObject? interactiveObject = InteractiveObjectsCatalogue.interactiveObjectForClassName(
+      className: object.class_,
       displayName: object.name,
       renderComponent: renderComp,
-      angle: angle,
+      position: _getTiledObjectCenter(object: object, angle: angle),
+      size: objectSize,
       priorityOffset: priorityOffset,
     );
 
     if (interactiveObject != null) {
       interactiveObject.angle = angle;
       world.add(interactiveObject);
-
-      return;
-    }
-
-    switch (object.class_) {
-      case 'Daniel':
-      case 'Tobi':
-        if (renderComp is! SpriteAnimationComponent) {
-          debugPrint(
-            '${object.class_} erwartet ein animiertes Tiled-Tile, '
-            'aber GID $cleanGid enthält keine Animation.',
-          );
-          return;
-        }
-
-        final SpriteAnimationGroupComponent<String> animationGroup = SpriteAnimationGroupComponent<String>(
-          animations: <String, SpriteAnimation>{
-            'idle': renderComp.animation!,
-          },
-          current: 'idle',
-          size: objectSize,
-          anchor: Anchor.center,
-        );
-
-        final InteractiveObject? npc = _createAnimatedNpc(
-          className: object.class_,
-          displayName: object.name,
-          renderComponent: animationGroup,
-          position: _getTiledObjectCenter(
-            object: object,
-            angle: angle,
-          ),
-          size: objectSize,
-          priorityOffset: priorityOffset,
-        );
-
-        if (npc == null) return;
-
-        npc.angle = angle;
-        world.add(npc);
-
-        return;
-      default:
-        final Vector2 centerPosition = Vector2(object.x, object.y);
-
-        renderComp
-          ..anchor = Anchor.center
-          ..position = centerPosition
-          ..angle = angle
-          ..priority = object.y.toInt() + priorityOffset;
-
-        // Kollisionsboxen aus der Tiled-Tile-Definition übernehmen.
-        final Tile? tileForCollision = tileMap.map.tileByGid(cleanGid);
-
-        if (tileForCollision?.objectGroup is ObjectGroup) {
-          final ObjectGroup objectGroup = tileForCollision!.objectGroup as ObjectGroup;
-
-          for (final TiledObject collisionObject in objectGroup.objects) {
-            renderComp.add(
-              RectangleHitbox(
-                position: Vector2(
-                  collisionObject.x,
-                  collisionObject.y,
-                ),
-                size: Vector2(
-                  collisionObject.width,
-                  collisionObject.height,
-                ),
-              ),
-            );
-          }
-        }
-
-        world.add(renderComp);
-        return;
+    } else {
+      // 3. Fallback: Nur als Deko/Hindernis hinzufügen, wenn es kein interaktives Objekt ist
+      _setupAsDecoration(renderComp, object, angle, priorityOffset, cleanGid, tileMap);
     }
   }
 
-  InteractiveObject? _createAnimatedNpc({
-    required String className,
-    required String displayName,
-    required PositionComponent renderComponent,
-    required Vector2 position,
-    required Vector2 size,
-    required int priorityOffset,
-  }) {
-    switch (className) {
-      case 'Daniel':
-        return DeskDaniel(
-          displayName: displayName,
-          renderComponent: renderComponent,
-          position: position,
-          size: size,
-          priorityOffset: priorityOffset,
+  // Extrahiert aus deinem ursprünglichen Code die Erstellung des Sprites/der Animation
+  PositionComponent _createRenderComponent(Tile tile, RenderableTiledMap tileMap, int cleanGid, Vector2 size) {
+    if (tile.animation.isNotEmpty) {
+      final List<SpriteAnimationFrame> frames = tile.animation.map((Frame frame) {
+        final Tileset tileset = tileMap.map.tilesetByTileGId(cleanGid);
+        final Tile? frameTile = tileMap.map.tileByGid(tileset.firstGid! + frame.tileId);
+        final Tile targetTile = frameTile ?? tile;
+        final Rectangle<num> rect = tileset.computeDrawRect(targetTile);
+        return SpriteAnimationFrame(
+          Sprite(
+            images.fromCache((targetTile.image ?? tileset.image)!.source!),
+            srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+            srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+          ),
+          frame.duration / 1000.0,
         );
+      }).toList();
 
-      case 'Tobi':
-        return Tobi(
-          displayName: displayName,
-          renderComponent: renderComponent,
-          position: position,
-          size: size,
-          priorityOffset: priorityOffset,
-        );
-
-      default:
-        return null;
+      return SpriteAnimationComponent(animation: SpriteAnimation(frames), size: size, anchor: Anchor.center);
+    } else {
+      final Tileset tileset = tileMap.map.tilesetByTileGId(cleanGid);
+      final Rectangle<num> rect = tileset.computeDrawRect(tile);
+      return SpriteComponent(
+        sprite: Sprite(
+          images.fromCache((tile.image ?? tileset.image)!.source!),
+          srcPosition: Vector2(rect.left.toDouble(), rect.top.toDouble()),
+          srcSize: Vector2(rect.width.toDouble(), rect.height.toDouble()),
+        ),
+        size: size,
+        anchor: Anchor.center,
+      );
     }
+  }
+
+  // Übernimmt die Deko-Logik (Kollisionen etc.)
+  void _setupAsDecoration(
+    PositionComponent renderComp,
+    TiledObject object,
+    double angle,
+    int priorityOffset,
+    int cleanGid,
+    RenderableTiledMap tileMap,
+  ) {
+    renderComp
+      ..anchor = Anchor.center
+      ..position = Vector2(object.x, object.y)
+      ..angle = angle
+      ..priority = object.y.toInt() + priorityOffset;
+
+    final Tile? tileForCollision = tileMap.map.tileByGid(cleanGid);
+    if (tileForCollision?.objectGroup is ObjectGroup) {
+      for (final TiledObject collisionObject in (tileForCollision!.objectGroup as ObjectGroup).objects) {
+        renderComp.add(
+          RectangleHitbox(
+            position: Vector2(collisionObject.x, collisionObject.y),
+            size: Vector2(collisionObject.width, collisionObject.height),
+          ),
+        );
+      }
+    }
+    world.add(renderComp);
   }
 
   Vector2 _getTiledObjectCenter({
@@ -679,52 +577,6 @@ class OfficeGame extends FlameGame<World>
       object.x + rotatedCenter.x,
       object.y + rotatedCenter.y,
     );
-  }
-
-  InteractiveObject? _createInteractiveObject({
-    required TiledObject object,
-    required String displayName,
-    required PositionComponent renderComponent,
-    required double angle,
-    required int priorityOffset,
-  }) {
-    final Vector2 position = _getTiledObjectCenter(
-      object: object,
-      angle: angle,
-    );
-    final Vector2 size = Vector2(object.width, object.height);
-
-    switch (object.class_) {
-      case 'Toilet':
-        return Toilet(
-          displayName: displayName,
-          renderComponent: renderComponent,
-          position: position,
-          size: size,
-          priorityOffset: priorityOffset,
-        );
-
-      case 'Fridge':
-        return Fridge(
-          displayName: displayName,
-          renderComponent: renderComponent,
-          position: position,
-          size: size,
-          priorityOffset: priorityOffset,
-        );
-
-      case 'CoffeeMachine':
-        return CoffeeMachine(
-          displayName: displayName,
-          renderComponent: renderComponent,
-          position: position,
-          size: size,
-          priorityOffset: priorityOffset,
-        );
-
-      default:
-        return null;
-    }
   }
 
   void _updateMobileExploration(Vector2 canvasPosition) {
@@ -830,7 +682,7 @@ class OfficeGame extends FlameGame<World>
     );
   }
 
-  void _buildHud(double virtualWidth, double virtualHeight) {
+  void _buildHud() {
     statusText = TextComponent<TextRenderer>(
       text: 'PC-Status: Entsperrt (Gefahr!)',
       position: Vector2(20, 20),
@@ -865,8 +717,8 @@ class OfficeGame extends FlameGame<World>
     interactionNameText = TextComponent<TextRenderer>(
       text: '',
       position: Vector2(
-        virtualWidth / 2,
-        virtualHeight - 140,
+        GameConfig.resolution.width / 2,
+        GameConfig.resolution.height - 140,
       ),
       anchor: Anchor.center,
       priority: 1001,
@@ -890,7 +742,7 @@ class OfficeGame extends FlameGame<World>
     camera.viewport.add(interactionNameText);
 
     final MobileInventoryButton mobileBagButton = MobileInventoryButton(
-      position: Vector2(virtualWidth / 2, virtualHeight - 80),
+      position: Vector2(GameConfig.resolution.width / 2, GameConfig.resolution.height - 80),
       onPressed: () {
         openInventory();
       },
