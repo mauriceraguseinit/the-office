@@ -25,6 +25,8 @@ abstract class InteractiveObject extends PositionComponent
   final PositionComponent _renderComponent;
   final String displayName;
 
+  OfficeGame get officeGame => game;
+
   final int priorityOffset;
   final double interactionPadding;
 

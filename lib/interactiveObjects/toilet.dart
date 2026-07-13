@@ -5,7 +5,7 @@ import 'package:the_office/models/inventory_item.dart';
 
 import 'interactive_object.dart';
 
-enum ToiletDialogs { normalAction, thanks, wrongItem, noMate }
+enum ToiletDialogs { normalAction, thanks, wrongItem, mate }
 
 class Toilet extends InteractiveObject {
   Toilet({
@@ -32,10 +32,12 @@ class Toilet extends InteractiveObject {
                 text: '[b]Toilette:[/b]\n\nDas gehört hier nicht rein.',
                 onClose: () => game.overlays.remove(value.toString()),
               );
-            case ToiletDialogs.noMate:
+            case ToiletDialogs.mate:
               return RetroSpeechBubble(
-                text: '[b]Toilette:[/b]\n\nGluckert protestierend.',
-                onClose: () => game.overlays.remove(value.toString()),
+                text: '[b]Hendrik:[/b]\n\nIch trinke eh lieber einen Kaffee.',
+                onClose: () {
+                  game.overlays.remove(value.toString());
+                },
               );
             case ToiletDialogs.thanks:
               return RetroSpeechBubble(
@@ -56,7 +58,11 @@ class Toilet extends InteractiveObject {
         game.ownedItems.remove(activeItem);
         game.overlays.add(ToiletDialogs.thanks.toString());
       } else if (activeItem.id == 'mate') {
-        game.overlays.add(ToiletDialogs.noMate.toString());
+        officeGame.ownedItems.remove(activeItem);
+        officeGame.ownedItems.add(
+          InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'),
+        );
+        game.overlays.add(ToiletDialogs.mate.toString());
       } else {
         game.overlays.add(ToiletDialogs.wrongItem.toString());
       }

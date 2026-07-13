@@ -41,7 +41,7 @@ class OfficeGame extends FlameGame<World>
 
   late CameraComponent minimapCamera;
   late TextComponent<TextRenderer> interactionNameText;
-
+  String _playerMessage = '';
   List<InventoryItem> ownedItems = <InventoryItem>[];
   InventoryItem? selectedItem;
   Vector2 mousePosition = Vector2.zero();
@@ -59,7 +59,10 @@ class OfficeGame extends FlameGame<World>
     if (highlightedObject == object) {
       return;
     }
-
+    if (_isPlayerHighlighted) {
+      _isPlayerHighlighted = false;
+      player.setHighlighted(false);
+    }
     highlightedObject?.setHighlighted(false);
 
     highlightedObject = object;
@@ -70,6 +73,32 @@ class OfficeGame extends FlameGame<World>
 
   late ClickableMinimap minimap;
   late TiledComponent<FlameGame<World>> mapComponent;
+  bool _isPlayerHighlighted = false;
+  void setPlayerHighlighted(bool highlighted) {
+    if (_isPlayerHighlighted == highlighted) {
+      return;
+    }
+
+    _isPlayerHighlighted = highlighted;
+    player.setHighlighted(highlighted);
+
+    // Wenn Hendrik hervorgehoben wird, darf nicht gleichzeitig
+    // ein anderes Objekt als Ziel markiert sein.
+    if (highlighted) {
+      highlightedObject?.setHighlighted(false);
+      highlightedObject = null;
+    }
+
+    _refreshInteractionHint();
+  }
+
+  void _showPlayerMessage(String message) {
+    _playerMessage = message;
+
+    if (!overlays.isActive('playerMessage')) {
+      overlays.add('playerMessage');
+    }
+  }
 
   @override
   Future<void> onLoad() async {
@@ -82,7 +111,13 @@ class OfficeGame extends FlameGame<World>
         onClose: () => game.overlays.remove(TriggerZoneDialogs.tooFar.toString()),
       ),
     );
-
+    overlays.addEntry(
+      'playerMessage',
+      (BuildContext context, Game game) => RetroSpeechBubble(
+        text: _playerMessage,
+        onClose: () => game.overlays.remove('playerMessage'),
+      ),
+    );
     // 1. Assets vorab in den Cache laden
     await images.loadAll(<String>[
       'coffeeMachine.png',
@@ -331,7 +366,6 @@ class OfficeGame extends FlameGame<World>
         onCombineSuccess: (BuildContext context) {},
       ),
     );
-    ownedItems.add(InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'));
 
     // collision objects layer
     final ObjectGroup? collisionLayer = mapComponent.tileMap.getLayer<ObjectGroup>('collision');
@@ -428,29 +462,79 @@ class OfficeGame extends FlameGame<World>
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
 
-    // Auf Mobile steuert der Entdeckungsmodus die Auswahl.
     if (isTouchDevice) {
       return;
     }
 
-    // Ohne aktives Inventar-Item gibt es nichts zurückzusetzen.
     if (selectedItem == null) {
       return;
     }
 
-    // Dialoge und Inventar dürfen die aktuelle Auswahl nicht beeinflussen.
     if (overlays.activeOverlays.isNotEmpty) {
       return;
     }
 
-    // Beim Klick auf ein interaktives Objekt bleibt das Item aktiv.
-    // Das Objekt verarbeitet den Klick dann über tryInteract()/onAction().
+    // Item auf Hendrik anwenden.
+    if (_isPlayerAtCanvasPosition(event.canvasPosition)) {
+      useSelectedItemOnPlayer();
+      return;
+    }
+
+    // Item auf Tobi, Möbel usw. anwenden.
     if (_isInteractiveObjectAtCanvasPosition(event.canvasPosition)) {
       return;
     }
 
-    // Klick auf freie Welt: Item ablegen bzw. Auswahl beenden.
+    // Freie Fläche angeklickt: Auswahl abbrechen.
     resetSelection();
+  }
+
+  void useSelectedItemOnPlayer() {
+    final InventoryItem? item = selectedItem;
+
+    if (item == null) {
+      return;
+    }
+
+    switch (item.id) {
+      case 'mate':
+        ownedItems.remove(item);
+        ownedItems.add(
+          InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'),
+        );
+        resetSelection();
+
+        _showPlayerMessage(
+          '[b]Hendrik:[/b]\n\n'
+          'Ahh, eine kalte Mate. Genau das habe ich gebraucht!',
+        );
+        return;
+
+      case 'kaffee':
+        ownedItems.remove(item);
+        resetSelection();
+
+        _showPlayerMessage(
+          '[b]Hendrik:[/b]\n\n'
+          'Kaffee. Jetzt kann der Arbeitstag beginnen.',
+        );
+        return;
+
+      default:
+        resetSelection();
+
+        _showPlayerMessage(
+          '[b]Hendrik:[/b]\n\n'
+          'Damit kann ich gerade nichts anfangen.',
+        );
+        return;
+    }
+  }
+
+  bool _isPlayerAtCanvasPosition(Vector2 canvasPosition) {
+    final Vector2 worldPosition = camera.globalToLocal(canvasPosition);
+
+    return player.containsPoint(worldPosition);
   }
 
   void _processInteractiveObject(
@@ -644,7 +728,7 @@ class OfficeGame extends FlameGame<World>
   }
 
   String _buildInteractionHint() {
-    final String objectName = highlightedObject?.displayName.trim() ?? '';
+    final String objectName = _isPlayerHighlighted ? 'Hendrik' : (highlightedObject?.displayName.trim() ?? '');
     final InventoryItem? item = selectedItem;
 
     // Inventar offen: nur Objektname (oder leer), kein Benutze-Text.
@@ -687,20 +771,20 @@ class OfficeGame extends FlameGame<World>
   }
 
   void _buildHud() {
-    statusText = TextComponent<TextRenderer>(
-      text: 'PC-Status: Entsperrt (Gefahr!)',
-      position: Vector2(20, 20),
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          fontFamily: 'PressStart2P',
-          color: Colors.white,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          shadows: <Shadow>[Shadow(color: Colors.black, offset: Offset(2.0, 2.0), blurRadius: 2.0)],
-        ),
-      ),
-    );
-
+    // statusText = TextComponent<TextRenderer>(
+    //   text: 'PC-Status: Entsperrt (Gefahr!)',
+    //   position: Vector2(20, 20),
+    //   textRenderer: TextPaint(
+    //     style: const TextStyle(
+    //       fontFamily: 'PressStart2P',
+    //       color: Colors.white,
+    //       fontSize: 24,
+    //       fontWeight: FontWeight.bold,
+    //       shadows: <Shadow>[Shadow(color: Colors.black, offset: Offset(2.0, 2.0), blurRadius: 2.0)],
+    //     ),
+    //   ),
+    // );
+    // camera.viewport.add(statusText..priority = 1000);
     final TextComponent<TextPaint> infoText = TextComponent<TextPaint>(
       text: 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I',
       position: Vector2(20, 60),

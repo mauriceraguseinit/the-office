@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
 
@@ -10,11 +11,11 @@ import 'office_game.dart';
 enum Direction { left, right, up, down }
 
 class Hendrik extends SpriteAnimationGroupComponent<Direction>
-    with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks {
+    with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks, HoverCallbacks {
   Hendrik({required Vector2 position}) : super(position: position, size: Vector2.all(boxSize));
 
   static const double boxSize = 70.0;
-
+  bool _isHighlighted = false;
   static const double _hitboxWidthFactor = 32 / 60;
   static const double _hitboxHeightFactor = 0.5;
   static const double _hitboxXFactor = 14 / 60;
@@ -31,6 +32,10 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     _velocity.setZero();
   }
 
+  void setHighlighted(bool highlighted) {
+    _isHighlighted = highlighted;
+  }
+
   @override
   void lookAt(Vector2 target) {
     final Vector2 direction = target - absoluteCenter;
@@ -44,6 +49,18 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     } else {
       current = direction.y > 0 ? Direction.down : Direction.up;
     }
+  }
+
+  @override
+  bool containsLocalPoint(Vector2 point) {
+    // Interaktionsfläche: absichtlich größer als die Collision-Hitbox.
+    // So lassen sich Hendrik, Hover und Item-Anwendung zuverlässig treffen.
+    const double interactionPadding = 0.0;
+
+    return point.x >= -interactionPadding &&
+        point.x <= size.x + interactionPadding &&
+        point.y >= -interactionPadding &&
+        point.y <= size.y + interactionPadding;
   }
 
   @override
@@ -143,7 +160,35 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
         offsetY -= (boxSize * 0.08);
       }
 
-      sprite.render(canvas, position: Vector2(offsetX, offsetY), size: Vector2(renderWidth, renderHeight));
+      if (_isHighlighted) {
+        final Paint outlinePaint = Paint()
+          ..colorFilter = const ColorFilter.mode(
+            Color(0xFFFFFFAA),
+            BlendMode.srcIn,
+          );
+
+        const List<Offset> offsets = <Offset>[
+          Offset(-1, 0),
+          Offset(1, 0),
+          Offset(0, -1),
+          Offset(0, 1),
+        ];
+
+        for (final Offset offset in offsets) {
+          sprite.render(
+            canvas,
+            position: Vector2(offsetX + offset.dx, offsetY + offset.dy),
+            size: Vector2(renderWidth, renderHeight),
+            overridePaint: outlinePaint,
+          );
+        }
+      }
+
+      sprite.render(
+        canvas,
+        position: Vector2(offsetX, offsetY),
+        size: Vector2(renderWidth, renderHeight),
+      );
     } else {
       super.render(canvas);
     }
@@ -232,5 +277,19 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     }
 
     return false;
+  }
+
+  @override
+  void onHoverEnter() {
+    if (!game.isTouchDevice) {
+      game.setPlayerHighlighted(true);
+    }
+  }
+
+  @override
+  void onHoverExit() {
+    if (!game.isTouchDevice) {
+      game.setPlayerHighlighted(false);
+    }
   }
 }
