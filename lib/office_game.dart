@@ -20,6 +20,7 @@ import 'hud/mobile_inventory_button.dart';
 import 'hud/speech_bubble.dart';
 import 'interactiveObjects/interactive_object.dart';
 import 'interactiveObjects/interactive_objects_catalogue.dart';
+import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'inventory_cursor.dart';
 import 'lighting_manager.dart';
 import 'models/inventory_item.dart';
@@ -358,13 +359,7 @@ class OfficeGame extends FlameGame<World>
     overlays.add('intro');
 
     ownedItems.add(
-      InventoryItem(
-        id: 'mate',
-        name: 'Mate',
-        assetPath: 'assets/images/mate_full.png',
-        combinesWith: 'koffein_pulver',
-        onCombineSuccess: (BuildContext context) {},
-      ),
+      InventoryItemCatalogue.itemForId(InventoryItemType.mate),
     );
 
     // collision objects layer
@@ -496,30 +491,23 @@ class OfficeGame extends FlameGame<World>
       return;
     }
 
-    switch (item.id) {
-      case 'mate':
+    switch (InventoryItemCatalogue.itemTypeForId(item.id)) {
+      case InventoryItemType.mate:
         ownedItems.remove(item);
-        ownedItems.add(
-          InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'),
-        );
+        ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
         resetSelection();
-
         _showPlayerMessage(
           '[b]Hendrik:[/b]\n\n'
           'Ahh, eine kalte Mate. Genau das habe ich gebraucht!',
         );
         return;
-
-      case 'kaffee':
-        ownedItems.remove(item);
+      case InventoryItemType.mateWater:
         resetSelection();
-
         _showPlayerMessage(
           '[b]Hendrik:[/b]\n\n'
-          'Kaffee. Jetzt kann der Arbeitstag beginnen.',
+          'Ich verzichte dann lieber. Trotz der [b]Vitamine[/b]...',
         );
         return;
-
       default:
         resetSelection();
 

@@ -4,8 +4,15 @@ import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/models/inventory_item.dart';
 
 import 'interactive_object.dart';
+import 'inventory_item_catalogue.dart';
 
-enum ToiletDialogs { normalAction, thanks, wrongItem, mate }
+enum ToiletDialogs {
+  normalAction,
+  thanks,
+  wrongItem,
+  mate,
+  emptyMate,
+}
 
 class Toilet extends InteractiveObject {
   Toilet({
@@ -44,6 +51,11 @@ class Toilet extends InteractiveObject {
                 text: '[b]Toilette:[/b]\n\nSpült dankbar.',
                 onClose: () => game.overlays.remove(value.toString()),
               );
+            case ToiletDialogs.emptyMate:
+              return RetroSpeechBubble(
+                text: '[b]Hendrik:[/b]\n\nNichts geht über einen erfrischenden Durstlöscher!',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
           }
         },
     };
@@ -57,12 +69,14 @@ class Toilet extends InteractiveObject {
       if (activeItem.id == 'kaffee') {
         game.ownedItems.remove(activeItem);
         game.overlays.add(ToiletDialogs.thanks.toString());
-      } else if (activeItem.id == 'mate') {
+      } else if (activeItem.id == InventoryItemType.mate.toString()) {
         officeGame.ownedItems.remove(activeItem);
-        officeGame.ownedItems.add(
-          InventoryItem(id: 'mate_empty', name: 'leere Mate', assetPath: 'assets/images/mate_empty.png'),
-        );
+        officeGame.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
         game.overlays.add(ToiletDialogs.mate.toString());
+      } else if (activeItem.id == InventoryItemType.mateEmpty.toString()) {
+        officeGame.ownedItems.remove(activeItem);
+        officeGame.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateWater));
+        game.overlays.add(ToiletDialogs.emptyMate.toString());
       } else {
         game.overlays.add(ToiletDialogs.wrongItem.toString());
       }

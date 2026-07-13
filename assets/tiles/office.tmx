@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="156">
- <tileset firstgid="1" name="Office" tilewidth="128" tileheight="128" tilecount="25" columns="1" objectalignment="center">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="157">
+ <tileset firstgid="1" name="Office" tilewidth="128" tileheight="128" tilecount="26" columns="1" objectalignment="center">
   <grid orientation="orthogonal" width="64" height="64"/>
   <tile id="7">
    <image source="../images/wall.png" width="64" height="64"/>
@@ -66,7 +66,7 @@
    <image source="../images/floor.png" width="64" height="64"/>
   </tile>
   <tile id="101">
-   <image source="../images/desk.png" width="128" height="128"/>
+   <image source="../images/desk_empty.png" width="128" height="128"/>
    <objectgroup draworder="index" id="2">
     <object id="2" x="37.8182" y="70.3636" width="48.3636" height="22.5455"/>
     <object id="3" x="0.545455" y="1.45455" width="126.727" height="68.7273"/>
@@ -97,8 +97,15 @@
     <object id="1" x="3.125" y="25.125" width="23" height="8.5"/>
    </objectgroup>
   </tile>
+  <tile id="107">
+   <image source="../images/desk.png" width="128" height="128"/>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="1.33333" y="1.66667" width="125.333" height="67.6667"/>
+    <object id="2" x="38" y="71" width="48.3333" height="21.6667"/>
+   </objectgroup>
+  </tile>
  </tileset>
- <tileset firstgid="108" name="laminatRainAnimation" tilewidth="64" tileheight="64" tilecount="4" columns="4">
+ <tileset firstgid="109" name="laminatRainAnimation" tilewidth="64" tileheight="64" tilecount="4" columns="4">
   <image source="../images/laminat_rain.png" width="256" height="64"/>
   <tile id="0">
    <animation>
@@ -109,7 +116,7 @@
    </animation>
   </tile>
  </tileset>
- <tileset firstgid="112" name="windowRainAnimation" tilewidth="64" tileheight="64" tilecount="4" columns="4">
+ <tileset firstgid="113" name="windowRainAnimation" tilewidth="64" tileheight="64" tilecount="4" columns="4">
   <image source="../images/windowRainAnimation.png" width="256" height="64"/>
   <tile id="0">
    <animation>
@@ -120,7 +127,7 @@
    </animation>
   </tile>
  </tileset>
- <tileset firstgid="116" name="daniel" tilewidth="538" tileheight="404" tilecount="4" columns="4" objectalignment="center">
+ <tileset firstgid="117" name="daniel" tilewidth="538" tileheight="404" tilecount="4" columns="4" objectalignment="center">
   <image source="../images/desk_daniel.png" width="2152" height="404"/>
   <tile id="0">
    <animation>
@@ -131,9 +138,12 @@
    </animation>
   </tile>
  </tileset>
- <tileset firstgid="120" name="tobi" tilewidth="372" tileheight="495" tilecount="4" columns="4" objectalignment="center">
+ <tileset firstgid="121" name="tobi" tilewidth="372" tileheight="495" tilecount="4" columns="4" objectalignment="center">
   <image source="../images/tobi_idle.png" width="1488" height="495"/>
   <tile id="0">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="48.6667" y="400.667" width="285.333" height="88.6667"/>
+   </objectgroup>
    <animation>
     <frame tileid="0" duration="150"/>
     <frame tileid="1" duration="150"/>
@@ -150,7 +160,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,84,84,84,84,84,74,74,108,74,74,108,74,74,108,74,74,108,74,74,108,74,74,74,108,74,74,108,74,74,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,84,84,84,84,84,74,74,109,74,74,109,74,74,109,74,74,109,74,74,109,74,74,74,109,74,74,109,74,74,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,84,84,84,84,84,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,84,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,74,74,10,84,84,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,74,74,74,74,74,74,10,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -196,7 +206,7 @@
 </data>
  </layer>
  <objectgroup id="9" name="spawnPoints">
-  <object id="12" name="playerStart" x="2682.55" y="711.269">
+  <object id="12" name="playerStart" x="1375.55" y="693.602">
    <point/>
   </object>
  </objectgroup>
@@ -260,7 +270,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,8,8,8,8,8,112,8,8,112,8,8,112,8,8,112,8,8,112,8,8,8,112,8,8,112,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,8,8,8,8,8,113,8,8,113,8,8,113,8,8,113,8,8,113,8,8,8,113,8,8,113,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,0,8,8,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -386,14 +396,14 @@
   <object id="68" gid="102" x="2111.8" y="639.188" width="128" height="128" rotation="90"/>
   <object id="69" gid="102" x="2237.48" y="511.903" width="128" height="128" rotation="270"/>
   <object id="70" gid="102" x="2237.48" y="639.563" width="128" height="128" rotation="270"/>
-  <object id="71" gid="102" x="2496.5" y="511.088" width="128" height="128" rotation="90"/>
   <object id="72" gid="102" x="2496.5" y="638.748" width="128" height="128" rotation="90"/>
   <object id="74" gid="102" x="2623.84" y="639.078" width="128" height="128" rotation="270"/>
   <object id="121" gid="103" x="1214.57" y="1327.67" width="75.4872" height="69"/>
   <object id="141" gid="105" x="1296.19" y="1142.48" width="96" height="109"/>
   <object id="143" type="Fridge" gid="106" x="1328.5" y="1237.33" width="32" height="83"/>
-  <object id="151" name="Daniel" type="Daniel" gid="116" x="2609.45" y="511.348" width="125.333" height="97.3333" rotation="270"/>
-  <object id="152" name="Tobi" type="Tobi" gid="120" x="2423.33" y="894" width="47.3333" height="62.6667"/>
+  <object id="151" name="Daniel" type="Daniel" gid="117" x="2609.45" y="511.348" width="125.333" height="97.3333" rotation="270"/>
+  <object id="152" name="Tobi" type="Tobi" gid="121" x="2590.66" y="802.333" width="47.3333" height="62.6667"/>
+  <object id="156" gid="108" x="2496.73" y="510.682" width="128" height="128" rotation="90"/>
  </objectgroup>
  <objectgroup id="18" name="interactiveObjects2">
   <object id="146" type="CoffeeMachine" gid="107" x="1328.92" y="1115.42" width="26" height="34"/>
@@ -458,7 +468,6 @@
   <object id="139" name="trash" x="2407.09" y="809.091" width="22.5455" height="7.09091"/>
   <object id="140" name="pflanzenbox" x="2004" y="806.375" width="17.75" height="10.5"/>
   <object id="150" name="kühlschrankbox" x="1315.64" y="1196.91" width="27.8182" height="79.8182"/>
-  <object id="153" name="tobi" x="2410.33" y="907.833" width="25.3333" height="16.3333"/>
   <object id="154" name="daniel" x="2563.33" y="449.333" width="63.8333" height="124.833"/>
   <object id="155" name="daniel" x="2625.08" y="488.584" width="32.8333" height="45.833"/>
  </objectgroup>

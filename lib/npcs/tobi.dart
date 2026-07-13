@@ -4,8 +4,15 @@ import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/models/inventory_item.dart';
 
 import '../interactiveObjects/interactive_object.dart';
+import '../interactiveObjects/inventory_item_catalogue.dart';
 
-enum TobiDialogs { normalAction, thanks, wrongItem, noMate }
+enum TobiDialogs {
+  normalAction,
+  thanks,
+  wrongItem,
+  noMate,
+  mateWater,
+}
 
 class Tobi extends InteractiveObject {
   Tobi({
@@ -44,6 +51,12 @@ class Tobi extends InteractiveObject {
                 text: '[b]Tobias:[/b]\n\nDanke',
                 onClose: () => game.overlays.remove(value.toString()),
               );
+            case TobiDialogs.mateWater:
+              return RetroSpeechBubble(
+                text:
+                    '[b]Tobias:[/b]\n\nUuuuh eine neue Geschmackssorte!!!\n\n*trink, trink* *trink*\n\nDa bring ich doch gleich mal die leer Flasche weg.',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
           }
         },
     };
@@ -63,8 +76,12 @@ class Tobi extends InteractiveObject {
       if (activeItem.id == 'kaffee') {
         debugPrint("Tobi: 'Oh danke! Der Kaffee rettet meinen Tag!'");
         game.ownedItems.remove(activeItem);
-      } else if (activeItem.id == 'mate') {
+      } else if (activeItem.id == InventoryItemType.mate.toString()) {
         game.overlays.add(TobiDialogs.noMate.toString());
+      } else if (activeItem.id == InventoryItemType.mateWater.toString()) {
+        game.ownedItems.remove(activeItem);
+        game.world.remove(this);
+        game.overlays.add(TobiDialogs.mateWater.toString());
       } else {
         game.overlays.add(TobiDialogs.wrongItem.toString());
       }
