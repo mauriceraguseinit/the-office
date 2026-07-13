@@ -5,7 +5,6 @@ import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
-import 'package:flame/text.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,12 +12,10 @@ import 'package:the_office/tiled_map_loader.dart';
 import 'package:the_office/utils/config.dart';
 
 import 'hendrik.dart';
-import 'hud/clickable_minimap.dart';
-import 'hud/mobile_inventory_button.dart';
+import 'hud/office_hud.dart';
 import 'hud/speech_bubble.dart';
 import 'interactiveObjects/interactive_object.dart';
 import 'interactiveObjects/inventory_item_catalogue.dart';
-import 'inventory_cursor.dart';
 import 'lighting_manager.dart';
 import 'models/inventory_item.dart';
 
@@ -38,13 +35,11 @@ class OfficeGame extends FlameGame<World>
   final double _normalZoom = 2.5;
   final double _mapViewZoom = 1.5;
 
-  late CameraComponent minimapCamera;
-  late TextComponent<TextRenderer> interactionNameText;
+  late OfficeHud hud;
   String _playerMessage = '';
   List<InventoryItem> ownedItems = <InventoryItem>[];
   InventoryItem? selectedItem;
   Vector2 mousePosition = Vector2.zero();
-  late TextComponent<TextRenderer> statusText;
   bool isDeskLocked = false;
   late Hendrik player;
   InteractiveObject? highlightedObject;
@@ -70,7 +65,6 @@ class OfficeGame extends FlameGame<World>
     _refreshInteractionHint();
   }
 
-  late ClickableMinimap minimap;
   late TiledComponent<FlameGame<World>> mapComponent;
   bool _isPlayerHighlighted = false;
   void setPlayerHighlighted(bool highlighted) {
@@ -165,19 +159,7 @@ class OfficeGame extends FlameGame<World>
     rawMinimapCamera.viewfinder.zoom = 0.2;
     rawMinimapCamera.follow(player, snap: true);
 
-    minimap = ClickableMinimap(
-      minimapCamera: rawMinimapCamera,
-      size: Vector2(200, 200),
-      position: Vector2(
-        GameConfig.resolution.width - 220,
-        GameConfig.resolution.height - 220,
-      ),
-      onMinimapPressed: _toggleCameraZoom,
-    );
-    minimap.priority = 1000;
-    camera.viewport.add(minimap);
-
-    _buildHud();
+    _buildHud(rawMinimapCamera);
 
     // build lights
     final LightingManager lighting = LightingManager(
@@ -317,7 +299,7 @@ class OfficeGame extends FlameGame<World>
   }
 
   void _refreshInteractionHint() {
-    interactionNameText.text = _buildInteractionHint();
+    hud.updateInteractionHint(_buildInteractionHint());
   }
 
   @override
@@ -328,9 +310,9 @@ class OfficeGame extends FlameGame<World>
 
   void toggleScreenLock() {
     isDeskLocked = !isDeskLocked;
-    statusText.text = isDeskLocked
-        ? 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)'
-        : 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)';
+    hud.updateStatusText(
+      isDeskLocked ? 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)' : 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)',
+    );
   }
 
   void _toggleCameraZoom() {
@@ -343,73 +325,10 @@ class OfficeGame extends FlameGame<World>
     );
   }
 
-  void _buildHud() {
-    // statusText = TextComponent<TextRenderer>(
-    //   text: 'PC-Status: Entsperrt (Gefahr!)',
-    //   position: Vector2(20, 20),
-    //   textRenderer: TextPaint(
-    //     style: const TextStyle(
-    //       fontFamily: 'PressStart2P',
-    //       color: Colors.white,
-    //       fontSize: 24,
-    //       fontWeight: FontWeight.bold,
-    //       shadows: <Shadow>[Shadow(color: Colors.black, offset: Offset(2.0, 2.0), blurRadius: 2.0)],
-    //     ),
-    //   ),
-    // );
-    // camera.viewport.add(statusText..priority = 1000);
-    final TextComponent<TextPaint> infoText = TextComponent<TextPaint>(
-      text: 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I',
-      position: Vector2(20, 60),
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          color: Colors.orange,
-          fontFamily: 'PressStart2P',
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          shadows: <Shadow>[Shadow(color: Colors.black, offset: Offset(2.0, 2.0), blurRadius: 2.0)],
-        ),
-      ),
-    );
-
-    camera.viewport.add(infoText..priority = 1000);
-    camera.viewport.add(InventoryCursor());
-
-    interactionNameText = TextComponent<TextRenderer>(
-      text: '',
-      position: Vector2(
-        GameConfig.resolution.width / 2,
-        GameConfig.resolution.height - 140,
-      ),
-      anchor: Anchor.center,
-      priority: 1001,
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          fontFamily: 'PressStart2P',
-          color: Color(0xFFFFFFAA),
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          shadows: <Shadow>[
-            Shadow(
-              color: Colors.black,
-              offset: Offset(2, 2),
-              blurRadius: 2,
-            ),
-          ],
-        ),
-      ),
-    );
-
-    camera.viewport.add(interactionNameText);
-
-    final MobileInventoryButton mobileBagButton = MobileInventoryButton(
-      position: Vector2(GameConfig.resolution.width / 2, GameConfig.resolution.height - 80),
-      onPressed: () {
-        openInventory();
-      },
-    );
-
-    camera.viewport.add(mobileBagButton..priority = 1000);
+  void _buildHud(CameraComponent rawMinimapCamera) {
+    hud = OfficeHud();
+    camera.viewport.add(hud);
+    hud.setupMinimap(rawMinimapCamera, _toggleCameraZoom);
   }
 
   // --- TOUCH / MAUS GEDRÜCKT HALTEN LOGIK (ECHTE BILDSCHIRMMITTE) ---
