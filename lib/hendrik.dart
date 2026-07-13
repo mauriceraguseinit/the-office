@@ -6,6 +6,8 @@ import 'package:flame/events.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
 
+import 'interactiveObjects/inventory_item_catalogue.dart';
+import 'models/inventory_item.dart';
 import 'office_game.dart';
 
 enum Direction { left, right, up, down }
@@ -290,6 +292,41 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   void onHoverExit() {
     if (!game.isTouchDevice) {
       game.setPlayerHighlighted(false);
+    }
+  }
+
+  void useSelectedItemOnPlayer() {
+    final InventoryItem? item = game.selectedItem;
+
+    if (item == null) {
+      return;
+    }
+
+    switch (InventoryItemCatalogue.itemTypeForId(item.id)) {
+      case InventoryItemType.mate:
+        game.ownedItems.remove(item);
+        game.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
+        game.resetSelection();
+        game.showPlayerMessage(
+          '[b]Hendrik:[/b]\n\n'
+          'Ahh, eine kalte Mate. Genau das habe ich gebraucht!',
+        );
+        return;
+      case InventoryItemType.mateWater:
+        game.resetSelection();
+        game.showPlayerMessage(
+          '[b]Hendrik:[/b]\n\n'
+          'Ich verzichte dann lieber. Trotz der [b]Vitamine[/b]...',
+        );
+        return;
+      default:
+        game.resetSelection();
+
+        game.showPlayerMessage(
+          '[b]Hendrik:[/b]\n\n'
+          'Damit kann ich gerade nichts anfangen.',
+        );
+        return;
     }
   }
 }

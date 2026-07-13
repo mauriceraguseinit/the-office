@@ -93,7 +93,7 @@ class OfficeGame extends FlameGame<World>
     _refreshInteractionHint();
   }
 
-  void _showPlayerMessage(String message) {
+  void showPlayerMessage(String message) {
     _playerMessage = message;
 
     if (!overlays.isActive('playerMessage')) {
@@ -469,54 +469,17 @@ class OfficeGame extends FlameGame<World>
       return;
     }
 
-    // Item auf Hendrik anwenden.
-    if (_isPlayerAtCanvasPosition(event.canvasPosition)) {
-      useSelectedItemOnPlayer();
-      return;
-    }
-
     // Item auf Tobi, Möbel usw. anwenden.
     if (_isInteractiveObjectAtCanvasPosition(event.canvasPosition)) {
+      return;
+    } // Item auf Hendrik anwenden.
+    if (_isPlayerAtCanvasPosition(event.canvasPosition)) {
+      player.useSelectedItemOnPlayer();
       return;
     }
 
     // Freie Fläche angeklickt: Auswahl abbrechen.
     resetSelection();
-  }
-
-  void useSelectedItemOnPlayer() {
-    final InventoryItem? item = selectedItem;
-
-    if (item == null) {
-      return;
-    }
-
-    switch (InventoryItemCatalogue.itemTypeForId(item.id)) {
-      case InventoryItemType.mate:
-        ownedItems.remove(item);
-        ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
-        resetSelection();
-        _showPlayerMessage(
-          '[b]Hendrik:[/b]\n\n'
-          'Ahh, eine kalte Mate. Genau das habe ich gebraucht!',
-        );
-        return;
-      case InventoryItemType.mateWater:
-        resetSelection();
-        _showPlayerMessage(
-          '[b]Hendrik:[/b]\n\n'
-          'Ich verzichte dann lieber. Trotz der [b]Vitamine[/b]...',
-        );
-        return;
-      default:
-        resetSelection();
-
-        _showPlayerMessage(
-          '[b]Hendrik:[/b]\n\n'
-          'Damit kann ich gerade nichts anfangen.',
-        );
-        return;
-    }
   }
 
   bool _isPlayerAtCanvasPosition(Vector2 canvasPosition) {
