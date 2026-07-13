@@ -18,6 +18,7 @@ import 'interactiveObjects/interactive_object.dart';
 import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'lighting_manager.dart';
 import 'managers/game_state.dart';
+import 'managers/input_manager.dart';
 import 'models/inventory_item.dart';
 
 class OfficeGame extends FlameGame<World>
@@ -32,6 +33,7 @@ class OfficeGame extends FlameGame<World>
         TapCallbacks,
         DoubleTapCallbacks {
   final GameState state = GameState();
+  late final InputManager inputManager;
   bool _isZoomedOut = false;
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
   final double _normalZoom = 2.5;
@@ -47,8 +49,6 @@ class OfficeGame extends FlameGame<World>
   bool get isDeskLocked => state.isDeskLocked;
 
   late Hendrik player;
-  bool _mobileMovementArmed = false;
-  bool _isExploring = false;
   bool get isTouchDevice {
     return defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
   }
@@ -98,6 +98,7 @@ class OfficeGame extends FlameGame<World>
 
   @override
   Future<void> onLoad() async {
+    inputManager = InputManager(this);
     super.onLoad();
 
     overlays.addEntry(
@@ -178,99 +179,18 @@ class OfficeGame extends FlameGame<World>
     world.add(lighting2);
   }
 
-  bool _isInteractiveObjectAtCanvasPosition(Vector2 canvasPosition) {
-    // Canvas-/Viewport-Koordinaten korrekt in Weltkoordinaten überführen.
-    final Vector2 worldPosition = camera.globalToLocal(canvasPosition);
-
-    return world.children.whereType<InteractiveObject>().any(
-      (InteractiveObject object) => object.containsPoint(worldPosition),
-    );
-  }
-
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
-
-    if (isTouchDevice) {
-      return;
-    }
-
-    if (state.selectedItem == null) {
-      return;
-    }
-
-    if (overlays.activeOverlays.isNotEmpty) {
-      return;
-    }
-
-    // Item auf Tobi, Möbel usw. anwenden.
-    if (_isInteractiveObjectAtCanvasPosition(event.canvasPosition)) {
-      return;
-    } // Item auf Hendrik anwenden.
-    if (_isPlayerAtCanvasPosition(event.canvasPosition)) {
-      player.useSelectedItemOnPlayer();
-      return;
-    }
-
-    // Freie Fläche angeklickt: Auswahl abbrechen.
-    resetSelection();
+    inputManager.onTapDown(event);
   }
 
-  bool _isPlayerAtCanvasPosition(Vector2 canvasPosition) {
-    final Vector2 worldPosition = camera.globalToLocal(canvasPosition);
-
-    return player.containsPoint(worldPosition);
-  }
-
-  void _updateMobileExploration(Vector2 canvasPosition) {
-    final Vector2 worldPosition = camera.globalToLocal(canvasPosition);
-
-    InteractiveObject? objectUnderFinger;
-
-    for (final InteractiveObject object in world.children.whereType<InteractiveObject>()) {
-      if (object.containsPoint(worldPosition)) {
-        objectUnderFinger = object;
-        break;
-      }
-    }
-
-    setHighlightedObject(objectUnderFinger);
-  }
-
-  bool tryInteractWithNearestObject() {
-    final Iterable<InteractiveObject> interactiveObjects = world.children.whereType<InteractiveObject>();
-
-    InteractiveObject? nearestObject;
-    double nearestDistance = double.infinity;
-
-    for (final InteractiveObject object in interactiveObjects) {
-      if (!object.isInInteractionRange(player)) {
-        continue;
-      }
-
-      final double distance = player.absoluteCenter.distanceTo(object.interactionCenter);
-
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        nearestObject = object;
-      }
-    }
-
-    if (nearestObject == null) {
-      return false;
-    }
-
-    nearestObject.tryInteract(showTooFar: false);
-    return true;
-  }
+  bool tryInteractWithNearestObject() => inputManager.tryInteractWithNearestObject();
 
   @override
   void onMouseMove(PointerHoverInfo info) {
     super.onMouseMove(info);
-
-    mousePositionWidget = camera.viewport.globalToLocal(
-      info.eventPosition.widget,
-    );
+    inputManager.onMouseMove(info);
   }
 
   void selectItem(InventoryItem? item) {
@@ -352,102 +272,30 @@ class OfficeGame extends FlameGame<World>
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
-
-    // Desktop: bisheriges Verhalten unverändert.
-    if (!isTouchDevice) {
-      _handleTouchInput(event.canvasPosition);
-      return;
-    }
-
-    // Mobile: Nach Doppeltipp bewegt der nächste Swipe Hendrik.
-    if (_mobileMovementArmed) {
-      _isExploring = false;
-      _handleTouchInput(event.canvasPosition);
-      return;
-    }
-
-    // Mobile: normaler Swipe ist der Entdeckungsmodus.
-    _isExploring = true;
-    _updateMobileExploration(event.canvasPosition);
+    inputManager.onDragStart(event);
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
-
-    // Desktop: bisheriges Verhalten unverändert.
-    if (!isTouchDevice) {
-      _handleTouchInput(event.canvasEndPosition);
-      return;
-    }
-
-    // Mobile: Nach Doppeltipp bewegt der Swipe Hendrik.
-    if (_mobileMovementArmed) {
-      _isExploring = false;
-      _handleTouchInput(event.canvasEndPosition);
-      return;
-    }
-
-    // Mobile: Finger bewegt sich über die Welt und markiert Objekte.
-    _isExploring = true;
-    _updateMobileExploration(event.canvasEndPosition);
+    inputManager.onDragUpdate(event);
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-
-    player.stopTouchMovement();
-
-    if (isTouchDevice && _isExploring) {
-      setHighlightedObject(null);
-    }
-
-    _isExploring = false;
-
-    // Ein Doppeltipp schaltet nur genau einen Bewegungs-Swipe frei.
-    if (isTouchDevice) {
-      _mobileMovementArmed = false;
-    }
+    inputManager.onDragEnd(event);
   }
 
   @override
   void onDoubleTapDown(DoubleTapDownEvent event) {
     super.onDoubleTapDown(event);
-
-    if (!isTouchDevice || overlays.activeOverlays.isNotEmpty) {
-      return;
-    }
-
-    // Der nächste Swipe ist Bewegung statt Erkundung.
-    _mobileMovementArmed = true;
-    _isExploring = false;
-
-    // Alte Hervorhebung entfernen.
-    setHighlightedObject(null);
+    inputManager.onDoubleTapDown(event);
   }
 
   @override
   void onDragCancel(DragCancelEvent event) {
     super.onDragCancel(event);
-
-    player.stopTouchMovement();
-    setHighlightedObject(null);
-
-    _isExploring = false;
-    _mobileMovementArmed = false;
-  }
-
-  void _handleTouchInput(Vector2 canvasPosition) {
-    if (state.selectedItem != null) return;
-
-    // 1. Die absolute, physikalische Mitte des Fensters/Bildschirms abgreifen
-    final Vector2 screenCenter = canvasSize / 2;
-
-    // 2. Richtung berechnen: Wo ist der Finger relativ zur Bildschirmmitte?
-    final Vector2 direction = canvasPosition - screenCenter;
-
-    // 3. Den reinen Richtungsvektor direkt an Hendrik übergeben
-    player.updateTouchVelocity(direction);
+    inputManager.onDragCancel(event);
   }
 }
