@@ -296,7 +296,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   }
 
   void useSelectedItemOnPlayer() {
-    final InventoryItem? item = game.selectedItem;
+    final InventoryItem? item = game.state.selectedItem;
 
     if (item == null) {
       return;
@@ -304,8 +304,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     switch (InventoryItemCatalogue.itemTypeForId(item.id)) {
       case InventoryItemType.mate:
-        game.ownedItems.remove(item);
-        game.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
+        game.state.ownedItems.remove(item);
+        game.state.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
         game.resetSelection();
         game.showPlayerMessage(
           '[b]Hendrik:[/b]\n\n'

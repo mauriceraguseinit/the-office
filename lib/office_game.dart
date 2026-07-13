@@ -17,6 +17,7 @@ import 'hud/speech_bubble.dart';
 import 'interactiveObjects/interactive_object.dart';
 import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'lighting_manager.dart';
+import 'managers/game_state.dart';
 import 'models/inventory_item.dart';
 
 class OfficeGame extends FlameGame<World>
@@ -30,19 +31,22 @@ class OfficeGame extends FlameGame<World>
         DragCallbacks,
         TapCallbacks,
         DoubleTapCallbacks {
+  final GameState state = GameState();
   bool _isZoomedOut = false;
   final ChangeNotifier overlayChangeNotifier = ChangeNotifier();
   final double _normalZoom = 2.5;
   final double _mapViewZoom = 1.5;
 
   late OfficeHud hud;
-  String _playerMessage = '';
-  List<InventoryItem> ownedItems = <InventoryItem>[];
-  InventoryItem? selectedItem;
   Vector2 mousePosition = Vector2.zero();
-  bool isDeskLocked = false;
+
+  // Convenience getters for GameState
+  List<InventoryItem> get ownedItems => state.ownedItems;
+  InventoryItem? get selectedItem => state.selectedItem;
+  InteractiveObject? get highlightedObject => state.highlightedObject;
+  bool get isDeskLocked => state.isDeskLocked;
+
   late Hendrik player;
-  InteractiveObject? highlightedObject;
   bool _mobileMovementArmed = false;
   bool _isExploring = false;
   bool get isTouchDevice {
@@ -50,43 +54,42 @@ class OfficeGame extends FlameGame<World>
   }
 
   void setHighlightedObject(InteractiveObject? object) {
-    if (highlightedObject == object) {
+    if (state.highlightedObject == object) {
       return;
     }
-    if (_isPlayerHighlighted) {
-      _isPlayerHighlighted = false;
+    if (state.isPlayerHighlighted) {
+      state.isPlayerHighlighted = false;
       player.setHighlighted(false);
     }
-    highlightedObject?.setHighlighted(false);
+    state.highlightedObject?.setHighlighted(false);
 
-    highlightedObject = object;
-    highlightedObject?.setHighlighted(true);
+    state.highlightedObject = object;
+    state.highlightedObject?.setHighlighted(true);
 
     _refreshInteractionHint();
   }
 
   late TiledComponent<FlameGame<World>> mapComponent;
-  bool _isPlayerHighlighted = false;
   void setPlayerHighlighted(bool highlighted) {
-    if (_isPlayerHighlighted == highlighted) {
+    if (state.isPlayerHighlighted == highlighted) {
       return;
     }
 
-    _isPlayerHighlighted = highlighted;
+    state.isPlayerHighlighted = highlighted;
     player.setHighlighted(highlighted);
 
     // Wenn Hendrik hervorgehoben wird, darf nicht gleichzeitig
     // ein anderes Objekt als Ziel markiert sein.
     if (highlighted) {
-      highlightedObject?.setHighlighted(false);
-      highlightedObject = null;
+      state.highlightedObject?.setHighlighted(false);
+      state.highlightedObject = null;
     }
 
     _refreshInteractionHint();
   }
 
   void showPlayerMessage(String message) {
-    _playerMessage = message;
+    state.setPlayerMessage(message);
 
     if (!overlays.isActive('playerMessage')) {
       overlays.add('playerMessage');
@@ -107,7 +110,7 @@ class OfficeGame extends FlameGame<World>
     overlays.addEntry(
       'playerMessage',
       (BuildContext context, Game game) => RetroSpeechBubble(
-        text: _playerMessage,
+        text: state.playerMessage,
         onClose: () => game.overlays.remove('playerMessage'),
       ),
     );
@@ -138,7 +141,7 @@ class OfficeGame extends FlameGame<World>
 
     overlays.add('intro');
 
-    ownedItems.add(
+    state.ownedItems.add(
       InventoryItemCatalogue.itemForId(InventoryItemType.mate),
     );
 
@@ -192,7 +195,7 @@ class OfficeGame extends FlameGame<World>
       return;
     }
 
-    if (selectedItem == null) {
+    if (state.selectedItem == null) {
       return;
     }
 
@@ -271,20 +274,22 @@ class OfficeGame extends FlameGame<World>
   }
 
   void selectItem(InventoryItem? item) {
-    selectedItem = item;
+    state.selectItem(item);
     _refreshInteractionHint();
     overlayChangeNotifier.notifyListeners();
   }
 
   void resetSelection() {
-    selectedItem = null;
+    state.resetSelection();
     _refreshInteractionHint();
     overlayChangeNotifier.notifyListeners();
   }
 
   String _buildInteractionHint() {
-    final String objectName = _isPlayerHighlighted ? 'Hendrik' : (highlightedObject?.displayName.trim() ?? '');
-    final InventoryItem? item = selectedItem;
+    final String objectName = state.isPlayerHighlighted
+        ? 'Hendrik'
+        : (state.highlightedObject?.displayName.trim() ?? '');
+    final InventoryItem? item = state.selectedItem;
 
     // Inventar offen: nur Objektname (oder leer), kein Benutze-Text.
     if (overlays.isActive('inventory')) {
@@ -309,9 +314,9 @@ class OfficeGame extends FlameGame<World>
   }
 
   void toggleScreenLock() {
-    isDeskLocked = !isDeskLocked;
+    state.toggleDeskLock();
     hud.updateStatusText(
-      isDeskLocked ? 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)' : 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)',
+      state.isDeskLocked ? 'PC-Status: SPERRT 🔒 (Sicher vor Kollegen)' : 'PC-Status: ENTSPERRT 🔓 (Kuchen-Gefahr!)',
     );
   }
 
@@ -434,7 +439,7 @@ class OfficeGame extends FlameGame<World>
   }
 
   void _handleTouchInput(Vector2 canvasPosition) {
-    if (selectedItem != null) return;
+    if (state.selectedItem != null) return;
 
     // 1. Die absolute, physikalische Mitte des Fensters/Bildschirms abgreifen
     final Vector2 screenCenter = canvasSize / 2;
