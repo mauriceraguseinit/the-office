@@ -58,34 +58,48 @@ class OfficeGame extends FlameGame<World>
   }
 
   void setHighlightedObject(InteractiveObject? object) {
-    if (state.highlightedObject == object) {
+    final bool playerWasHighlighted = state.isPlayerHighlighted;
+
+    // Nur abbrechen, wenn wirklich bereits exakt dieses Objekt
+    // aktiv ist UND Hendrik nicht noch markiert ist.
+    if (state.highlightedObject == object && !playerWasHighlighted) {
       return;
     }
-    if (state.isPlayerHighlighted) {
+
+    // Hendrik immer deaktivieren, bevor ein Weltobjekt aktiv wird.
+    if (playerWasHighlighted) {
       state.isPlayerHighlighted = false;
       player.setHighlighted(false);
     }
-    state.highlightedObject?.setHighlighted(false);
 
-    state.highlightedObject = object;
-    state.highlightedObject?.setHighlighted(true);
+    final InteractiveObject? previousObject = state.highlightedObject;
+
+    if (previousObject != object) {
+      previousObject?.setHighlighted(false);
+
+      state.highlightedObject = object;
+      object?.setHighlighted(true);
+    }
   }
 
   late TiledComponent<FlameGame<World>> mapComponent;
   void setPlayerHighlighted(bool highlighted) {
-    if (state.isPlayerHighlighted == highlighted) {
+    final bool samePlayerState = state.isPlayerHighlighted == highlighted;
+    final bool hasHighlightedObject = state.highlightedObject != null;
+
+    // Nur beenden, wenn wirklich bereits genau derselbe Zustand aktiv ist.
+    if (samePlayerState && !(highlighted && hasHighlightedObject)) {
       return;
+    }
+
+    if (highlighted) {
+      // Beim Wechsel zu Hendrik muss ein altes Weltobjekt weg.
+      state.highlightedObject?.setHighlighted(false);
+      state.highlightedObject = null;
     }
 
     state.isPlayerHighlighted = highlighted;
     player.setHighlighted(highlighted);
-
-    // Wenn Hendrik hervorgehoben wird, darf nicht gleichzeitig
-    // ein anderes Objekt als Ziel markiert sein.
-    if (highlighted) {
-      state.highlightedObject?.setHighlighted(false);
-      state.highlightedObject = null;
-    }
   }
 
   void showPlayerMessage(String message) {

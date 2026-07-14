@@ -10,7 +10,7 @@ import '../hendrik.dart';
 enum TriggerZoneDialogs { tooFar }
 
 abstract class InteractiveObject extends PositionComponent
-    with HasGameReference<OfficeGame>, HoverCallbacks, TapCallbacks, CollisionCallbacks {
+    with HasGameReference<OfficeGame>, TapCallbacks, CollisionCallbacks {
   InteractiveObject({
     required super.position,
     required PositionComponent renderComponent,
@@ -143,20 +143,6 @@ abstract class InteractiveObject extends PositionComponent
     }
 
     tryInteract();
-  }
-
-  @override
-  void onHoverEnter() {
-    if (!game.isTouchDevice) {
-      game.setHighlightedObject(this);
-    }
-  }
-
-  @override
-  void onHoverExit() {
-    if (!game.isTouchDevice && game.highlightedObject == this) {
-      game.setHighlightedObject(null);
-    }
   }
 
   void setHighlighted(bool highlighted) {

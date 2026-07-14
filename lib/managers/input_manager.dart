@@ -38,10 +38,73 @@ class InputManager {
     game.resetSelection();
   }
 
+  void clearHoverTarget() {
+    final InteractiveObject? previousObject = game.state.highlightedObject;
+
+    if (previousObject != null) {
+      previousObject.setHighlighted(false);
+      game.state.highlightedObject = null;
+    }
+
+    if (game.state.isPlayerHighlighted) {
+      game.state.isPlayerHighlighted = false;
+      game.player.setHighlighted(false);
+    }
+  }
+
+  void _updateDesktopHover(Vector2 worldPosition) {
+    InteractiveObject? hoveredObject;
+
+    // Falls sich mehrere Interaktionsflächen überlappen:
+    // Das Objekt mit der höchsten Render-Priorität gewinnt.
+    for (final InteractiveObject object in game.world.children.whereType<InteractiveObject>()) {
+      if (!object.containsPoint(worldPosition)) {
+        continue;
+      }
+
+      if (hoveredObject == null || object.priority >= hoveredObject.priority) {
+        hoveredObject = object;
+      }
+    }
+
+    // Interaktive Objekte haben Vorrang vor Hendrik.
+    // Das ist sinnvoll, wenn Hendrik direkt neben oder vor einer Toilette,
+    // einem Schreibtisch oder Tobi steht.
+    if (hoveredObject != null) {
+      game.setHighlightedObject(hoveredObject);
+      return;
+    }
+
+    // Nur wenn kein interaktives Objekt getroffen wurde,
+    // darf Hendrik das aktuelle Ziel sein.
+    if (game.player.containsPoint(worldPosition)) {
+      game.setPlayerHighlighted(true);
+      return;
+    }
+
+    // Cursor ist auf freier Fläche.
+    clearHoverTarget();
+  }
+
   void onMouseMove(PointerHoverInfo info) {
+    final Vector2 widgetPosition = info.eventPosition.widget;
+
+    // Position für das am Cursor hängende Inventar-Item.
     game.mousePositionWidget = game.camera.viewport.globalToLocal(
-      info.eventPosition.widget,
+      widgetPosition,
     );
+
+    // Während Dialogen oder Inventar soll kein Ziel in der Welt leuchten.
+    if (game.overlays.activeOverlays.isNotEmpty) {
+      clearHoverTarget();
+      return;
+    }
+
+    // Die Mausposition aus dem Widget-/Canvas-Raum in Weltkoordinaten
+    // umrechnen und bei jeder Mausbewegung das Ziel neu bestimmen.
+    final Vector2 worldPosition = game.camera.globalToLocal(widgetPosition);
+
+    _updateDesktopHover(worldPosition);
   }
 
   void onSecondaryTapDown(SecondaryTapDownEvent event) {

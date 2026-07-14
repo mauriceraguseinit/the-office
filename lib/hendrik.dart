@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/events.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
 
@@ -16,7 +15,7 @@ import 'utils/assets.dart';
 enum Direction { left, right, up, down }
 
 class Hendrik extends SpriteAnimationGroupComponent<Direction>
-    with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks, HoverCallbacks {
+    with KeyboardHandler, HasGameReference<OfficeGame>, CollisionCallbacks {
   Hendrik({required Vector2 position}) : super(position: position, size: Vector2.all(boxSize));
 
   final GameState _state = sl<GameState>();
@@ -283,20 +282,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     }
 
     return false;
-  }
-
-  @override
-  void onHoverEnter() {
-    if (!game.isTouchDevice) {
-      game.setPlayerHighlighted(true);
-    }
-  }
-
-  @override
-  void onHoverExit() {
-    if (!game.isTouchDevice) {
-      game.setPlayerHighlighted(false);
-    }
   }
 
   void useSelectedItemOnPlayer() {
