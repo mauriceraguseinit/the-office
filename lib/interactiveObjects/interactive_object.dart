@@ -50,7 +50,10 @@ abstract class InteractiveObject extends PositionComponent
     await super.onLoad();
 
     anchor = Anchor.center;
-    _renderComponent.anchor = Anchor.center;
+    _renderComponent
+      ..anchor = Anchor.center
+      ..position = size / 2;
+
     priority = y.toInt() + priorityOffset;
 
     // Diese Hitbox ist nur für die Spieler-Nähe/Kollision zuständig.

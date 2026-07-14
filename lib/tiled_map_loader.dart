@@ -236,13 +236,27 @@ mixin TiledMapLoader on FlameGame<World> {
 
     // collision objects layer
     final ObjectGroup? collisionLayer = mapComponent.tileMap.getLayer<ObjectGroup>('collision');
+
     collisionLayer?.objects.forEach((TiledObject object) {
+      // Rechteckobjekte aus dem separaten Tiled-Layer "collision"
+      // verwenden x/y als obere linke Ecke.
       final PositionComponent staticObstacle = PositionComponent(
         position: Vector2(object.x, object.y),
         size: Vector2(object.width, object.height),
-      )..add(RectangleHitbox()..debugMode = false);
-      staticObstacle.priority = 1;
-      world.add(staticObstacle..debugMode = false);
+        anchor: Anchor.topLeft,
+        priority: 1,
+      );
+
+      staticObstacle.add(
+        RectangleHitbox(
+          position: Vector2.zero(),
+          size: staticObstacle.size,
+          anchor: Anchor.topLeft,
+          collisionType: CollisionType.active,
+        )..debugMode = false,
+      );
+
+      world.add(staticObstacle);
     });
 
     // interactive objects layers
@@ -305,24 +319,32 @@ mixin TiledMapLoader on FlameGame<World> {
       className: object.class_,
       displayName: object.name,
       renderComponent: renderComp,
-      position: _getTiledObjectCenter(
-        object: object,
-      ),
+      position: _getTiledObjectCenter(object: object),
       size: objectSize,
       priorityOffset: priorityOffset,
     );
 
     if (interactiveObject != null) {
       interactiveObject.angle = angle;
+
+      // Collision-Hitbox an den eigentlichen InteractiveObject-Wrapper hängen.
       _addTileCollisionHitboxes(
         interactiveObject,
         tile,
         sourceTileSize,
       );
+
       world.add(interactiveObject);
     } else {
-      // 3. Fallback: Nur als Deko/Hindernis hinzufügen, wenn es kein interaktives Objekt ist
-      _setupAsDecoration(world, renderComp, object, angle, priorityOffset, tile, sourceTileSize);
+      _setupAsDecoration(
+        world,
+        renderComp,
+        object,
+        angle,
+        priorityOffset,
+        tile,
+        sourceTileSize,
+      );
     }
   }
 
@@ -337,16 +359,10 @@ mixin TiledMapLoader on FlameGame<World> {
 
     final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
 
-    // Das Objekt kann in Tiled skaliert sein.
     final double scaleX = component.size.x / sourceTileSize.x;
     final double scaleY = component.size.y / sourceTileSize.y;
 
     for (final TiledObject tiledObject in objectGroup.objects) {
-      // Die Kollisionsform aus Tiled ist relativ zur oberen linken Ecke
-      // des Original-Sprites definiert.
-      //
-      // Da Flame-Komponenten hier mit Anchor.center arbeiten, wird die
-      // Position anschließend in lokale Mittelpunkt-Koordinaten umgerechnet.
       final Vector2 hitboxPosition = Vector2(
         tiledObject.x * scaleX,
         tiledObject.y * scaleY,
@@ -362,7 +378,7 @@ mixin TiledMapLoader on FlameGame<World> {
           position: hitboxPosition,
           size: hitboxSize,
           collisionType: CollisionType.active,
-        )..debugMode = false,
+        )..debugMode = true,
       );
     }
   }
@@ -445,11 +461,6 @@ mixin TiledMapLoader on FlameGame<World> {
   Vector2 _getTiledObjectCenter({
     required TiledObject object,
   }) {
-    // In dieser TMX-Konstellation sind x/y die obere linke Ecke
-    // der platzierten Objektfläche.
-    return Vector2(
-      object.x + object.width / 2,
-      object.y + object.height / 2,
-    );
+    return Vector2(object.x, object.y);
   }
 }
