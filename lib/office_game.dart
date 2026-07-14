@@ -9,7 +9,6 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:the_office/interactiveObjects/inventory_item_catalogue.dart';
 import 'package:the_office/tiled_map_loader.dart';
 import 'package:the_office/utils/assets.dart';
 import 'package:the_office/utils/config.dart';

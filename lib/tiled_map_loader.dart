@@ -77,57 +77,6 @@ mixin TiledMapLoader on FlameGame<World> {
     return true;
   }
 
-  /// Erstellt ein Hindernis fuer ein Tiled-Tile-Objekt mit Center-Anchor.
-  ///
-  /// Bei diesen Objekten ist [centerX]/[centerY] die Weltposition des
-  /// Mittelpunkts. Das entspricht deiner Flame-Darstellung mit Anchor.center.
-  Path64 _createCenterAnchoredColliderPath({
-    required double centerX,
-    required double centerY,
-    required double width,
-    required double height,
-    required double rotationDegrees,
-    double padding = 0.0,
-  }) {
-    final double halfWidth = (width / 2) + padding;
-    final double halfHeight = (height / 2) + padding;
-
-    final double angle = Units.radFromDegree(rotationDegrees);
-    final double cosAngle = cos(angle);
-    final double sinAngle = sin(angle);
-
-    Vector2 rotateAroundCenter(Vector2 point) {
-      final double dx = point.x - centerX;
-      final double dy = point.y - centerY;
-
-      return Vector2(
-        centerX + (dx * cosAngle) - (dy * sinAngle),
-        centerY + (dx * sinAngle) + (dy * cosAngle),
-      );
-    }
-
-    // Zuerst die vier Ecken relativ zum Objektmittelpunkt.
-    final List<Vector2> corners = <Vector2>[
-      Vector2(centerX - halfWidth, centerY - halfHeight),
-      Vector2(centerX + halfWidth, centerY - halfHeight),
-      Vector2(centerX + halfWidth, centerY + halfHeight),
-      Vector2(centerX - halfWidth, centerY + halfHeight),
-    ];
-
-    final List<Vector2> rotatedCorners = corners.map(rotateAroundCenter).toList();
-
-    return Path64Ext.from(<int>[
-      rotatedCorners[0].x.round(),
-      rotatedCorners[0].y.round(),
-      rotatedCorners[1].x.round(),
-      rotatedCorners[1].y.round(),
-      rotatedCorners[2].x.round(),
-      rotatedCorners[2].y.round(),
-      rotatedCorners[3].x.round(),
-      rotatedCorners[3].y.round(),
-    ]);
-  }
-
   /// Erstellt ein gedrehtes Rechteck als Clipper-Polygon.
   ///
   /// Tiled speichert die Rotation in Grad. Der Drehpunkt eines
@@ -686,7 +635,7 @@ mixin TiledMapLoader on FlameGame<World> {
       );
 
       world.add(interactiveObject);
-      return interactiveObject; // <-- EXTREM WICHTIG!
+      return interactiveObject;
     } else {
       return _setupAsDecoration(
         world,
@@ -697,7 +646,6 @@ mixin TiledMapLoader on FlameGame<World> {
         tile,
         sourceTileSize,
       );
-      return null; // Dekorationen sind keine InteractiveObjects
     }
   }
 
@@ -929,6 +877,67 @@ mixin TiledMapLoader on FlameGame<World> {
     ]);
   }
 
+  /// Sucht einen Pfad zum Klickziel.
+  /// Ist das Klickziel blockiert, wird der nächstgelegene erreichbare
+  /// Rasterpunkt um das Hindernis herum verwendet.
+  List<Vector2> findPath(Vector2 start, Vector2 end) {
+    const double nodeSize = 32.0;
+    const int maxSearchRadius = 24;
+
+    final int targetX = (end.x / nodeSize).round();
+    final int targetY = (end.y / nodeSize).round();
+
+    // Zuerst versuchen wir das normale Ziel.
+    final List<Vector2> directPath = _findPathToWalkableTarget(start, end);
+
+    if (directPath.isNotEmpty) {
+      return directPath;
+    }
+
+    // Das Ziel liegt vermutlich in einem Objekt oder einer Wand.
+    // Wir suchen ringförmig die nächstgelegenen begehbaren Rasterpunkte.
+    for (int radius = 1; radius <= maxSearchRadius; radius++) {
+      final List<Vector2> candidates = <Vector2>[];
+
+      for (int dx = -radius; dx <= radius; dx++) {
+        for (int dy = -radius; dy <= radius; dy++) {
+          // Nur den äußeren Ring prüfen.
+          if (max(dx.abs(), dy.abs()) != radius) {
+            continue;
+          }
+
+          final Vector2 candidate = Vector2(
+            (targetX + dx) * nodeSize,
+            (targetY + dy) * nodeSize,
+          );
+
+          if (isPositionWalkable(candidate)) {
+            candidates.add(candidate);
+          }
+        }
+      }
+
+      // Von den Kandidaten dieses Rings zuerst denjenigen testen,
+      // der geometrisch am nächsten an der Klickposition liegt.
+      candidates.sort(
+        (Vector2 a, Vector2 b) => a.distanceTo(end).compareTo(b.distanceTo(end)),
+      );
+
+      for (final Vector2 candidate in candidates) {
+        final List<Vector2> path = _findPathToWalkableTarget(
+          start,
+          candidate,
+        );
+
+        if (path.isNotEmpty) {
+          return path;
+        }
+      }
+    }
+
+    return <Vector2>[];
+  }
+
   /// Berechnet das NavMesh beim Laden der Map
   void _bakeNavMesh(
     RenderableTiledMap tileMap,
@@ -974,7 +983,7 @@ mixin TiledMapLoader on FlameGame<World> {
     debugPrint('🎉 NavMesh erfolgreich gebacken! Subpolygone: ${_walkableNavMesh?.length}');
   }
 
-  List<Vector2> findPath(Vector2 start, Vector2 end) {
+  List<Vector2> _findPathToWalkableTarget(Vector2 start, Vector2 end) {
     const double nodeSize = 32.0; // Rastergröße
 
     // Start- und Zielkoordinaten auf das Raster umrechnen
@@ -986,8 +995,13 @@ mixin TiledMapLoader on FlameGame<World> {
     final _AStarNode startNode = _AStarNode(startX, startY);
     final _AStarNode endNode = _AStarNode(endX, endY);
 
-    // Falls das Ziel blockiert ist, brechen wir ab
-    if (!isPositionWalkable(end)) {
+    // Das Ziel ist ein Rasterpunkt, nicht zwingend die exakte Klickposition.
+    final Vector2 endWorldPosition = Vector2(
+      endX * nodeSize,
+      endY * nodeSize,
+    );
+
+    if (!isPositionWalkable(endWorldPosition)) {
       return <Vector2>[];
     }
 
