@@ -53,7 +53,7 @@ class CoffeeMachine extends InteractiveObject {
 
     if (activeItem != null) {
       if (activeItem.id == 'kaffee') {
-        game.ownedItems.remove(activeItem);
+        game.inventory.remove(activeItem);
         game.overlays.add(CoffeeMachineDialogs.thanks.toString());
       } else if (activeItem.id == 'mate') {
         game.overlays.add(CoffeeMachineDialogs.noMate.toString());

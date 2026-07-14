@@ -9,6 +9,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:the_office/interactiveObjects/inventory_item_catalogue.dart';
 import 'package:the_office/tiled_map_loader.dart';
 import 'package:the_office/utils/assets.dart';
 import 'package:the_office/utils/config.dart';
@@ -47,7 +48,7 @@ class OfficeGame extends FlameGame<World>
   Vector2 mousePosition = Vector2.zero();
 
   // Convenience getters for GameState
-  List<InventoryItem> get ownedItems => state.ownedItems;
+  List<InventoryItem> get inventory => state.ownedItems;
   InventoryItem? get selectedItem => state.selectedItem;
   InteractiveObject? get highlightedObject => state.highlightedObject;
   bool get isDeskLocked => state.isDeskLocked;
@@ -271,7 +272,25 @@ class OfficeGame extends FlameGame<World>
   @override
   void onDoubleTapDown(DoubleTapDownEvent event) {
     super.onDoubleTapDown(event);
-    inputManager.onDoubleTapDown(event);
+
+    // 1. Klick-Position von Bildschirm- in Weltkoordinaten umrechnen
+    final Vector2 targetWorldPos = camera.globalToLocal(event.canvasPosition);
+
+    // 2. Startpunkt sind Hendriks Füße
+    final Vector2 playerFeet = Vector2(
+      player.position.x,
+      player.position.y + (player.size.y * 0.3), // 30% unter der Mitte statt 50%
+    );
+
+    // 3. Weg berechnen lassen
+    final List<Vector2> path = findPath(playerFeet, targetWorldPos);
+
+    if (path.isNotEmpty) {
+      // 4. Hendrik den Pfad zuweisen!
+      player.setAutoPath(path);
+    } else {
+      debugPrint('❌ Kein begehbarer Weg zu diesem Punkt gefunden!');
+    }
   }
 
   @override

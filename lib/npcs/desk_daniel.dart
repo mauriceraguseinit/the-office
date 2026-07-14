@@ -58,7 +58,7 @@ class DeskDaniel extends InteractiveObject {
     if (activeItem != null) {
       if (activeItem.id == 'kaffee') {
         debugPrint("Daniel: 'Oh danke! Der Kaffee rettet meinen Tag!'");
-        game.ownedItems.remove(activeItem);
+        game.inventory.remove(activeItem);
       } else if (activeItem.id == 'mate') {
         game.overlays.add(DanielDialogs.mate.toString());
       } else {

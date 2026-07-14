@@ -27,12 +27,12 @@ class Fridge extends InteractiveObject {
               {
                 String returnText = '[b]Hendrik:[/b]\n\nUuhhh eine kalte Mate!';
 
-                if (this.game.ownedItems
+                if (this.game.inventory
                     .where((InventoryItem item) => item.id == InventoryItemType.mate.toString())
                     .isNotEmpty) {
                   returnText = '[b]Hendrik:[/b]\n\nmmhh... nichts was ich nicht schon habe.';
                 } else {
-                  this.game.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mate));
+                  this.game.inventory.add(InventoryItemCatalogue.itemForId(InventoryItemType.mate));
                 }
                 return RetroSpeechBubble(
                   text: returnText,

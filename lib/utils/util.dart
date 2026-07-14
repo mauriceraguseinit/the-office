@@ -8,6 +8,10 @@ class Units {
   static double radFromDegree(double degree) {
     return degree * degreeOne;
   }
+
+  static double degFromRad(double rad) {
+    return rad / degreeOne;
+  }
 }
 
 enum Layers {

@@ -67,15 +67,15 @@ class Toilet extends InteractiveObject {
 
     if (activeItem != null) {
       if (activeItem.id == 'kaffee') {
-        game.ownedItems.remove(activeItem);
+        game.inventory.remove(activeItem);
         game.overlays.add(ToiletDialogs.thanks.toString());
       } else if (activeItem.id == InventoryItemType.mate.toString()) {
-        officeGame.ownedItems.remove(activeItem);
-        officeGame.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
+        officeGame.inventory.remove(activeItem);
+        officeGame.inventory.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
         game.overlays.add(ToiletDialogs.mate.toString());
       } else if (activeItem.id == InventoryItemType.mateEmpty.toString()) {
-        officeGame.ownedItems.remove(activeItem);
-        officeGame.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateWater));
+        officeGame.inventory.remove(activeItem);
+        officeGame.inventory.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateWater));
         game.overlays.add(ToiletDialogs.emptyMate.toString());
       } else {
         game.overlays.add(ToiletDialogs.wrongItem.toString());

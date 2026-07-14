@@ -75,11 +75,11 @@ class Tobi extends InteractiveObject {
     if (activeItem != null) {
       if (activeItem.id == 'kaffee') {
         debugPrint("Tobi: 'Oh danke! Der Kaffee rettet meinen Tag!'");
-        game.ownedItems.remove(activeItem);
+        game.inventory.remove(activeItem);
       } else if (activeItem.id == InventoryItemType.mate.toString()) {
         game.overlays.add(TobiDialogs.noMate.toString());
       } else if (activeItem.id == InventoryItemType.mateWater.toString()) {
-        game.ownedItems.remove(activeItem);
+        game.inventory.remove(activeItem);
         game.world.remove(this);
         game.overlays.add(TobiDialogs.mateWater.toString());
       } else {

@@ -78,8 +78,13 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     );
 
     if (hasActiveCollision) {
-      // Schiebe Hendrik ein Stück zurück, um nicht im Objekt stecken zu bleiben
-      position -= _velocity * _speed * _currentDt;
+      // Automatische Bewegung beenden, wenn trotzdem eine Collision auftritt.
+      _autoPath.clear();
+
+      // Bei manueller Bewegung den letzten Schritt zuruecknehmen.
+      if (_velocity.length > 0) {
+        position -= _velocity * _speed * _currentDt;
+      }
     }
   }
 
@@ -219,22 +224,99 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   /// Stoppt die Touch-Bewegung beim Loslassen des Bildschirms
 
+  // --- NEU: Liste für die automatischen Wegpunkte ---
+  List<Vector2> _autoPath = <Vector2>[];
+
+  /// Setzt einen neuen automatischen Pfad für Hendrik
+  void setAutoPath(List<Vector2> path) {
+    _autoPath = List<Vector2>.from(path);
+  }
+
   @override
   void update(double dt) {
     _currentDt = dt;
 
-    // HINWEIS: Sämtlicher alter TouchTarget-Code wurde entfernt!
-    // Die Velocity wird jetzt rein über updateTouchVelocity von außen gesteuert.
-
-    // --- BEWEGUNG AUSFÜHREN ---
+    // Falls manuelle Eingaben aktiv sind, brechen wir den automatischen Weg sofort ab
     if (_velocity.length > 0) {
-      super.update(dt);
-      position += _velocity * _speed * dt;
-    } else {
-      super.update(0); // Animation im Stand einfrieren
+      _autoPath.clear();
     }
 
-    priority = (y + height / 2).toInt(); // Dynamisches Y-Sorting
+    // --- AUTOMATISCHES LAUFEN (PATHFINDING) ---
+    if (_autoPath.isNotEmpty && _velocity.length == 0) {
+      // Aktualisiert den SpriteAnimationTicker.
+      // Ohne diesen Aufruf bleibt die Laufanimation stehen.
+      super.update(dt);
+
+      final Vector2 target = _autoPath.first;
+      final Vector2 currentFeet = _feetAt(position);
+
+      final double distance = currentFeet.distanceTo(target);
+
+      if (distance < 8.0) {
+        // Wegpunkt erreicht: Nächsten Wegpunkt anlaufen.
+        _autoPath.removeAt(0);
+      } else {
+        final Vector2 directionToTarget = (target - currentFeet).normalized();
+
+        if (directionToTarget.x.abs() > directionToTarget.y.abs()) {
+          current = directionToTarget.x > 0 ? Direction.right : Direction.left;
+        } else {
+          current = directionToTarget.y > 0 ? Direction.down : Direction.up;
+        }
+
+        // Nicht weiter als bis zum Wegpunkt laufen.
+        final double stepLength = (_speed * dt).clamp(0.0, distance);
+        final Vector2 movement = directionToTarget * stepLength;
+
+        final Vector2 nextPosition = position + movement;
+        final Vector2 nextFeet = _feetAt(nextPosition);
+
+        // Wichtig: Nicht nur den Endpunkt, sondern die gesamte Strecke testen.
+        if (game.canWalkBetween(currentFeet, nextFeet)) {
+          position = nextPosition;
+        } else {
+          // Der Pfad ist ungueltig oder ein Hindernis wurde erreicht.
+          _autoPath.clear();
+        }
+      }
+    }
+    // --- MANUELLES LAUFEN (TASTATUR/JOYSTICK) ---
+    else if (_velocity.length > 0) {
+      super.update(dt);
+
+      final Vector2 movement = _velocity * _speed * dt;
+      final Vector2 currentFeet = _feetAt(position);
+      final Vector2 nextPosition = position + movement;
+      final Vector2 nextFeet = _feetAt(nextPosition);
+
+      if (game.canWalkBetween(currentFeet, nextFeet)) {
+        position = nextPosition;
+      } else {
+        // Wall-Sliding: erst nur die X-, dann nur die Y-Achse versuchen.
+        final Vector2 slideX = Vector2(nextPosition.x, position.y);
+        final Vector2 slideY = Vector2(position.x, nextPosition.y);
+
+        final Vector2 feetSlideX = _feetAt(slideX);
+        final Vector2 feetSlideY = _feetAt(slideY);
+
+        if (game.canWalkBetween(currentFeet, feetSlideX)) {
+          position.x = nextPosition.x;
+        } else if (game.canWalkBetween(currentFeet, feetSlideY)) {
+          position.y = nextPosition.y;
+        }
+      }
+    } else {
+      super.update(0); // Stehen bleiben (Animation einfrieren)
+    }
+
+    priority = (y + height / 2).toInt();
+  }
+
+  Vector2 _feetAt(Vector2 componentPosition) {
+    return Vector2(
+      componentPosition.x,
+      componentPosition.y + (size.y * 0.3),
+    );
   }
 
   @override
