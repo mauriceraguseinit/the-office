@@ -17,7 +17,6 @@ import 'hendrik.dart';
 import 'hud/office_hud.dart';
 import 'hud/speech_bubble.dart';
 import 'interactiveObjects/interactive_object.dart';
-import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'lighting_manager.dart';
 import 'managers/audio_manager.dart';
 import 'managers/game_state.dart';
@@ -142,10 +141,6 @@ class OfficeGame extends FlameGame<World>
     player = loadedPlayer;
 
     overlays.add('intro');
-
-    state.ownedItems.add(
-      InventoryItemCatalogue.itemForId(InventoryItemType.mate),
-    );
 
     //camera configuration
     camera.viewport = FixedResolutionViewport(

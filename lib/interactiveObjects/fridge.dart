@@ -4,8 +4,9 @@ import 'package:the_office/hud/speech_bubble.dart';
 import 'package:the_office/models/inventory_item.dart';
 
 import 'interactive_object.dart';
+import 'inventory_item_catalogue.dart';
 
-enum FridgeDialogs { normalAction, thanks, wrongItem, noMate }
+enum FridgeDialogs { normalAction, wrongItem }
 
 class Fridge extends InteractiveObject {
   Fridge({
@@ -23,23 +24,24 @@ class Fridge extends InteractiveObject {
         value.toString(): (BuildContext context, Game game) {
           switch (value) {
             case FridgeDialogs.normalAction:
-              return RetroSpeechBubble(
-                text: '[b]Kühlschrank:[/b]\n\nDefekt!',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
+              {
+                String returnText = '[b]Hendrik:[/b]\n\nUuhhh eine kalte Mate!';
+
+                if (this.game.ownedItems
+                    .where((InventoryItem item) => item.id == InventoryItemType.mate.toString())
+                    .isNotEmpty) {
+                  returnText = '[b]Hendrik:[/b]\n\nmmhh... nichts was ich nicht schon habe.';
+                } else {
+                  this.game.ownedItems.add(InventoryItemCatalogue.itemForId(InventoryItemType.mate));
+                }
+                return RetroSpeechBubble(
+                  text: returnText,
+                  onClose: () => game.overlays.remove(value.toString()),
+                );
+              }
             case FridgeDialogs.wrongItem:
               return RetroSpeechBubble(
                 text: '[b]Kühlschrank:[/b]\n\nDas gehört hier nicht rein.',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-            case FridgeDialogs.noMate:
-              return RetroSpeechBubble(
-                text: '[b]Kühlschrank:[/b]\n\nGluckert protestierend.',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-            case FridgeDialogs.thanks:
-              return RetroSpeechBubble(
-                text: '[b]Kühlschrank:[/b]\n\nSpült dankbar.',
                 onClose: () => game.overlays.remove(value.toString()),
               );
           }
@@ -52,12 +54,7 @@ class Fridge extends InteractiveObject {
     final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
-      if (activeItem.id == 'kaffee') {
-        game.ownedItems.remove(activeItem);
-        game.overlays.add(FridgeDialogs.thanks.toString());
-      } else if (activeItem.id == 'mate') {
-        game.overlays.add(FridgeDialogs.noMate.toString());
-      } else {
+      {
         game.overlays.add(FridgeDialogs.wrongItem.toString());
       }
       game.resetSelection();
