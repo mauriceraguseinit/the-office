@@ -378,7 +378,7 @@ mixin TiledMapLoader on FlameGame<World> {
           position: hitboxPosition,
           size: hitboxSize,
           collisionType: CollisionType.active,
-        )..debugMode = true,
+        )..debugMode = false,
       );
     }
   }
