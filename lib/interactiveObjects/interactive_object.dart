@@ -229,7 +229,5 @@ abstract class InteractiveObject extends PositionComponent
   void onRemove() {
     game.removeInteractiveObjectFromNavMesh(this);
     super.onRemove();
-    // NavMesh neu generieren, da Tobi jetzt weg ist
-    game.rebuildNavMesh();
   }
 }

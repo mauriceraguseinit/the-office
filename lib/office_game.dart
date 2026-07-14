@@ -121,7 +121,7 @@ class OfficeGame extends FlameGame<World>
       loop: true,
       volume: 0.05,
     );
-
+    // inventory.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateWater));
     overlays.addEntry(
       TriggerZoneDialogs.tooFar.toString(),
       (BuildContext context, Game game) => RetroSpeechBubble(

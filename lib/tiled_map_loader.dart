@@ -972,8 +972,8 @@ mixin TiledMapLoader on FlameGame<World> {
     );
 
     // --- ALTEN VISUALIZER ENTFERNEN ---
-    if (_activeVisualizer != null) {
-      world.remove(_activeVisualizer!);
+    if (_activeVisualizer != null && _activeVisualizer!.isMounted) {
+      _activeVisualizer!.removeFromParent();
     }
 
     // --- NEUEN VISUALIZER HINZUFÜGEN ---
