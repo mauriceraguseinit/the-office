@@ -287,7 +287,12 @@ mixin TiledMapLoader on FlameGame<World> {
     final int cleanGid = object.gid! & 0x0FFFFFFF;
     final Tile? tile = tileMap.map.tileByGid(cleanGid);
 
-    if (tile == null) return;
+    if (tile == null) {
+      return;
+    }
+
+    final Tileset tileset = tileMap.map.tilesetByTileGId(cleanGid);
+    final Vector2 sourceTileSize = _getSourceTileSize(tile, tileset);
 
     final Vector2 objectSize = Vector2(object.width, object.height);
     final double angle = Units.radFromDegree(object.rotation);
@@ -300,40 +305,65 @@ mixin TiledMapLoader on FlameGame<World> {
       className: object.class_,
       displayName: object.name,
       renderComponent: renderComp,
-      position: _getTiledObjectCenter(object: object, angle: angle),
+      position: _getTiledObjectCenter(
+        object: object,
+      ),
       size: objectSize,
       priorityOffset: priorityOffset,
     );
 
     if (interactiveObject != null) {
       interactiveObject.angle = angle;
-      _addTileCollisionHitboxes(interactiveObject, tile, objectSize);
+      _addTileCollisionHitboxes(
+        interactiveObject,
+        tile,
+        sourceTileSize,
+      );
       world.add(interactiveObject);
     } else {
       // 3. Fallback: Nur als Deko/Hindernis hinzufügen, wenn es kein interaktives Objekt ist
-      _setupAsDecoration(world, renderComp, object, angle, priorityOffset, tile);
+      _setupAsDecoration(world, renderComp, object, angle, priorityOffset, tile, sourceTileSize);
     }
   }
 
-  void _addTileCollisionHitboxes(PositionComponent component, Tile tile, Vector2 size) {
-    if (tile.objectGroup != null && tile.objectGroup is ObjectGroup) {
-      final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
-      for (final TiledObject tiledObject in objectGroup.objects) {
-        // Tiled-Koordinaten sind relativ zum Top-Left (0,0) des Tiles.
-        // Da unsere Komponenten Anchor.center nutzen, müssen wir den Offset berechnen.
-        final Vector2 hitboxPos = Vector2(
-          tiledObject.x - size.x / 2,
-          tiledObject.y - size.y / 2,
-        );
+  void _addTileCollisionHitboxes(
+    PositionComponent component,
+    Tile tile,
+    Vector2 sourceTileSize,
+  ) {
+    if (tile.objectGroup is! ObjectGroup) {
+      return;
+    }
 
-        component.add(
-          RectangleHitbox(
-            position: hitboxPos,
-            size: Vector2(tiledObject.width, tiledObject.height),
-            collisionType: CollisionType.active, // Active, damit Hendrik blockiert wird
-          )..debugMode = false,
-        );
-      }
+    final ObjectGroup objectGroup = tile.objectGroup as ObjectGroup;
+
+    // Das Objekt kann in Tiled skaliert sein.
+    final double scaleX = component.size.x / sourceTileSize.x;
+    final double scaleY = component.size.y / sourceTileSize.y;
+
+    for (final TiledObject tiledObject in objectGroup.objects) {
+      // Die Kollisionsform aus Tiled ist relativ zur oberen linken Ecke
+      // des Original-Sprites definiert.
+      //
+      // Da Flame-Komponenten hier mit Anchor.center arbeiten, wird die
+      // Position anschließend in lokale Mittelpunkt-Koordinaten umgerechnet.
+      final Vector2 hitboxPosition = Vector2(
+        tiledObject.x * scaleX,
+        tiledObject.y * scaleY,
+      );
+
+      final Vector2 hitboxSize = Vector2(
+        tiledObject.width * scaleX,
+        tiledObject.height * scaleY,
+      );
+
+      component.add(
+        RectangleHitbox(
+          position: hitboxPosition,
+          size: hitboxSize,
+          collisionType: CollisionType.active,
+        )..debugMode = false,
+      );
     }
   }
 
@@ -377,6 +407,7 @@ mixin TiledMapLoader on FlameGame<World> {
     double angle,
     int priorityOffset,
     Tile tile,
+    Vector2 sourceTileSize,
   ) {
     renderComp
       ..anchor = Anchor.center
@@ -384,30 +415,41 @@ mixin TiledMapLoader on FlameGame<World> {
       ..angle = angle
       ..priority = object.y.toInt() + priorityOffset;
 
-    _addTileCollisionHitboxes(renderComp, tile, renderComp.size);
+    _addTileCollisionHitboxes(
+      renderComp,
+      tile,
+      sourceTileSize,
+    );
     world.add(renderComp);
+  }
+
+  Vector2 _getSourceTileSize(Tile tile, Tileset tileset) {
+    final dynamic image = tile.image;
+
+    // Einzelbild-Tiles wie Kühlschrank oder Kaffeemaschine
+    // haben ihre tatsächliche Sprite-Größe direkt am Tile.
+    if (image != null) {
+      return Vector2(
+        image.width.toDouble(),
+        image.height.toDouble(),
+      );
+    }
+
+    // Spritesheets wie Tobi/Daniel verwenden die Tileset-Tile-Größe.
+    return Vector2(
+      tileset.tileWidth!.toDouble(),
+      tileset.tileHeight!.toDouble(),
+    );
   }
 
   Vector2 _getTiledObjectCenter({
     required TiledObject object,
-    required double angle,
   }) {
-    final Vector2 localCenter = Vector2(
-      object.width / 2,
-      object.height / 2,
-    );
-
-    final double cosA = cos(angle);
-    final double sinA = sin(angle);
-
-    final Vector2 rotatedCenter = Vector2(
-      localCenter.x * cosA - localCenter.y * sinA,
-      localCenter.x * sinA + localCenter.y * cosA,
-    );
-
+    // In dieser TMX-Konstellation sind x/y die obere linke Ecke
+    // der platzierten Objektfläche.
     return Vector2(
-      object.x + rotatedCenter.x,
-      object.y + rotatedCenter.y,
+      object.x + object.width / 2,
+      object.y + object.height / 2,
     );
   }
 }

@@ -102,7 +102,7 @@ class OfficeGame extends FlameGame<World>
     registerGameInstance(this);
     inputManager = InputManager(this);
     super.onLoad();
-
+    debugMode = true;
     _bgmPlayer = await sl<AudioManager>().playBgm(
       GameAudio.background,
       loop: true,
