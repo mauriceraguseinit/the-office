@@ -78,12 +78,12 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     );
 
     if (hasActiveCollision) {
-      // Automatische Bewegung beenden, wenn trotzdem eine Collision auftritt.
-      _autoPath.clear();
-
-      // Bei manueller Bewegung den letzten Schritt zuruecknehmen.
       if (_velocity.length > 0) {
+        // Manuelle Bewegung zurücknehmen.
         position -= _velocity * _speed * _currentDt;
+      } else if (_autoPath.isNotEmpty) {
+        // Auto-Pfad nicht sofort abbrechen, sondern neu berechnen.
+        _tryRepath();
       }
     }
   }
@@ -226,10 +226,41 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   // --- NEU: Liste für die automatischen Wegpunkte ---
   List<Vector2> _autoPath = <Vector2>[];
+  Vector2? _autoDestination;
+  int _autoRepathAttempts = 0;
+
+  static const int _maxAutoRepathAttempts = 3;
 
   /// Setzt einen neuen automatischen Pfad für Hendrik
   void setAutoPath(List<Vector2> path) {
     _autoPath = List<Vector2>.from(path);
+
+    _autoDestination = path.isEmpty ? null : path.last.clone();
+    _autoRepathAttempts = 0;
+  }
+
+  void _tryRepath() {
+    final Vector2? destination = _autoDestination;
+
+    if (destination == null || _autoRepathAttempts >= _maxAutoRepathAttempts) {
+      _autoPath.clear();
+      return;
+    }
+
+    _autoRepathAttempts++;
+
+    final List<Vector2> newPath = game.findPath(
+      _feetAt(position),
+      destination,
+    );
+
+    if (newPath.isEmpty) {
+      _autoPath.clear();
+      return;
+    }
+
+    // Ziel nicht überschreiben: Es bleibt der ursprünglich erreichbare Zielpunkt.
+    _autoPath = newPath;
   }
 
   @override
@@ -274,9 +305,25 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
         // Wichtig: Nicht nur den Endpunkt, sondern die gesamte Strecke testen.
         if (game.canWalkBetween(currentFeet, nextFeet)) {
           position = nextPosition;
+          _autoRepathAttempts = 0;
         } else {
-          // Der Pfad ist ungueltig oder ein Hindernis wurde erreicht.
-          _autoPath.clear();
+          // Erst an der Kante entlang gleiten.
+          final Vector2 slideX = Vector2(nextPosition.x, position.y);
+          final Vector2 slideY = Vector2(position.x, nextPosition.y);
+
+          final Vector2 slideXFeet = _feetAt(slideX);
+          final Vector2 slideYFeet = _feetAt(slideY);
+
+          if (game.canWalkBetween(currentFeet, slideXFeet)) {
+            position.x = nextPosition.x;
+            _autoRepathAttempts = 0;
+          } else if (game.canWalkBetween(currentFeet, slideYFeet)) {
+            position.y = nextPosition.y;
+            _autoRepathAttempts = 0;
+          } else {
+            // Wirklich festgefahren: Pfad vom aktuellen Standort neu planen.
+            _tryRepath();
+          }
         }
       }
     }

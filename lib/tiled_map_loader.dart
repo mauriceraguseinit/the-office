@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:clipper2/clipper2.dart';
 import 'package:flame/collisions.dart';
@@ -9,9 +8,11 @@ import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:the_office/utils/util.dart';
 
+import 'components/nav_mesh_visualizer.dart';
 import 'hendrik.dart';
 import 'interactiveObjects/interactive_object.dart';
 import 'interactiveObjects/interactive_objects_catalogue.dart';
+import 'models/a_star_node.dart';
 
 mixin TiledMapLoader on FlameGame<World> {
   // Speichert das berechnete, begehbare NavMesh
@@ -992,8 +993,8 @@ mixin TiledMapLoader on FlameGame<World> {
     final int endX = (end.x / nodeSize).round();
     final int endY = (end.y / nodeSize).round();
 
-    final _AStarNode startNode = _AStarNode(startX, startY);
-    final _AStarNode endNode = _AStarNode(endX, endY);
+    final AStarNode startNode = AStarNode(startX, startY);
+    final AStarNode endNode = AStarNode(endX, endY);
 
     // Das Ziel ist ein Rasterpunkt, nicht zwingend die exakte Klickposition.
     final Vector2 endWorldPosition = Vector2(
@@ -1005,8 +1006,8 @@ mixin TiledMapLoader on FlameGame<World> {
       return <Vector2>[];
     }
 
-    final List<_AStarNode> openSet = <_AStarNode>[startNode];
-    final Set<_AStarNode> closedSet = <_AStarNode>{};
+    final List<AStarNode> openSet = <AStarNode>[startNode];
+    final Set<AStarNode> closedSet = <AStarNode>{};
 
     // Nachbargebiete
     final List<List<int>> directions = <List<int>>[
@@ -1015,13 +1016,13 @@ mixin TiledMapLoader on FlameGame<World> {
     ];
 
     while (openSet.isNotEmpty) {
-      openSet.sort((_AStarNode a, _AStarNode b) => a.f.compareTo(b.f));
-      final _AStarNode current = openSet.removeAt(0);
+      openSet.sort((AStarNode a, AStarNode b) => a.f.compareTo(b.f));
+      final AStarNode current = openSet.removeAt(0);
       closedSet.add(current);
 
       if (current == endNode) {
         final List<Vector2> path = <Vector2>[];
-        _AStarNode? temp = current;
+        AStarNode? temp = current;
         while (temp != null) {
           // Wir speichern die Raster-Punkte als echte Welt-Koordinaten
           path.add(Vector2(temp.x * nodeSize, temp.y * nodeSize));
@@ -1033,7 +1034,7 @@ mixin TiledMapLoader on FlameGame<World> {
       for (final List<int> dir in directions) {
         final int neighborX = current.x + dir[0];
         final int neighborY = current.y + dir[1];
-        final _AStarNode neighbor = _AStarNode(neighborX, neighborY, parent: current);
+        final AStarNode neighbor = AStarNode(neighborX, neighborY, parent: current);
 
         if (closedSet.contains(neighbor)) continue;
 
@@ -1068,7 +1069,7 @@ mixin TiledMapLoader on FlameGame<World> {
         final double moveCost = (dir[0] != 0 && dir[1] != 0) ? 1.414 : 1.0;
         final double tentativeG = current.g + moveCost;
 
-        final _AStarNode? existingOpen = openSet.where((_AStarNode n) => n == neighbor).firstOrNull;
+        final AStarNode? existingOpen = openSet.where((AStarNode n) => n == neighbor).firstOrNull;
 
         if (existingOpen == null) {
           neighbor.g = tentativeG;
@@ -1099,90 +1100,5 @@ mixin TiledMapLoader on FlameGame<World> {
     }
 
     return true;
-  }
-}
-
-// Füge diese Hilfsklassen für A* ganz unten in tiled_map_loader.dart ein:
-
-// ==========================================
-// HILFSKLASSEN (Ganz unten außerhalb des Mixins)
-// ==========================================
-
-class _AStarNode {
-  _AStarNode(this.x, this.y, {this.parent});
-  final int x;
-  final int y;
-  double g = 0;
-  double h = 0;
-  _AStarNode? parent;
-
-  double get f => g + h;
-
-  @override
-  bool operator ==(Object other) => other is _AStarNode && other.x == x && other.y == y;
-
-  @override
-  int get hashCode => Object.hash(x, y);
-}
-
-class NavMeshVisualizer extends PositionComponent {
-  NavMeshVisualizer(this.paths) : super(priority: 9999);
-  final Paths64 paths;
-
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-
-    final Paint fillPaint = Paint()
-      ..color = const Color(0x3F00FF00)
-      ..style = PaintingStyle.fill;
-
-    final Paint strokePaint = Paint()
-      ..color = const Color(0xFF00FF00)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    // Alle Clipper-Konturen gemeinsam füllen.
-    // Dadurch werden innere Konturen als Löcher interpretiert.
-    final Path combinedPath = Path()..fillType = PathFillType.evenOdd;
-
-    for (final Path64 path in paths) {
-      if (path.isEmpty) {
-        continue;
-      }
-
-      final List<Offset> points = path
-          .map(
-            (Point64 point) => Offset(
-              point.x.toDouble(),
-              point.y.toDouble(),
-            ),
-          )
-          .toList();
-
-      combinedPath.addPolygon(points, true);
-    }
-
-    // Die komplette begehbare Fläche einmal füllen.
-    canvas.drawPath(combinedPath, fillPaint);
-
-    // Ränder weiterhin einzeln zeichnen, damit jede Kante sichtbar bleibt.
-    for (final Path64 path in paths) {
-      if (path.isEmpty) {
-        continue;
-      }
-
-      final List<Offset> points = path
-          .map(
-            (Point64 point) => Offset(
-              point.x.toDouble(),
-              point.y.toDouble(),
-            ),
-          )
-          .toList();
-
-      final Path outlinePath = Path()..addPolygon(points, true);
-      canvas.drawPath(outlinePath, strokePaint);
-    }
   }
 }
