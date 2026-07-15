@@ -419,8 +419,8 @@
   <object id="151" name="Daniel" type="Daniel" gid="117" x="2609.45" y="511.348" width="125.333" height="97.3333" rotation="270"/>
   <object id="152" name="Tobi" type="Tobi" gid="121" x="2590.66" y="802.333" width="47.3333" height="62.6667"/>
   <object id="156" gid="108" x="2496.73" y="510.682" width="128" height="128" rotation="90"/>
-  <object id="158" type="Trash" gid="78" x="1312.5" y="1373.75" width="64" height="64"/>
-  <object id="159" type="Plant" gid="79" x="2400" y="1052" width="64" height="64"/>
+  <object id="158" name="Müll-Trennstation" type="Trash" gid="78" x="1312.5" y="1373.75" width="64" height="64"/>
+  <object id="159" name="Chuck die Pflanze" type="Plant" gid="79" x="2400" y="1052" width="64" height="64"/>
  </objectgroup>
  <objectgroup id="18" name="interactiveObjects2">
   <object id="146" type="CoffeeMachine" gid="107" x="1328.92" y="1115.42" width="26" height="34"/>
