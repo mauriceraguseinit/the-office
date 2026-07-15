@@ -1,15 +1,19 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/hud/speech_bubble.dart';
+import 'package:the_office/interactiveObjects/inventory_item_catalogue.dart';
 import 'package:the_office/models/inventory_item.dart';
 
 import 'interactive_object.dart';
-import 'inventory_item_catalogue.dart';
 
-enum FridgeDialogs { normalAction, wrongItem }
+enum TrashDialogs {
+  normalAction,
+  wrongItem,
+  emptyMate,
+}
 
-class Fridge extends InteractiveObject {
-  Fridge({
+class Trash extends InteractiveObject {
+  Trash({
     required super.position,
     required super.renderComponent,
     super.size,
@@ -20,28 +24,25 @@ class Fridge extends InteractiveObject {
   @override
   Map<String, Widget Function(BuildContext, Game)> get dialogs {
     return <String, Widget Function(BuildContext, Game)>{
-      for (final FridgeDialogs value in FridgeDialogs.values)
+      for (final TrashDialogs value in TrashDialogs.values)
         value.toString(): (BuildContext context, Game game) {
           switch (value) {
-            case FridgeDialogs.normalAction:
+            case TrashDialogs.normalAction:
               {
-                String returnText = '[b]Hendrik:[/b]\n\nUuhhh eine kalte Mate!';
-
-                if (this.game.inventory
-                    .where((InventoryItem item) => item.id == InventoryItemType.mate.toString())
-                    .isNotEmpty) {
-                  returnText = '[b]Hendrik:[/b]\n\nmmhh... nichts was ich nicht schon habe.';
-                } else {
-                  this.game.inventory.add(InventoryItemCatalogue.itemForId(InventoryItemType.mate));
-                }
                 return RetroSpeechBubble(
-                  text: returnText,
+                  text:
+                      '[b]Hendrik:[/b]\n\nWir trennen im Büro unseren Müll jetzt vorbildlich nach Papier, Plastik und den unerledigten Aufgaben, die direkt im Schredder landen.',
                   onClose: () => game.overlays.remove(value.toString()),
                 );
               }
-            case FridgeDialogs.wrongItem:
+            case TrashDialogs.wrongItem:
               return RetroSpeechBubble(
                 text: '[b]Hendrik:[/b]\n\nDas gehört hier nicht rein.',
+                onClose: () => game.overlays.remove(value.toString()),
+              );
+            case TrashDialogs.emptyMate:
+              return RetroSpeechBubble(
+                text: '[b]Hendrik:[/b]\n\nLeere Pfand Flaschen gehören hier nicht rein.',
                 onClose: () => game.overlays.remove(value.toString()),
               );
           }
@@ -54,12 +55,15 @@ class Fridge extends InteractiveObject {
     final InventoryItem? activeItem = game.selectedItem;
 
     if (activeItem != null) {
-      {
-        game.overlays.add(FridgeDialogs.wrongItem.toString());
+      if (activeItem.id == InventoryItemType.mateEmpty.toString()) {
+        game.overlays.add(TrashDialogs.emptyMate.toString());
+      } else {
+        game.overlays.add(TrashDialogs.wrongItem.toString());
       }
+
       game.resetSelection();
     } else {
-      game.overlays.add(FridgeDialogs.normalAction.toString());
+      game.overlays.add(TrashDialogs.normalAction.toString());
     }
   }
 }
