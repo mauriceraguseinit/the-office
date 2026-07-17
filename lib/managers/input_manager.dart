@@ -19,7 +19,7 @@ class InputManager {
       return;
     }
 
-    if (game.overlays.activeOverlays.isNotEmpty) {
+    if (game.hasActiveBlockingOverlay) {
       return;
     }
 
@@ -95,7 +95,7 @@ class InputManager {
     );
 
     // Während Dialogen oder Inventar soll kein Ziel in der Welt leuchten.
-    if (game.overlays.activeOverlays.isNotEmpty) {
+    if (game.hasActiveBlockingOverlay) {
       clearHoverTarget();
       return;
     }
@@ -165,7 +165,7 @@ class InputManager {
   }
 
   void onDoubleTapDown(DoubleTapDownEvent event) {
-    if (!game.isTouchDevice || game.overlays.activeOverlays.isNotEmpty) {
+    if (!game.isTouchDevice || game.hasActiveBlockingOverlay) {
       return;
     }
 

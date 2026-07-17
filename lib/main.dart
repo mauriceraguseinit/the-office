@@ -9,15 +9,20 @@ import 'package:the_office/utils/config.dart';
 import 'package:the_office/utils/web_helper.dart' as web_helper;
 
 import 'hud/character_editor.dart';
+import 'hud/game_menu.dart';
 import 'hud/inventory_overlay.dart';
 import 'hud/retro_button.dart';
 import 'hud/speech_bubble.dart';
+import 'hud/start_menu.dart';
 import 'intro/intro_game.dart';
 import 'managers/audio_manager.dart';
+import 'managers/save_manager.dart';
 import 'managers/service_locator.dart';
 import 'office_game.dart';
 
 enum Scenes {
+  loading,
+  startMenu,
   editor,
   intro,
   game,
@@ -47,7 +52,7 @@ class TheOfficeApp extends StatefulWidget {
 class _TheOfficeAppState extends State<TheOfficeApp> {
   final OfficeGame _game = OfficeGame();
   late final IntroGame _introGame;
-  Scenes _showScene = Scenes.editor;
+  Scenes _showScene = Scenes.loading;
 
   // Tracken, ob wir im Web aktuell im Vollbildmodus sind
   bool _isFullscreen = false;
@@ -60,6 +65,30 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
         setState(() => _showScene = Scenes.game);
       },
     );
+    _checkInitialScene();
+  }
+
+  Future<void> _checkInitialScene() async {
+    final bool hasSave = await sl<SaveManager>().hasSaveGame();
+    if (mounted) {
+      setState(() {
+        _showScene = hasSave ? Scenes.startMenu : Scenes.editor;
+      });
+    }
+  }
+
+  void _onContinue() {
+    _game.setLoadOnMount(true);
+    setState(() {
+      _showScene = Scenes.game;
+    });
+  }
+
+  void _onNewGame() async {
+    await sl<SaveManager>().deleteSaveGame();
+    setState(() {
+      _showScene = Scenes.editor;
+    });
   }
 
   // Die native Browser-Logik synchron umschalten
@@ -73,6 +102,8 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
 
   Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = <String, OverlayWidgetBuilder<OfficeGame>>{
     'inventory': (BuildContext context, OfficeGame game) => InventoryOverlay(game: game),
+    'gameMenu': (BuildContext context, OfficeGame game) => GameMenuOverlay(game: game),
+    'gameMenuButton': (BuildContext context, OfficeGame game) => GameMenuButton(game: game),
     'intro': (BuildContext context, OfficeGame game) => RetroSpeechBubble(
       actions: <RetroAction>[RetroAction(title: 'Starten', onTap: () => game.overlays.remove('intro'))],
       text:
@@ -92,6 +123,15 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
             // Das eigentliche Spiel/Szenen-Wechsel
             Positioned.fill(
               child: switch (_showScene) {
+                Scenes.loading => const Center(
+                  child: CircularProgressIndicator(color: Colors.orange),
+                ),
+
+                Scenes.startMenu => StartMenu(
+                  onContinue: _onContinue,
+                  onNewGame: _onNewGame,
+                ),
+
                 Scenes.editor => CharacterEditor(
                   onFinished: () => setState(() => _showScene = Scenes.intro),
                 ),

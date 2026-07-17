@@ -37,9 +37,9 @@ class InventoryCursor extends PositionComponent with HasGameReference<OfficeGame
   void render(Canvas canvas) {
     super.render(canvas);
 
-    final bool isAnyOverlayOpen = game.overlays.activeOverlays.isNotEmpty;
+    final bool isBlockingOverlayOpen = game.hasActiveBlockingOverlay;
 
-    if (_cursorSprite != null && game.selectedItem != null && !isAnyOverlayOpen) {
+    if (_cursorSprite != null && game.selectedItem != null && !isBlockingOverlayOpen) {
       // FilterQuality.none sorgt für den scharfen, unverpixelten Retro-Look beim Skalieren des Sprites
       _cursorSprite!.render(canvas, size: size, overridePaint: Paint()..filterQuality = FilterQuality.none);
     }

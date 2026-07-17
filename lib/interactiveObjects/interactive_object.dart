@@ -105,7 +105,7 @@ abstract class InteractiveObject extends PositionComponent
 
     if (!isInInteractionRange(player)) {
       if (showTooFar) {
-        game.overlays.add(TriggerZoneDialogs.tooFar.toString());
+        game.openOverlay(TriggerZoneDialogs.tooFar.toString());
       }
 
       // Klick auf ein Objekt – auch zu weit entfernt –

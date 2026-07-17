@@ -20,12 +20,12 @@ class OfficeHud extends PositionComponent with HasGameReference<OfficeGame> {
   @override
   Future<void> onLoad() async {
     // 1. Info Text
-    final TextComponent<TextPaint> infoText = TextComponent<TextPaint>(
-      text: 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I',
-      position: Vector2(20, 60),
-      textRenderer: GameStyles.infoRenderer,
-    );
-    add(infoText..priority = 1000);
+    // final TextComponent<TextPaint> infoText = TextComponent<TextPaint>(
+    //   text: 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I',
+    //   position: Vector2(20, 60),
+    //   textRenderer: GameStyles.infoRenderer,
+    // );
+    // add(infoText..priority = 1000);
 
     // 2. Interaction Hint
     interactionNameText = TextComponent<TextRenderer>(

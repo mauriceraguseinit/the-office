@@ -21,6 +21,7 @@ import 'lighting_manager.dart';
 import 'managers/audio_manager.dart';
 import 'managers/game_state.dart';
 import 'managers/input_manager.dart';
+import 'managers/save_manager.dart';
 import 'managers/service_locator.dart';
 import 'models/inventory_item.dart';
 
@@ -45,6 +46,9 @@ class OfficeGame extends FlameGame<World>
 
   late OfficeHud hud;
   Vector2 mousePosition = Vector2.zero();
+  bool _shouldLoadOnMount = false;
+
+  void setLoadOnMount(bool value) => _shouldLoadOnMount = value;
 
   // Convenience getters for GameState
   List<InventoryItem> get inventory => state.ownedItems;
@@ -55,6 +59,47 @@ class OfficeGame extends FlameGame<World>
   late Hendrik player;
   bool get isTouchDevice {
     return defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+  }
+
+  // --- OVERLAY MANAGEMENT ---
+  bool get hasActiveBlockingOverlay {
+    const Set<String> nonBlockingOverlays = <String>{'gameMenuButton'};
+    return overlays.activeOverlays.any((String id) => !nonBlockingOverlays.contains(id));
+  }
+
+  void _closeOtherOverlays(String currentId) {
+    final List<String> toRemove = overlays.activeOverlays
+        .where((String id) => id != currentId && id != 'gameMenuButton')
+        .toList();
+    
+    for (final String id in toRemove) {
+      overlays.remove(id);
+    }
+  }
+
+  void openOverlay(String id) {
+    _closeOtherOverlays(id);
+    overlays.add(id);
+  }
+
+  void openGameMenu() {
+    openOverlay('gameMenu');
+  }
+
+  void openInventory() {
+    openOverlay('inventory');
+  }
+
+  void showPlayerMessage(String message) {
+    _closeOtherOverlays('playerMessage');
+    state.setPlayerMessage(message);
+
+    // Kleiner Delay, damit Flame das Remove/Add sauber verarbeitet
+    Future<void>.delayed(Duration.zero, () {
+      if (!overlays.isActive('playerMessage')) {
+        overlays.add('playerMessage');
+      }
+    });
   }
 
   void setHighlightedObject(InteractiveObject? object) {
@@ -102,14 +147,6 @@ class OfficeGame extends FlameGame<World>
     player.setHighlighted(highlighted);
   }
 
-  void showPlayerMessage(String message) {
-    state.setPlayerMessage(message);
-
-    if (!overlays.isActive('playerMessage')) {
-      overlays.add('playerMessage');
-    }
-  }
-
   @override
   Future<void> onLoad() async {
     registerGameInstance(this);
@@ -155,6 +192,7 @@ class OfficeGame extends FlameGame<World>
     player = loadedPlayer;
 
     overlays.add('intro');
+    overlays.add('gameMenuButton');
 
     //camera configuration
     camera.viewport = FixedResolutionViewport(
@@ -187,6 +225,11 @@ class OfficeGame extends FlameGame<World>
       targetCamera: rawMinimapCamera,
     )..priority = 999999;
     world.add(lighting2);
+
+    if (_shouldLoadOnMount) {
+      _shouldLoadOnMount = false;
+      await loadGame();
+    }
   }
 
   @override
@@ -223,6 +266,41 @@ class OfficeGame extends FlameGame<World>
     state.toggleDeskLock();
   }
 
+  Future<void> saveGame() async {
+    try {
+      debugPrint('OfficeGame: saveGame() called');
+      state.playerPosition = player.position.clone();
+      await sl<SaveManager>().saveGame(state);
+      debugPrint('OfficeGame: saveGame() finished');
+      showPlayerMessage('Spiel gespeichert!');
+    } catch (e) {
+      debugPrint('OfficeGame: Error in saveGame(): $e');
+      showPlayerMessage('Fehler beim Speichern!');
+    }
+  }
+
+  Future<void> loadGame() async {
+    try {
+      debugPrint('OfficeGame: loadGame() called');
+      final SaveManager saveManager = sl<SaveManager>();
+      if (await saveManager.hasSaveGame()) {
+        await saveManager.loadGame(state);
+        if (state.playerPosition != null) {
+          player.position = state.playerPosition!;
+          camera.follow(player, snap: true);
+        }
+        debugPrint('OfficeGame: loadGame() finished');
+        showPlayerMessage('Spiel geladen!');
+      } else {
+        debugPrint('OfficeGame: No save game to load');
+        showPlayerMessage('Kein Spielstand gefunden.');
+      }
+    } catch (e) {
+      debugPrint('OfficeGame: Error in loadGame(): $e');
+      showPlayerMessage('Fehler beim Laden!');
+    }
+  }
+
   void _toggleCameraZoom() {
     _isZoomedOut = !_isZoomedOut;
     final double targetZoom = _isZoomedOut ? _mapViewZoom : _normalZoom;
@@ -243,10 +321,6 @@ class OfficeGame extends FlameGame<World>
 
   void closeInventory() {
     overlays.remove('inventory');
-  }
-
-  void openInventory() {
-    overlays.add('inventory');
   }
 
   Vector2 mousePositionWidget = Vector2.zero();

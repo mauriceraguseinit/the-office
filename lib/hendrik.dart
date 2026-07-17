@@ -368,7 +368,13 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (game.overlays.activeOverlays.isNotEmpty) {
+    // Liste der Overlays, die die Steuerung NICHT blockieren sollen
+    const Set<String> nonBlockingOverlays = <String>{'gameMenuButton'};
+
+    final Iterable<String> activeBlockingOverlays =
+        game.overlays.activeOverlays.where((String id) => !nonBlockingOverlays.contains(id));
+
+    if (activeBlockingOverlays.isNotEmpty) {
       _velocity.setZero();
       return false;
     }
@@ -382,7 +388,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     _velocity.setZero();
 
     if (keysPressed.contains(LogicalKeyboardKey.keyI)) {
-      game.overlays.add('inventory');
+      game.openInventory();
     }
     if (keysPressed.contains(LogicalKeyboardKey.keyW) || keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
       _velocity.y = -1;
@@ -407,6 +413,16 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.space)) {
       game.toggleScreenLock();
+      return true;
+    }
+
+    if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.f5)) {
+      game.saveGame();
+      return true;
+    }
+
+    if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.f9)) {
+      game.loadGame();
       return true;
     }
 
