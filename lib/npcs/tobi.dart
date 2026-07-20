@@ -54,7 +54,7 @@ class Tobi extends InteractiveObject {
             case TobiDialogs.mateWater:
               return RetroSpeechBubble(
                 text:
-                    '[b]Tobias:[/b]\n\nUuuuh eine neue Geschmackssorte!!!\n\n*trink, trink* *trink*\n\nDa bring ich doch gleich mal die leer Flasche weg.',
+                    '[b]Tobias:[/b]\n\nUuuuh eine neue Geschmackssorte!!!\n\n*trink, trink* *trink*\n\nDa bring ich doch gleich mal die leere Flasche weg.',
                 onClose: () => game.overlays.remove(value.toString()),
               );
           }
