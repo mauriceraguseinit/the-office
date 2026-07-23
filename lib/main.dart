@@ -13,6 +13,7 @@ import 'hud/game_menu.dart';
 import 'hud/inventory_overlay.dart';
 import 'hud/mobile_inventory_button.dart';
 import 'hud/retro_button.dart';
+import 'hud/retro_cursor_overlay.dart';
 import 'hud/speech_bubble.dart';
 import 'hud/start_menu.dart';
 import 'intro/intro_game.dart';
@@ -63,6 +64,7 @@ class TheOfficeApp extends StatefulWidget {
 
 class _TheOfficeAppState extends State<TheOfficeApp> {
   final OfficeGame _game = OfficeGame();
+  final FocusNode _gameFocusNode = FocusNode();
   late final IntroGame _introGame;
   Scenes _showScene = Scenes.loading;
 
@@ -89,6 +91,12 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     }
   }
 
+  @override
+  void dispose() {
+    _gameFocusNode.dispose();
+    super.dispose();
+  }
+
   void _onContinue() {
     _game.setLoadOnMount(true);
     setState(() {
@@ -112,7 +120,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     setState(() => _isFullscreen = isFullscreen);
   }
 
-  Map<String, OverlayWidgetBuilder<OfficeGame>>? overlayBuilderMap = <String, OverlayWidgetBuilder<OfficeGame>>{
+  Map<String, OverlayWidgetBuilder<OfficeGame>> get overlayBuilderMap => <String, OverlayWidgetBuilder<OfficeGame>>{
     'inventory': (BuildContext context, OfficeGame game) => InventoryOverlay(game: game),
     'gameMenu': (BuildContext context, OfficeGame game) => GameMenuOverlay(game: game),
     'gameMenuButton': (BuildContext context, OfficeGame game) => GameMenuButton(game: game),
@@ -121,7 +129,10 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
       actions: <RetroAction>[
         RetroAction(
           title: S.of(context).start_button_label,
-          onTap: () => game.overlays.remove('intro'),
+          onTap: () {
+            game.overlays.remove('intro');
+            _gameFocusNode.requestFocus();
+          },
         ),
       ],
       text: S.of(context).welcome_text,
@@ -185,10 +196,32 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
               Scenes.game => ListenableBuilder(
                 listenable: _game.overlayChangeNotifier,
                 builder: (BuildContext context, Widget? child) {
-                  final bool showItemCursor = !_game.isTouchDevice && _game.selectedItem != null;
                   return MouseRegion(
-                    cursor: showItemCursor ? SystemMouseCursors.none : SystemMouseCursors.basic,
-                    child: GameWidget<OfficeGame>(game: _game, overlayBuilderMap: overlayBuilderMap),
+                    cursor: _game.isTouchDevice ? SystemMouseCursors.basic : SystemMouseCursors.none,
+                    child: Listener(
+                      onPointerMove: (PointerMoveEvent event) {
+                        _game.updateMousePosition(Vector2(event.localPosition.dx, event.localPosition.dy));
+                      },
+                      onPointerHover: (PointerHoverEvent event) {
+                        _game.updateMousePosition(Vector2(event.localPosition.dx, event.localPosition.dy));
+                      },
+                      child: Stack(
+                        children: <Widget>[
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTapDown: (_) => _gameFocusNode.requestFocus(),
+                            child: GameWidget<OfficeGame>(
+                              game: _game,
+                              focusNode: _gameFocusNode,
+                              overlayBuilderMap: overlayBuilderMap,
+                              autofocus: true,
+                              mouseCursor: _game.isTouchDevice ? SystemMouseCursors.basic : SystemMouseCursors.none,
+                            ),
+                          ),
+                          if (!_game.isTouchDevice) RetroCursorOverlay(game: _game),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),

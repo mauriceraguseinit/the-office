@@ -368,13 +368,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    // Liste der Overlays, die die Steuerung NICHT blockieren sollen
-    const Set<String> nonBlockingOverlays = <String>{'gameMenuButton'};
-
-    final Iterable<String> activeBlockingOverlays =
-        game.overlays.activeOverlays.where((String id) => !nonBlockingOverlays.contains(id));
-
-    if (activeBlockingOverlays.isNotEmpty) {
+    if (game.hasActiveBlockingOverlay) {
       _velocity.setZero();
       return false;
     }

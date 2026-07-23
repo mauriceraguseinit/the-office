@@ -43,9 +43,10 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
         const double baseHeight = 350.0;
 
         return MouseRegion(
+          cursor: widget.game.isTouchDevice ? SystemMouseCursors.basic : SystemMouseCursors.none,
           // Tracke die Mausbewegung relativ zum gesamten skalierten Overlay-Raum
           onHover: (PointerHoverEvent event) {
-            widget.game.mousePosition = Vector2(event.localPosition.dx, event.localPosition.dy);
+            widget.game.updateMousePosition(Vector2(event.localPosition.dx, event.localPosition.dy));
             setState(() {});
           },
           child: Stack(

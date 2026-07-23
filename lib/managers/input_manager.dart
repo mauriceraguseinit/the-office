@@ -86,14 +86,7 @@ class InputManager {
     clearHoverTarget();
   }
 
-  void onMouseMove(PointerHoverInfo info) {
-    final Vector2 widgetPosition = info.eventPosition.widget;
-
-    // Position für das am Cursor hängende Inventar-Item.
-    game.mousePositionWidget = game.camera.viewport.globalToLocal(
-      widgetPosition,
-    );
-
+  void updateOnMouseMove(Vector2 widgetPosition) {
     // Während Dialogen oder Inventar soll kein Ziel in der Welt leuchten.
     if (game.hasActiveBlockingOverlay) {
       clearHoverTarget();

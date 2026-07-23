@@ -46,6 +46,8 @@ class OfficeGame extends FlameGame<World>
 
   late OfficeHud hud;
   Vector2 mousePosition = Vector2.zero();
+  final ValueNotifier<Vector2> mousePositionNotifier = ValueNotifier<Vector2>(Vector2.zero());
+  final ValueNotifier<Offset> mousePositionRawNotifier = ValueNotifier<Offset>(Offset.zero);
   bool _shouldLoadOnMount = false;
 
   void setLoadOnMount(bool value) => _shouldLoadOnMount = value;
@@ -245,7 +247,19 @@ class OfficeGame extends FlameGame<World>
   @override
   void onMouseMove(PointerHoverInfo info) {
     super.onMouseMove(info);
-    inputManager.onMouseMove(info);
+    updateMousePosition(info.eventPosition.widget);
+  }
+
+  void updateMousePosition(Vector2 widgetPosition) {
+    if (!isMounted) return;
+
+    // Position für das am Cursor hängende Inventar-Item / Crosshair.
+    mousePositionWidget = camera.viewport.globalToLocal(widgetPosition);
+    mousePositionNotifier.value = mousePositionWidget;
+    mousePositionRawNotifier.value = Offset(widgetPosition.x, widgetPosition.y);
+
+    // An InputManager delegieren für Hover-Effekte in der Welt
+    inputManager.updateOnMouseMove(widgetPosition);
   }
 
   void selectItem(InventoryItem? item) {
@@ -337,6 +351,10 @@ class OfficeGame extends FlameGame<World>
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
     if (event.handled) return;
+
+    // WICHTIG: Auch beim Drag die Mausposition für den Retro-Cursor aktualisieren!
+    updateMousePosition(event.canvasEndPosition);
+
     inputManager.onDragUpdate(event);
   }
 

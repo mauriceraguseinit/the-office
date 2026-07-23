@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:flame/text.dart';
 import 'package:flutter/material.dart';
 
-import '../inventory_cursor.dart';
 import '../managers/game_state.dart';
 import '../managers/service_locator.dart';
 import '../models/inventory_item.dart';
@@ -40,16 +39,13 @@ class OfficeHud extends PositionComponent with HasGameReference<OfficeGame> {
     );
     add(interactionNameText);
 
-    // 3. Status Text (PC-Lock Info)
+    // 4. Status Text (PC-Lock Info)
     statusText = TextComponent<TextRenderer>(
       text: '',
       position: Vector2(20, 20),
       textRenderer: GameStyles.statusRenderer,
     );
     //add(statusText..priority = 1000);
-
-    // 4. Inventory Cursor
-    add(InventoryCursor()..priority = 1000);
   }
 
   @override

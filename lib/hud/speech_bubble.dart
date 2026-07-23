@@ -191,94 +191,97 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
 
           // NUTZE FITTEDBOX STATT TRANSFORM.SCALE:
           // Das sorgt dafür, dass die Hitboxen (Gesten) exakt mit der Grafik mitskalieren.
-          return SizedBox(
-            width: baseWidth * gameScale,
-            height: baseHeight * gameScale,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: SizedBox(
-                width: baseWidth,
-                height: baseHeight,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(color: Color(0xFF1E1E1E)),
+          return MouseRegion(
+            cursor: SystemMouseCursors.none,
+            child: SizedBox(
+              width: baseWidth * gameScale,
+              height: baseHeight * gameScale,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: SizedBox(
+                  width: baseWidth,
+                  height: baseHeight,
                   child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      border: Border.all(color: const Color(0xFF1E1E1E), width: 4),
-                    ),
-                    child: Stack(
-                      children: <Widget>[
-                        Positioned.fill(
-                          top: 24,
-                          left: 12,
-                          right: 12,
-                          bottom: 12,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Expanded(
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  child: SingleChildScrollView(
-                                    controller: _scrollController,
-                                    physics: const BouncingScrollPhysics(),
-                                    child: Text.rich(
-                                      TextSpan(
-                                        children: _displayedCharacters,
-                                        style: GameStyles.dialogStyle,
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Color(0xFF1E1E1E)),
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        border: Border.all(color: const Color(0xFF1E1E1E), width: 4),
+                      ),
+                      child: Stack(
+                        children: <Widget>[
+                          Positioned.fill(
+                            top: 24,
+                            left: 12,
+                            right: 12,
+                            bottom: 12,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Expanded(
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: SingleChildScrollView(
+                                      controller: _scrollController,
+                                      physics: const BouncingScrollPhysics(),
+                                      child: Text.rich(
+                                        TextSpan(
+                                          children: _displayedCharacters,
+                                          style: GameStyles.dialogStyle,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
 
-                              if (widget.actions.isNotEmpty && _isTypewriterFinished) ...<Widget>[
-                                const SizedBox(height: 12),
-                                Center(
-                                  child: Wrap(
-                                    spacing: 10,
-                                    runSpacing: 10,
-                                    alignment: WrapAlignment.center,
-                                    children: widget.actions.map((RetroAction action) {
-                                      return RetroButton(title: action.title, onTap: action.onTap);
-                                    }).toList(),
+                                if (widget.actions.isNotEmpty && _isTypewriterFinished) ...<Widget>[
+                                  const SizedBox(height: 12),
+                                  Center(
+                                    child: Wrap(
+                                      spacing: 10,
+                                      runSpacing: 10,
+                                      alignment: WrapAlignment.center,
+                                      children: widget.actions.map((RetroAction action) {
+                                        return RetroButton(title: action.title, onTap: action.onTap);
+                                      }).toList(),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
 
-                        // Das "X" zum Schließen hat jetzt wieder eine perfekt sitzende Hitbox!
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: widget.onClose,
-                            behavior:
-                                HitTestBehavior.opaque, // Zwingt Flutter, die gesamte Box als Trefffläche zu werten
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ), // Etwas mehr Padding spendiert für besseres Klicken
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1E1E1E),
-                                border: Border.all(color: const Color(0xFFF5F5F5), width: 1),
-                              ),
-                              child: Text(
-                                'X',
-                                style: GameStyles.buttonStyle.copyWith(
-                                  color: const Color(0xFFF5F5F5),
-                                  fontSize: 12,
+                          // Das "X" zum Schließen hat jetzt wieder eine perfekt sitzende Hitbox!
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: widget.onClose,
+                              behavior:
+                                  HitTestBehavior.opaque, // Zwingt Flutter, die gesamte Box als Trefffläche zu werten
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ), // Etwas mehr Padding spendiert für besseres Klicken
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E1E1E),
+                                  border: Border.all(color: const Color(0xFFF5F5F5), width: 1),
+                                ),
+                                child: Text(
+                                  'X',
+                                  style: GameStyles.buttonStyle.copyWith(
+                                    color: const Color(0xFFF5F5F5),
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
