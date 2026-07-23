@@ -60,6 +60,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
     final List<TextSpan> characters = <TextSpan>[];
 
     bool isBold = false;
+    bool isItalic = false;
     Color currentColor = const Color(0xFF1E1E1E); // Standard-Schriftfarbe
 
     int i = 0;
@@ -71,6 +72,10 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
           isBold = false;
           i += 4;
           continue;
+        } else if (rawText.startsWith('[/i]', i)) {
+          isItalic = false;
+          i += 4;
+          continue;
         } else if (rawText.startsWith('[/color]', i)) {
           currentColor = const Color(0xFF1E1E1E); // Zurück auf Standard
           i += 8;
@@ -79,6 +84,10 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
         // 2. Check für Öffnende Tags
         else if (rawText.startsWith('[b]', i)) {
           isBold = true;
+          i += 3;
+          continue;
+        } else if (rawText.startsWith('[i]', i)) {
+          isItalic = true;
           i += 3;
           continue;
         } else if (rawText.startsWith('[color=', i)) {
@@ -112,6 +121,7 @@ class _RetroSpeechBubbleState extends State<RetroSpeechBubble> {
           text: rawText[i],
           style: GameStyles.dialogStyle.copyWith(
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            fontStyle: isItalic ? FontStyle.italic : null,
             color: currentColor,
           ),
         ),

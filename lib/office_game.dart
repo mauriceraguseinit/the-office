@@ -63,15 +63,15 @@ class OfficeGame extends FlameGame<World>
 
   // --- OVERLAY MANAGEMENT ---
   bool get hasActiveBlockingOverlay {
-    const Set<String> nonBlockingOverlays = <String>{'gameMenuButton'};
+    const Set<String> nonBlockingOverlays = <String>{'gameMenuButton', 'mobileInventoryButton'};
     return overlays.activeOverlays.any((String id) => !nonBlockingOverlays.contains(id));
   }
 
   void _closeOtherOverlays(String currentId) {
     final List<String> toRemove = overlays.activeOverlays
-        .where((String id) => id != currentId && id != 'gameMenuButton')
+        .where((String id) => id != currentId && id != 'gameMenuButton' && id != 'mobileInventoryButton')
         .toList();
-    
+
     for (final String id in toRemove) {
       overlays.remove(id);
     }
@@ -193,6 +193,7 @@ class OfficeGame extends FlameGame<World>
 
     overlays.add('intro');
     overlays.add('gameMenuButton');
+    overlays.add('mobileInventoryButton');
 
     //camera configuration
     camera.viewport = FixedResolutionViewport(
@@ -235,6 +236,7 @@ class OfficeGame extends FlameGame<World>
   @override
   void onTapDown(TapDownEvent event) {
     super.onTapDown(event);
+    if (event.handled) return;
     inputManager.onTapDown(event);
   }
 
@@ -327,18 +329,21 @@ class OfficeGame extends FlameGame<World>
   @override
   void onDragStart(DragStartEvent event) {
     super.onDragStart(event);
+    if (event.handled) return;
     inputManager.onDragStart(event);
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
+    if (event.handled) return;
     inputManager.onDragUpdate(event);
   }
 
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
+    if (event.handled) return;
     inputManager.onDragEnd(event);
   }
 
@@ -369,6 +374,7 @@ class OfficeGame extends FlameGame<World>
   @override
   void onDragCancel(DragCancelEvent event) {
     super.onDragCancel(event);
+    if (event.handled) return;
     inputManager.onDragCancel(event);
   }
 

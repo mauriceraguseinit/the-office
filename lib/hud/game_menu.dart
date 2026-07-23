@@ -12,15 +12,37 @@ class GameMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      top: 16,
-      left: 16,
-      child: RetroButton(
-        title: 'MENÜ',
-        onTap: () {
-          game.openGameMenu();
-        },
-      ),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
+        final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
+        final double gameScale = min(scaleX, scaleY);
+
+        return Center(
+          child: SizedBox(
+            width: GameConfig.resolution.width * gameScale,
+            height: GameConfig.resolution.height * gameScale,
+            child: Stack(
+              children: <Widget>[
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: Transform.scale(
+                    scale: gameScale,
+                    alignment: Alignment.topLeft,
+                    child: RetroButton(
+                      title: 'MENÜ',
+                      onTap: () {
+                        game.openGameMenu();
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

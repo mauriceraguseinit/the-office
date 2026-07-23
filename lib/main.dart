@@ -11,6 +11,7 @@ import 'package:the_office/utils/web_helper.dart' as web_helper;
 import 'hud/character_editor.dart';
 import 'hud/game_menu.dart';
 import 'hud/inventory_overlay.dart';
+import 'hud/mobile_inventory_button.dart';
 import 'hud/retro_button.dart';
 import 'hud/speech_bubble.dart';
 import 'hud/start_menu.dart';
@@ -115,6 +116,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     'inventory': (BuildContext context, OfficeGame game) => InventoryOverlay(game: game),
     'gameMenu': (BuildContext context, OfficeGame game) => GameMenuOverlay(game: game),
     'gameMenuButton': (BuildContext context, OfficeGame game) => GameMenuButton(game: game),
+    'mobileInventoryButton': (BuildContext context, OfficeGame game) => MobileInventoryButton(game: game),
     'intro': (BuildContext context, OfficeGame game) => RetroSpeechBubble(
       actions: <RetroAction>[
         RetroAction(

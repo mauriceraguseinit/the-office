@@ -10,7 +10,6 @@ import '../office_game.dart';
 import '../utils/config.dart';
 import '../utils/styles.dart';
 import 'clickable_minimap.dart';
-import 'mobile_inventory_button.dart';
 
 class OfficeHud extends PositionComponent with HasGameReference<OfficeGame> {
   late TextComponent<TextRenderer> interactionNameText;
@@ -19,6 +18,7 @@ class OfficeHud extends PositionComponent with HasGameReference<OfficeGame> {
 
   @override
   Future<void> onLoad() async {
+    size = Vector2(GameConfig.resolution.width, GameConfig.resolution.height);
     // 1. Info Text
     // final TextComponent<TextPaint> infoText = TextComponent<TextPaint>(
     //   text: 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I',
@@ -50,15 +50,6 @@ class OfficeHud extends PositionComponent with HasGameReference<OfficeGame> {
 
     // 4. Inventory Cursor
     add(InventoryCursor()..priority = 1000);
-
-    // 5. Mobile Inventory Button
-    final MobileInventoryButton mobileBagButton = MobileInventoryButton(
-      position: Vector2(GameConfig.resolution.width / 2, GameConfig.resolution.height - 80),
-      onPressed: () {
-        game.openInventory();
-      },
-    );
-    add(mobileBagButton..priority = 1000);
   }
 
   @override
