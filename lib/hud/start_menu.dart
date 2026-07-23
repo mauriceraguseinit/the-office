@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:the_office/hud/retro_button.dart';
 import 'package:the_office/utils/config.dart';
 
+import '../l10n/l10n.dart';
+
 class StartMenu extends StatelessWidget {
   const StartMenu({
     super.key,
@@ -58,8 +60,8 @@ class StartMenu extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          const Text(
-                            'WILLKOMMEN ZURÜCK',
+                          Text(
+                            S.of(context).welcome_back_title,
                             style: TextStyle(
                               fontFamily: 'PressStart2P',
                               fontSize: 14,
@@ -73,13 +75,13 @@ class StartMenu extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: <Widget>[
                                 RetroButton(
-                                  title: 'Fortsetzen',
+                                  title: S.of(context).continue_button_label,
                                   alignment: Alignment.center,
                                   onTap: onContinue,
                                 ),
                                 const SizedBox(height: 16),
                                 RetroButton(
-                                  title: 'Neues Spiel',
+                                  title: S.of(context).new_game_button_label,
                                   alignment: Alignment.center,
                                   onTap: onNewGame,
                                 ),

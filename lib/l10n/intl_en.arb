@@ -22,6 +22,17 @@
   "character_editor_name_requirements": "The name must be at least 7 letters long.",
   "character_editor_too_small_answer_1": "If you get any smaller, you'll fall through the map. Trust me! This is the perfect height for a sprite.",
   "character_editor_too_high_answer_1": "The ceiling heights in the levels are exactly 1.80m. Be grateful we're not making you any taller.",
-  "character_editor_too_high_answer_2": "Taller? In this economy? Do you know how many tokens a bigger hitbox costs?!"
+  "character_editor_too_high_answer_2": "Taller? In this economy? Do you know how many tokens a bigger hitbox costs?!",
+  "menu_button": "Menu",
+  "menu_coffey_text": "[b]Hendrik:[/b]\n\nI pressed [color=red]COFFEE[/color], but all I got was an error message: [i]Error 418: I'm a teapot.[/i]\n\nTypical IT...",
+  "menu_coffey": "Brew coffee",
+  "menu_title": "MAIN MENU",
+  "menu_save": "Save",
+  "menu_load": "Load",
+  "menu_controls": "Controls",
+  "menu_controls_text": "MOVEMENT: WASD / Touch (Hold)\nACTION: Key E\nINVENTORY: Key I",
+  "welcome_back_title": "WELCOME BACK",
+  "continue_button_label": "Continue",
+  "new_game_button_label": "New game"
 
 }

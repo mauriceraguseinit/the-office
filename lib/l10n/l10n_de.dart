@@ -81,4 +81,38 @@ class SDe extends S {
   @override
   String get character_editor_too_small_answer_1 =>
       'Wenn du kleiner wirst, fällst du durch die Map. Vertrau mir! Das ist die perfekte Höhe für ein Sprite.';
+
+  @override
+  String get menu_button => 'Menü';
+
+  @override
+  String get menu_title => 'HAUPTMENÜ';
+
+  @override
+  String get menu_save => 'Speichern';
+
+  @override
+  String get menu_load => 'Laden';
+
+  @override
+  String get continue_button_label => 'Fortsetzen';
+
+  @override
+  String get new_game_button_label => 'Neues Spiel';
+
+  @override
+  String get menu_coffey => 'Kaffee kochen';
+
+  @override
+  String get menu_controls => 'Steuerung';
+
+  @override
+  String get welcome_back_title => 'WILLKOMMEN ZURÜCK';
+
+  @override
+  String get menu_coffey_text =>
+      '[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I\\\'m a teapot.[/i]\n\nTypisch IT...';
+
+  @override
+  String get menu_controls_text => 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I';
 }

@@ -6,6 +6,8 @@ import 'package:the_office/office_game.dart';
 import 'package:the_office/utils/config.dart';
 import 'package:the_office/utils/styles.dart';
 
+import '../l10n/l10n.dart';
+
 class GameMenuButton extends StatelessWidget {
   const GameMenuButton({super.key, required this.game});
   final OfficeGame game;
@@ -31,7 +33,7 @@ class GameMenuButton extends StatelessWidget {
                     scale: gameScale,
                     alignment: Alignment.topLeft,
                     child: RetroButton(
-                      title: 'MENÜ',
+                      title: S.of(context).menu_button,
                       onTap: () {
                         game.openGameMenu();
                       },
@@ -86,7 +88,7 @@ class GameMenuOverlay extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             Text(
-                              'HAUPTMENÜ',
+                              S.of(context).menu_title,
                               style: GameStyles.inventoryTitleStyle,
                             ),
                             const Divider(color: Color(0xFF1E1E1E), thickness: 4),
@@ -97,7 +99,7 @@ class GameMenuOverlay extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: <Widget>[
                                   RetroButton(
-                                    title: 'Speichern',
+                                    title: S.of(context).menu_save,
                                     alignment: Alignment.center,
                                     onTap: () {
                                       game.saveGame();
@@ -106,7 +108,7 @@ class GameMenuOverlay extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 12),
                                   RetroButton(
-                                    title: 'Laden',
+                                    title: S.of(context).menu_load,
                                     alignment: Alignment.center,
                                     onTap: () {
                                       game.loadGame();
@@ -115,25 +117,23 @@ class GameMenuOverlay extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 12),
                                   RetroButton(
-                                    title: 'Kaffee kochen',
+                                    title: S.of(context).menu_coffey,
                                     alignment: Alignment.center,
                                     onTap: () {
                                       game.overlays.remove('gameMenu');
                                       game.showPlayerMessage(
-                                        '[b]Hendrik:[/b]\n\n'
-                                        'Ich hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I\'m a teapot.[/i]\n\n'
-                                        'Typisch IT...',
+                                        S.of(context).menu_coffey_text,
                                       );
                                     },
                                   ),
                                   const SizedBox(height: 12),
                                   RetroButton(
-                                    title: 'Steuerung',
+                                    title: S.of(context).menu_controls,
                                     alignment: Alignment.center,
                                     onTap: () {
                                       game.overlays.remove('gameMenu');
                                       game.showPlayerMessage(
-                                        'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I',
+                                        S.of(context).menu_controls_text,
                                       );
                                     },
                                   ),

@@ -229,6 +229,72 @@ abstract class S {
   /// In de, this message translates to:
   /// **'Wenn du kleiner wirst, fällst du durch die Map. Vertrau mir! Das ist die perfekte Höhe für ein Sprite.'**
   String get character_editor_too_small_answer_1;
+
+  /// No description provided for @menu_button.
+  ///
+  /// In de, this message translates to:
+  /// **'Menü'**
+  String get menu_button;
+
+  /// No description provided for @menu_title.
+  ///
+  /// In de, this message translates to:
+  /// **'HAUPTMENÜ'**
+  String get menu_title;
+
+  /// No description provided for @menu_save.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern'**
+  String get menu_save;
+
+  /// No description provided for @menu_load.
+  ///
+  /// In de, this message translates to:
+  /// **'Laden'**
+  String get menu_load;
+
+  /// No description provided for @continue_button_label.
+  ///
+  /// In de, this message translates to:
+  /// **'Fortsetzen'**
+  String get continue_button_label;
+
+  /// No description provided for @new_game_button_label.
+  ///
+  /// In de, this message translates to:
+  /// **'Neues Spiel'**
+  String get new_game_button_label;
+
+  /// No description provided for @menu_coffey.
+  ///
+  /// In de, this message translates to:
+  /// **'Kaffee kochen'**
+  String get menu_coffey;
+
+  /// No description provided for @menu_controls.
+  ///
+  /// In de, this message translates to:
+  /// **'Steuerung'**
+  String get menu_controls;
+
+  /// No description provided for @welcome_back_title.
+  ///
+  /// In de, this message translates to:
+  /// **'WILLKOMMEN ZURÜCK'**
+  String get welcome_back_title;
+
+  /// No description provided for @menu_coffey_text.
+  ///
+  /// In de, this message translates to:
+  /// **'[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I\\\'m a teapot.[/i]\n\nTypisch IT...'**
+  String get menu_coffey_text;
+
+  /// No description provided for @menu_controls_text.
+  ///
+  /// In de, this message translates to:
+  /// **'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I'**
+  String get menu_controls_text;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

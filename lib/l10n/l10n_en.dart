@@ -81,4 +81,38 @@ class SEn extends S {
   @override
   String get character_editor_too_small_answer_1 =>
       'If you get any smaller, you\'ll fall through the map. Trust me! This is the perfect height for a sprite.';
+
+  @override
+  String get menu_button => 'Menu';
+
+  @override
+  String get menu_title => 'MAIN MENU';
+
+  @override
+  String get menu_save => 'Save';
+
+  @override
+  String get menu_load => 'Load';
+
+  @override
+  String get continue_button_label => 'Continue';
+
+  @override
+  String get new_game_button_label => 'New game';
+
+  @override
+  String get menu_coffey => 'Brew coffee';
+
+  @override
+  String get menu_controls => 'Controls';
+
+  @override
+  String get welcome_back_title => 'WELCOME BACK';
+
+  @override
+  String get menu_coffey_text =>
+      '[b]Hendrik:[/b]\n\nI pressed [color=red]COFFEE[/color], but all I got was an error message: [i]Error 418: I\'m a teapot.[/i]\n\nTypical IT...';
+
+  @override
+  String get menu_controls_text => 'MOVEMENT: WASD / Touch (Hold)\nACTION: Key E\nINVENTORY: Key I';
 }
