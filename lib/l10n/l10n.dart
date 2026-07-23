@@ -287,7 +287,7 @@ abstract class S {
   /// No description provided for @menu_coffey_text.
   ///
   /// In de, this message translates to:
-  /// **'[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I\\\'m a teapot.[/i]\n\nTypisch IT...'**
+  /// **'[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I\'m a teapot.[/i]\n\nTypisch IT...'**
   String get menu_coffey_text;
 
   /// No description provided for @menu_controls_text.

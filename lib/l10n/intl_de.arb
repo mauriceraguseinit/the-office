@@ -32,6 +32,6 @@
   "menu_coffey": "Kaffee kochen",
   "menu_controls": "Steuerung",
   "welcome_back_title": "WILLKOMMEN ZURÜCK",
-  "menu_coffey_text": "[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I\\'m a teapot.[/i]\n\nTypisch IT...",
+  "menu_coffey_text": "[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I'm a teapot.[/i]\n\nTypisch IT...",
   "menu_controls_text": "BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I"
 }

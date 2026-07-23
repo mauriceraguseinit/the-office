@@ -111,7 +111,7 @@ class SDe extends S {
 
   @override
   String get menu_coffey_text =>
-      '[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I\\\'m a teapot.[/i]\n\nTypisch IT...';
+      '[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I\'m a teapot.[/i]\n\nTypisch IT...';
 
   @override
   String get menu_controls_text => 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I';
