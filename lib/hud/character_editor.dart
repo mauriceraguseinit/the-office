@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:the_office/hud/retro_button.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 
+import '../l10n/l10n.dart';
 import '../utils/config.dart';
 
 class CharacterEditor extends StatefulWidget {
@@ -32,13 +33,13 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   final FocusNode _textFieldFocusNode = FocusNode();
   final FocusNode _desktopKeyboardFocusNode = FocusNode();
   final String _targetName = 'Hendrik';
-  String _statusMessage = 'Bitte gib deinen Namen ein:';
+  String? _statusMessage;
   String _subMessage = '';
   bool _isNameFinished = false;
   bool _showStep1NextButton = false;
 
   // Step 2 State (Gender)
-  String _selectedGender = 'Männlich';
+  String? _selectedGender;
   String _genderMessage = '';
   bool _isResettingGender = false;
 
@@ -86,18 +87,17 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   void _onSliderDragEnd(DragEndDetails details) {
     _isDraggingSlider = false;
 
-    final List<String> spruecheGroesser = <String>[
-      'Die Deckenhöhen in den Leveln sind genau 1,80m hoch. Sei dankbar, wenn wir dich nicht größer machen.',
-      'Größer? In dieser Wirtschaftslage? Weißt du, wie viele Tokens eine größere Hitbox kostet?!',
+    final List<String> tooHighAnswers = <String>[
+      S.of(context).character_editor_too_high_answer_1,
+      S.of(context).character_editor_too_high_answer_2,
     ];
 
     setState(() {
       if (_heightScale > 1.05) {
         final math.Random random = math.Random();
-        _genderMessage = spruecheGroesser[random.nextInt(spruecheGroesser.length)];
+        _genderMessage = tooHighAnswers[random.nextInt(tooHighAnswers.length)];
       } else if (_heightScale < 0.95) {
-        _genderMessage =
-            'Wenn du kleiner wirst, fällst du durch die Map. Vertrau mir! Das ist die perfekte Höhe für ein Sprite.';
+        _genderMessage = S.of(context).character_editor_too_small_answer_1;
       }
     });
 
@@ -110,7 +110,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.backspace) {
         setState(() {
-          _subMessage = 'Netter Versuch, aber Rückwärtsschreiben ist hier nicht erlaubt.';
+          _subMessage = S.of(context).character_editor_step_1_funny_hint;
         });
         return;
       }
@@ -125,11 +125,11 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   void _validateName() {
     if (_controller.text.length < _targetName.length) {
       setState(() {
-        _subMessage = 'Der Name muss mindestens 7 Buchstaben lang sein.';
+        _subMessage = S.of(context).character_editor_name_requirements;
       });
     } else {
       setState(() {
-        _statusMessage = 'Ein wunderschöner Name. Kurz, prägnant... Hendrik.';
+        _statusMessage = S.of(context).character_editor_nice_name;
         _subMessage = '';
         _isNameFinished = true;
         _showStep1NextButton = true;
@@ -140,7 +140,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
 
   void _selectGender(String gender) {
     if (_isResettingGender) return;
-    if (gender == 'Männlich') {
+    if (gender == S.of(context).character_editor_gender_male) {
       setState(() {
         _selectedGender = gender;
         _genderMessage = '';
@@ -157,8 +157,8 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     Timer(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
-          _selectedGender = 'Männlich';
-          _genderMessage = 'Nett, dass du gefragt wirst, oder? Bleibt trotzdem so.';
+          _selectedGender = S.of(context).character_editor_gender_male;
+          _genderMessage = S.of(context).character_editor_gender_hint;
           _isResettingGender = false;
         });
       }
@@ -224,13 +224,13 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        const Text(
-          'CHARAKTER-EDITOR',
+        Text(
+          S.of(context).character_editor_step_1_title,
           style: TextStyle(fontFamily: 'PressStart2P', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
         ),
         const SizedBox(height: 30),
         Text(
-          _statusMessage,
+          _statusMessage ?? S.of(context).character_editor_step_1_text,
           textAlign: TextAlign.center,
           style: const TextStyle(fontFamily: 'PressStart2P', fontSize: 18, color: Color(0xFF1E1E1E)),
         ),
@@ -257,7 +257,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
                   if (newLen < oldLen) {
                     scheduleMicrotask(() {
                       setState(() {
-                        _subMessage = 'Netter Versuch, aber Rückwärtsschreiben ist hier nicht erlaubt.';
+                        _subMessage = S.of(context).character_editor_step_1_funny_hint;
                       });
                     });
                     return oldValue; // Alten Zustand eiskalt beibehalten (kein Flackern!)
@@ -310,7 +310,10 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         ),
         if (_showStep1NextButton) ...<Widget>[
           const SizedBox(height: 30),
-          RetroButton(title: 'Weiter', onTap: () => setState(() => _currentStep = 2)),
+          RetroButton(
+            title: S.of(context).character_editor_next_button_label,
+            onTap: () => setState(() => _currentStep = 2),
+          ),
         ],
       ],
     );
@@ -320,8 +323,8 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        const Text(
-          'CHARAKTER-EDITOR',
+        Text(
+          S.of(context).character_editor_step_1_title,
           style: TextStyle(fontFamily: 'PressStart2P', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
         ),
         const SizedBox(height: 40),
@@ -366,8 +369,8 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  const Text(
-                    'GESCHLECHT',
+                  Text(
+                    S.of(context).character_editor_gender_title,
                     style: TextStyle(
                       fontFamily: 'PressStart2P',
                       fontSize: 14,
@@ -376,10 +379,10 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _buildGenderOption('Männlich', Icons.male),
-                  _buildGenderOption('Weiblich', Icons.female),
-                  _buildGenderOption('Divers', Icons.transgender),
-                  _buildGenderOption('Kampfjet', Icons.airplanemode_active),
+                  _buildGenderOption(S.of(context).character_editor_gender_male, Icons.male),
+                  _buildGenderOption(S.of(context).character_editor_gender_female, Icons.female),
+                  _buildGenderOption(S.of(context).character_editor_gender_divers, Icons.transgender),
+                  _buildGenderOption(S.of(context).character_editor_gender_jet, Icons.airplanemode_active),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -400,7 +403,10 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
         ),
         const SizedBox(height: 30),
 
-        RetroButton(title: 'Charakter Erstellen', onTap: () => setState(() => _currentStep = 3)),
+        RetroButton(
+          title: S.of(context).character_editor_create_char_button_label,
+          onTap: () => setState(() => _currentStep = 3),
+        ),
       ],
     );
   }
@@ -409,18 +415,17 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        const Text(
-          'GLÜCKWUNSCH!',
+        Text(
+          S.of(context).character_editor_end_title,
           style: TextStyle(fontFamily: 'PressStart2P', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
         ),
         const SizedBox(height: 30),
-        const Text.rich(
+        Text.rich(
           textAlign: TextAlign.center,
           TextSpan(
             children: <InlineSpan>[
               TextSpan(
-                text:
-                    'Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\n\nViel Spaß im Abenteuer,\n\n',
+                text: S.of(context).character_editor_end_text,
               ),
               TextSpan(
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
@@ -438,7 +443,10 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           ),
         ),
         const SizedBox(height: 40),
-        RetroButton(title: 'Abenteuer starten', onTap: widget.onFinished),
+        RetroButton(
+          title: S.of(context).character_editor_start_adventure_button_label,
+          onTap: widget.onFinished,
+        ),
       ],
     );
   }
@@ -447,8 +455,8 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
     final double sliderHeight = 180;
     return Column(
       children: <Widget>[
-        const Text(
-          'GRÖSSE',
+        Text(
+          S.of(context).character_editor_size_title,
           style: TextStyle(fontFamily: 'PressStart2P', fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
@@ -487,7 +495,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
   }
 
   Widget _buildGenderOption(String label, IconData icon) {
-    final bool isSelected = _selectedGender == label;
+    final bool isSelected = (_selectedGender ?? S.of(context).character_editor_gender_male) == label;
     return GestureDetector(
       onTap: () => _selectGender(label),
       child: Padding(

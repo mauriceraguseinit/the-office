@@ -1,0 +1,28 @@
+{
+  "@@locale": "de",
+  "welcome_text": "Willkommen im Büro.\\n\\nHeute wird es durch den Regen schwül und warm!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\\n\\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.",
+  "start_button_label": "Starten",
+  "skip_button_label": "Überspringen",
+  "character_editor_step_1_title": "CHARAKTER-EDITOR",
+  "character_editor_step_1_text": "Bitte gib deinen Namen ein:",
+  "character_editor_step_1_funny_hint": "Netter Versuch, aber Rückwärtsschreiben ist hier nicht erlaubt.",
+  "character_editor_next_button_label": "Weiter",
+  "character_editor_gender_title": "GESCHLECHT",
+  "character_editor_size_title": "GRÖSSE",
+  "character_editor_start_adventure_button_label": "Abenteuer starten",
+  "character_editor_end_text": "Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\\n\\nViel Spaß im Abenteuer,\\n\\n",
+  "character_editor_end_title": "GLÜCKWUNSCH!",
+  "character_editor_create_char_button_label": "Charakter Erstellen",
+  "character_editor_gender_male": "Männlich",
+  "character_editor_gender_female": "Weiblich",
+  "character_editor_gender_divers": "Divers",
+  "character_editor_gender_jet": "Kampfjet",
+  "character_editor_gender_hint": "Nett, dass du gefragt wirst, oder? Bleibt trotzdem so.",
+  "character_editor_nice_name": "Ein wunderschöner Name. Kurz, prägnant... Hendrik.",
+  "character_editor_name_requirements": "Der Name muss mindestens 7 Buchstaben lang sein.",
+  "character_editor_too_high_answer_1": "Die Deckenhöhen in den Leveln sind genau 1,80m hoch. Sei dankbar, wenn wir dich nicht größer machen.",
+  "character_editor_too_high_answer_2": "Größer? In dieser Wirtschaftslage? Weißt du, wie viele Tokens eine größere Hitbox kostet?!",
+  "character_editor_too_small_answer_1": "Wenn du kleiner wirst, fällst du durch die Map. Vertrau mir! Das ist die perfekte Höhe für ein Sprite."
+
+
+}
