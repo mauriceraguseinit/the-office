@@ -5,6 +5,7 @@ import 'package:the_office/hud/retro_button.dart';
 import 'package:the_office/utils/config.dart';
 
 import '../l10n/l10n.dart';
+import '../utils/styles.dart';
 
 class StartMenu extends StatelessWidget {
   const StartMenu({
@@ -53,7 +54,7 @@ class StartMenu extends StatelessWidget {
                           const Text(
                             'THE OFFICE',
                             style: TextStyle(
-                              fontFamily: 'PressStart2P',
+                              fontFamily: GameStyles.mainFont,
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: Colors.orange,
@@ -63,7 +64,7 @@ class StartMenu extends StatelessWidget {
                           Text(
                             S.of(context).welcome_back_title,
                             style: TextStyle(
-                              fontFamily: 'PressStart2P',
+                              fontFamily: GameStyles.mainFont,
                               fontSize: 14,
                               color: Color(0xFF1E1E1E),
                             ),

@@ -8,6 +8,7 @@ import 'package:vector_math/vector_math_64.dart' show Vector3;
 
 import '../l10n/l10n.dart';
 import '../utils/config.dart';
+import '../utils/styles.dart';
 
 class CharacterEditor extends StatefulWidget {
   const CharacterEditor({super.key, required this.onFinished});
@@ -226,13 +227,18 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
       children: <Widget>[
         Text(
           S.of(context).character_editor_step_1_title,
-          style: TextStyle(fontFamily: 'PressStart2P', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
+          style: TextStyle(
+            fontFamily: GameStyles.mainFont,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.orange,
+          ),
         ),
         const SizedBox(height: 30),
         Text(
           _statusMessage ?? S.of(context).character_editor_step_1_text,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontFamily: 'PressStart2P', fontSize: 18, color: Color(0xFF1E1E1E)),
+          style: const TextStyle(fontFamily: GameStyles.mainFont, fontSize: 18, color: Color(0xFF1E1E1E)),
         ),
         const SizedBox(height: 20),
         if (!_isNameFinished)
@@ -285,7 +291,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
               ],
               onSubmitted: (_) => _validateName(),
               style: const TextStyle(
-                fontFamily: 'PressStart2P',
+                fontFamily: GameStyles.mainFont,
                 fontSize: 20,
                 letterSpacing: 2,
                 fontWeight: FontWeight.bold,
@@ -302,7 +308,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           _subMessage,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            fontFamily: 'PressStart2P',
+            fontFamily: GameStyles.mainFont,
             fontSize: 14,
             color: Colors.red,
             fontWeight: FontWeight.bold,
@@ -325,7 +331,12 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
       children: <Widget>[
         Text(
           S.of(context).character_editor_step_1_title,
-          style: TextStyle(fontFamily: 'PressStart2P', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
+          style: TextStyle(
+            fontFamily: GameStyles.mainFont,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.orange,
+          ),
         ),
         const SizedBox(height: 40),
         Row(
@@ -372,7 +383,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
                   Text(
                     S.of(context).character_editor_gender_title,
                     style: TextStyle(
-                      fontFamily: 'PressStart2P',
+                      fontFamily: GameStyles.mainFont,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E1E1E),
@@ -394,7 +405,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           child: Text(
             _genderMessage,
             style: const TextStyle(
-              fontFamily: 'PressStart2P',
+              fontFamily: GameStyles.mainFont,
               fontSize: 14,
               color: Colors.red,
               fontWeight: FontWeight.bold,
@@ -417,7 +428,12 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
       children: <Widget>[
         Text(
           S.of(context).character_editor_end_title,
-          style: TextStyle(fontFamily: 'PressStart2P', fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
+          style: TextStyle(
+            fontFamily: GameStyles.mainFont,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.orange,
+          ),
         ),
         const SizedBox(height: 30),
         Text.rich(
@@ -435,7 +451,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
           ),
 
           style: TextStyle(
-            fontFamily: 'PressStart2P',
+            fontFamily: GameStyles.mainFont,
             fontSize: 16,
             color: Color(0xFF1E1E1E),
             fontWeight: FontWeight.bold,
@@ -457,7 +473,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
       children: <Widget>[
         Text(
           S.of(context).character_editor_size_title,
-          style: TextStyle(fontFamily: 'PressStart2P', fontSize: 14, fontWeight: FontWeight.bold),
+          style: TextStyle(fontFamily: GameStyles.mainFont, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         GestureDetector(
@@ -517,7 +533,7 @@ class _CharacterEditorState extends State<CharacterEditor> with TickerProviderSt
             const SizedBox(width: 10),
             Text(
               label,
-              style: const TextStyle(fontFamily: 'PressStart2P', fontSize: 16, color: Color(0xFF1E1E1E)),
+              style: const TextStyle(fontFamily: GameStyles.mainFont, fontSize: 16, color: Color(0xFF1E1E1E)),
             ),
           ],
         ),

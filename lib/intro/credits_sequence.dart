@@ -4,6 +4,7 @@ import 'package:flame/text.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/config.dart';
+import '../utils/styles.dart';
 import 'intro_game.dart';
 
 // Ein kleiner Hilfs-Container, der das HasPaint Mix-in nutzt.
@@ -49,7 +50,7 @@ class CreditsSequence extends PositionComponent with HasGameReference<IntroGame>
       style: const TextStyle(
         color: Colors.orange,
         fontSize: 20,
-        fontFamily: 'PressStart2P',
+        fontFamily: GameStyles.mainFont,
         fontWeight: FontWeight.bold,
         shadows: <Shadow>[
           Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 0),
@@ -61,7 +62,7 @@ class CreditsSequence extends PositionComponent with HasGameReference<IntroGame>
       style: const TextStyle(
         color: Colors.white,
         fontSize: 32,
-        fontFamily: 'PressStart2P',
+        fontFamily: GameStyles.mainFont,
         fontWeight: FontWeight.bold,
         shadows: <Shadow>[
           Shadow(color: Colors.black, offset: Offset(4, 4), blurRadius: 0),
