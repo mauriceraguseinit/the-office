@@ -95,7 +95,7 @@ abstract class S {
   /// No description provided for @welcome_text.
   ///
   /// In de, this message translates to:
-  /// **'Willkommen im Büro.\\n\\nHeute wird es durch den Regen schwül und warm!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\\n\\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.'**
+  /// **'Willkommen im Büro.\n\nHeute wird es durch den Regen schwül und warm!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.'**
   String get welcome_text;
 
   /// No description provided for @start_button_label.
@@ -155,7 +155,7 @@ abstract class S {
   /// No description provided for @character_editor_end_text.
   ///
   /// In de, this message translates to:
-  /// **'Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\\n\\nViel Spaß im Abenteuer,\\n\\n'**
+  /// **'Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\n\nViel Spaß im Abenteuer,\n\n'**
   String get character_editor_end_text;
 
   /// No description provided for @character_editor_end_title.

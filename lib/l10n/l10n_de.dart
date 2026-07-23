@@ -10,7 +10,7 @@ class SDe extends S {
 
   @override
   String get welcome_text =>
-      'Willkommen im Büro.\\n\\nHeute wird es durch den Regen schwül und warm!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\\n\\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.';
+      'Willkommen im Büro.\n\nHeute wird es durch den Regen schwül und warm!!! Also hol dir ne kalte Mate aus dem Kühlschrank und fang an zu arbeiten.\n\nDas Jira Board mit deinen Aufgaben kannst du dir an deinem PC aufrufen.';
 
   @override
   String get start_button_label => 'Starten';
@@ -41,7 +41,7 @@ class SDe extends S {
 
   @override
   String get character_editor_end_text =>
-      'Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\\n\\nViel Spaß im Abenteuer,\\n\\n';
+      'Hervorragend! Du hast dir deinen Charakter mit viel Liebe zum Detail selbst zusammengestellt.\n\nViel Spaß im Abenteuer,\n\n';
 
   @override
   String get character_editor_end_title => 'GLÜCKWUNSCH!';
