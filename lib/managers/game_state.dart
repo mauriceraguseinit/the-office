@@ -28,6 +28,29 @@ class GameState extends ChangeNotifier {
   bool isDeskLocked = false;
   String playerMessage = '';
 
+  final Set<String> _flags = <String>{};
+  final Map<String, dynamic> _variables = <String, dynamic>{};
+
+  bool hasFlag(String flag) => _flags.contains(flag);
+
+  void setFlag(String flag, {bool value = true}) {
+    if (value) {
+      if (_flags.add(flag)) notifyListeners();
+    } else {
+      if (_flags.remove(flag)) notifyListeners();
+    }
+  }
+
+  void removeFlag(String flag) => setFlag(flag, value: false);
+
+  dynamic getVariable(String key) => _variables[key];
+
+  void setVariable(String key, dynamic value) {
+    if (_variables[key] == value) return;
+    _variables[key] = value;
+    notifyListeners();
+  }
+
   void selectItem(InventoryItem? item) {
     selectedItem = item;
     notifyListeners();
@@ -52,7 +75,9 @@ class GameState extends ChangeNotifier {
     return <String, dynamic>{
       'ownedItems': ownedItems.map((InventoryItem item) => item.id).toList(),
       'isDeskLocked': isDeskLocked,
-      'playerPosition': playerPosition != null ? <String, double>{'x': playerPosition!.x, 'y': playerPosition!.y} : null,
+      'playerPosition': playerPosition != null
+          ? <String, double>{'x': playerPosition!.x, 'y': playerPosition!.y}
+          : null,
     };
   }
 

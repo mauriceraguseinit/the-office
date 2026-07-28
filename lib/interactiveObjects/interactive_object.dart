@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:the_office/office_game.dart';
 
 import '../hendrik.dart';
+import '../models/interaction_system.dart';
 
 enum TriggerZoneDialogs { tooFar }
 
@@ -41,9 +42,30 @@ abstract class InteractiveObject extends PositionComponent
   /// da Tiled-Sprites mit Anchor.center innerhalb des Wrappers liegen.
   Vector2 get interactionCenter => _renderComponent.absoluteCenter;
 
-  void onAction();
+  List<InteractionRule> get rules => <InteractionRule>[];
 
-  Map<String, Widget Function(BuildContext, Game)> get dialogs;
+  void onAction() {
+    final InteractionRule activeRule = rules.firstWhere(
+      (InteractionRule rule) => rule.canExecute(officeGame.state, officeGame.selectedItem),
+      orElse: () => InteractionRule(
+        actions: <GameAction>[
+          ShowMessageAction('Ich weiß nicht, was ich damit tun soll.'),
+        ],
+      ),
+    );
+
+    activeRule.execute(officeGame.state);
+
+    if (officeGame.state.playerMessage.isNotEmpty) {
+      officeGame.showPlayerMessage(officeGame.state.playerMessage);
+    }
+
+    if (activeRule.overlayToOpen != null) {
+      officeGame.openOverlay(activeRule.overlayToOpen!);
+    }
+  }
+
+  Map<String, Widget Function(BuildContext, Game)> get dialogs => <String, Widget Function(BuildContext, Game)>{};
 
   @override
   Future<void> onLoad() async {
@@ -72,11 +94,6 @@ abstract class InteractiveObject extends PositionComponent
     }
   }
 
-  /// Flame nutzt für Tap- und Hover-Events nicht die Collision-Hitbox,
-  /// sondern standardmäßig die Bounds des Parent-Components.
-  ///
-  /// Der Sprite ist bei uns aber relativ zum Parent verschoben. Deshalb
-  /// berechnen wir hier explizit die sichtbare Rechteckfläche des Sprites.
   @override
   bool containsLocalPoint(Vector2 point) {
     final Vector2 center = _renderComponent.position;
@@ -99,7 +116,6 @@ abstract class InteractiveObject extends PositionComponent
     return distance <= maxDistance;
   }
 
-  /// Gibt zurück, ob die Aktion tatsächlich ausgeführt wurde.
   bool tryInteract({bool showTooFar = true}) {
     final Hendrik player = game.player;
 
@@ -108,8 +124,6 @@ abstract class InteractiveObject extends PositionComponent
         game.openOverlay(TriggerZoneDialogs.tooFar.toString());
       }
 
-      // Klick auf ein Objekt – auch zu weit entfernt –
-      // beendet die aktuell gehaltene Inventar-Auswahl.
       if (game.selectedItem != null) {
         game.resetSelection();
       }
@@ -133,12 +147,7 @@ abstract class InteractiveObject extends PositionComponent
   void onTapDown(TapDownEvent event) {
     if (game.isTouchDevice) {
       game.setHighlightedObject(this);
-
-      // Ein aktives Inventar-Item wird beim Tap direkt auf das Objekt angewendet.
-      //if (game.selectedItem != null) {
       tryInteract();
-      //}
-
       return;
     }
 

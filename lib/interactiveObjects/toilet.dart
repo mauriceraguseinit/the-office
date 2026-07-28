@@ -1,18 +1,6 @@
-import 'package:flame/game.dart';
-import 'package:flutter/material.dart';
-import 'package:the_office/hud/speech_bubble.dart';
-import 'package:the_office/models/inventory_item.dart';
-
-import 'interactive_object.dart';
-import 'inventory_item_catalogue.dart';
-
-enum ToiletDialogs {
-  normalAction,
-  thanks,
-  wrongItem,
-  mate,
-  emptyMate,
-}
+import 'package:the_office/interactiveObjects/interactive_object.dart';
+import 'package:the_office/interactiveObjects/inventory_item_catalogue.dart';
+import 'package:the_office/models/interaction_system.dart';
 
 class Toilet extends InteractiveObject {
   Toilet({
@@ -24,65 +12,46 @@ class Toilet extends InteractiveObject {
   });
 
   @override
-  Map<String, Widget Function(BuildContext, Game)> get dialogs {
-    return <String, Widget Function(BuildContext, Game)>{
-      for (final ToiletDialogs value in ToiletDialogs.values)
-        value.toString(): (BuildContext context, Game game) {
-          switch (value) {
-            case ToiletDialogs.normalAction:
-              return RetroSpeechBubble(
-                text: '[b]Toilette:[/b]\n\nBesetzt!',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-            case ToiletDialogs.wrongItem:
-              return RetroSpeechBubble(
-                text: '[b]Toilette:[/b]\n\nDas gehört hier nicht rein.',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-            case ToiletDialogs.mate:
-              return RetroSpeechBubble(
-                text: '[b]Hendrik:[/b]\n\nIch trinke eh lieber einen Kaffee.',
-                onClose: () {
-                  game.overlays.remove(value.toString());
-                },
-              );
-            case ToiletDialogs.thanks:
-              return RetroSpeechBubble(
-                text: '[b]Toilette:[/b]\n\nSpült dankbar.',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-            case ToiletDialogs.emptyMate:
-              return RetroSpeechBubble(
-                text: '[b]Hendrik:[/b]\n\nNichts geht über einen erfrischenden Durstlöscher!',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-          }
-        },
-    };
-  }
-
-  @override
-  void onAction() {
-    final InventoryItem? activeItem = game.selectedItem;
-
-    if (activeItem != null) {
-      if (activeItem.id == 'kaffee') {
-        game.inventory.remove(activeItem);
-        game.overlays.add(ToiletDialogs.thanks.toString());
-      } else if (activeItem.id == InventoryItemType.mate.toString()) {
-        officeGame.inventory.remove(activeItem);
-        officeGame.inventory.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty));
-        game.overlays.add(ToiletDialogs.mate.toString());
-      } else if (activeItem.id == InventoryItemType.mateEmpty.toString()) {
-        officeGame.inventory.remove(activeItem);
-        officeGame.inventory.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateWater));
-        game.overlays.add(ToiletDialogs.emptyMate.toString());
-      } else {
-        game.overlays.add(ToiletDialogs.wrongItem.toString());
-      }
-      game.resetSelection();
-    } else {
-      game.overlays.add(ToiletDialogs.normalAction.toString());
-    }
-  }
+  List<InteractionRule> get rules => <InteractionRule>[
+    // Fall 1: Kaffee in die Toilette schütten
+    InteractionRule(
+      requirements: <Requirement>[ItemRequirement('kaffee')],
+      actions: <GameAction>[
+        RemoveItemAction('kaffee'),
+        ShowMessageAction('[b]Toilette:[/b]\n\nSpült dankbar.'),
+      ],
+    ),
+    // Fall 2: Mate trinken (Mate -> Leere Flasche)
+    InteractionRule(
+      requirements: <Requirement>[ItemRequirement(InventoryItemType.mate.toString())],
+      actions: <GameAction>[
+        RemoveItemAction(InventoryItemType.mate.toString()),
+        AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty)),
+        ShowMessageAction('[b]Hendrik:[/b]\n\nIch trinke eh lieber einen Kaffee.'),
+      ],
+    ),
+    // Fall 3: Flasche mit Klowasser füllen (Leere Flasche -> Klowasser-Mate)
+    InteractionRule(
+      requirements: <Requirement>[ItemRequirement(InventoryItemType.mateEmpty.toString())],
+      actions: <GameAction>[
+        RemoveItemAction(InventoryItemType.mateEmpty.toString()),
+        AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateWater)),
+        ShowMessageAction('[b]Hendrik:[/b]\n\nNichts geht über einen erfrischenden Durstlöscher!'),
+      ],
+    ),
+    // Fall 4: Falsches Item (beliebiges anderes Item ausgewählt)
+    InteractionRule(
+      requirements: <Requirement>[AnyItemRequirement()],
+      actions: <GameAction>[
+        ShowMessageAction('[b]Toilette:[/b]\n\nDas gehört hier nicht rein.'),
+      ],
+    ),
+    // Fall 5: Einfache Interaktion ohne Item
+    InteractionRule(
+      requirements: <Requirement>[NoItemRequirement()],
+      actions: <GameAction>[
+        ShowMessageAction('[b]Toilette:[/b]\n\nBesetzt!'),
+      ],
+    ),
+  ];
 }

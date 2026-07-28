@@ -1,11 +1,6 @@
-import 'package:flame/game.dart';
-import 'package:flutter/material.dart';
-import 'package:the_office/hud/speech_bubble.dart';
-import 'package:the_office/models/inventory_item.dart';
+import 'package:the_office/models/interaction_system.dart';
 
 import 'interactive_object.dart';
-
-enum CoffeeMachineDialogs { normalAction, thanks, wrongItem, noMate }
 
 class CoffeeMachine extends InteractiveObject {
   CoffeeMachine({
@@ -17,52 +12,35 @@ class CoffeeMachine extends InteractiveObject {
   });
 
   @override
-  Map<String, Widget Function(BuildContext, Game)> get dialogs {
-    return <String, Widget Function(BuildContext, Game)>{
-      for (final CoffeeMachineDialogs value in CoffeeMachineDialogs.values)
-        value.toString(): (BuildContext context, Game game) {
-          switch (value) {
-            case CoffeeMachineDialogs.normalAction:
-              return RetroSpeechBubble(
-                text: '[b]Kaffeemaschine:[/b]\n\nDefekt!',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-            case CoffeeMachineDialogs.wrongItem:
-              return RetroSpeechBubble(
-                text: '[b]Kaffeemaschine:[/b]\n\nDas gehört hier nicht rein.',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-            case CoffeeMachineDialogs.noMate:
-              return RetroSpeechBubble(
-                text: '[b]Kaffeemaschine:[/b]\n\nGluckert protestierend.',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-            case CoffeeMachineDialogs.thanks:
-              return RetroSpeechBubble(
-                text: '[b]Kaffeemaschine:[/b]\n\nSpült dankbar.',
-                onClose: () => game.overlays.remove(value.toString()),
-              );
-          }
-        },
-    };
-  }
-
-  @override
-  void onAction() {
-    final InventoryItem? activeItem = game.selectedItem;
-
-    if (activeItem != null) {
-      if (activeItem.id == 'kaffee') {
-        game.inventory.remove(activeItem);
-        game.overlays.add(CoffeeMachineDialogs.thanks.toString());
-      } else if (activeItem.id == 'mate') {
-        game.overlays.add(CoffeeMachineDialogs.noMate.toString());
-      } else {
-        game.overlays.add(CoffeeMachineDialogs.wrongItem.toString());
-      }
-      game.resetSelection();
-    } else {
-      game.overlays.add(CoffeeMachineDialogs.normalAction.toString());
-    }
-  }
+  List<InteractionRule> get rules => <InteractionRule>[
+    // Fall 1: Kaffee benutzen (vielleicht zum Reinigen?)
+    InteractionRule(
+      requirements: <Requirement>[ItemRequirement('kaffee')],
+      actions: <GameAction>[
+        RemoveItemAction('kaffee'),
+        ShowMessageAction('[b]Kaffeemaschine:[/b]\n\nSpült dankbar.'),
+      ],
+    ),
+    // Fall 2: Mate benutzen
+    InteractionRule(
+      requirements: <Requirement>[ItemRequirement('mate')],
+      actions: <GameAction>[
+        ShowMessageAction('[b]Kaffeemaschine:[/b]\n\nGluckert protestierend.'),
+      ],
+    ),
+    // Fall 3: Falsches Item
+    InteractionRule(
+      requirements: <Requirement>[AnyItemRequirement()],
+      actions: <GameAction>[
+        ShowMessageAction('[b]Kaffeemaschine:[/b]\n\nDas gehört hier nicht rein.'),
+      ],
+    ),
+    // Fall 4: Einfache Interaktion
+    InteractionRule(
+      requirements: <Requirement>[NoItemRequirement()],
+      actions: <GameAction>[
+        ShowMessageAction('[b]Kaffeemaschine:[/b]\n\nDefekt!'),
+      ],
+    ),
+  ];
 }

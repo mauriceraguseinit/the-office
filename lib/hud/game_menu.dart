@@ -1,7 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/gestures/events.dart';
 import 'package:the_office/hud/retro_button.dart';
 import 'package:the_office/office_game.dart';
 import 'package:the_office/utils/config.dart';
