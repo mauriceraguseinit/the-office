@@ -7,6 +7,7 @@ class GameImages {
   static const String tobiIdle = 'tobi_idle.png';
   static const String deskDaniel = 'desk_daniel.png';
   static const String backpack = 'backpack.png';
+  static const String beatEmUpBg = 'beat_em_up_bg.png';
 
   // Hendrik animations
   static const String playerDown = 'down.png';
@@ -23,6 +24,7 @@ class GameImages {
     tobiIdle,
     deskDaniel,
     backpack,
+    beatEmUpBg,
     playerDown,
     playerUp,
     playerLeft,

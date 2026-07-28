@@ -8,6 +8,7 @@ import 'package:the_office/utils/config.dart';
 // ignore: depend_on_referenced_packages, avoid_web_libraries_in_flutter
 import 'package:the_office/utils/web_helper.dart' as web_helper;
 
+import 'beat_em_up.dart';
 import 'hud/character_editor.dart';
 import 'hud/game_menu.dart';
 import 'hud/inventory_overlay.dart';
@@ -29,6 +30,7 @@ enum Scenes {
   editor,
   intro,
   game,
+  beatEmUp,
 }
 
 void main() async {
@@ -64,6 +66,7 @@ class TheOfficeApp extends StatefulWidget {
 
 class _TheOfficeAppState extends State<TheOfficeApp> {
   final OfficeGame _game = OfficeGame();
+  final BeatEmUpGame _beatEmUpGame = BeatEmUpGame();
   final FocusNode _gameFocusNode = FocusNode();
   late final IntroGame _introGame;
   Scenes _showScene = Scenes.loading;
@@ -86,6 +89,8 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     final bool hasSave = await sl<SaveManager>().hasSaveGame();
     if (mounted) {
       setState(() {
+       // _showScene = Scenes.beatEmUp;
+
         _showScene = hasSave ? Scenes.startMenu : Scenes.editor;
       });
     }
@@ -225,6 +230,8 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
                   );
                 },
               ),
+
+              Scenes.beatEmUp => GameWidget<BeatEmUpGame>(game: _beatEmUpGame,),
             },
           ),
 
