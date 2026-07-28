@@ -46,6 +46,7 @@ class OfficeGame extends FlameGame<World>
 
   late OfficeHud hud;
   Vector2 mousePosition = Vector2.zero();
+  Vector2? _lastMouseWidgetPosition;
   final ValueNotifier<Vector2> mousePositionNotifier = ValueNotifier<Vector2>(Vector2.zero());
   final ValueNotifier<Offset> mousePositionRawNotifier = ValueNotifier<Offset>(Offset.zero);
   bool _shouldLoadOnMount = false;
@@ -251,6 +252,8 @@ class OfficeGame extends FlameGame<World>
   }
 
   void updateMousePosition(Vector2 widgetPosition) {
+    _lastMouseWidgetPosition = widgetPosition;
+
     if (!isMounted) return;
 
     // Position für das am Cursor hängende Inventar-Item / Crosshair.
@@ -394,6 +397,14 @@ class OfficeGame extends FlameGame<World>
     super.onDragCancel(event);
     if (event.handled) return;
     inputManager.onDragCancel(event);
+  }
+
+  @override
+  void onMount() {
+    super.onMount();
+    if (_lastMouseWidgetPosition != null) {
+      updateMousePosition(_lastMouseWidgetPosition!);
+    }
   }
 
   @override
