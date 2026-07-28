@@ -32,7 +32,7 @@ class _MobileInventoryButtonState extends State<MobileInventoryButton> {
             child: Stack(
               children: <Widget>[
                 Positioned(
-                  bottom: 32,
+                  top: 32,
                   left: 0,
                   right: 0,
                   child: Center(

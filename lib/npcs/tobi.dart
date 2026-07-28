@@ -18,6 +18,8 @@ class Tobi extends InteractiveObject {
   static double pngHeight = 495;
   static double get frameWidth => pngWidth / frame;
 
+  final String _tobiGoneFlag = 'tobi_gone';
+
   @override
   List<InteractionRule> get rules => <InteractionRule>[
     // Fall 1: Mate-Wasser geben (Tobi verschwindet)
@@ -25,7 +27,7 @@ class Tobi extends InteractiveObject {
       requirements: <Requirement>[ItemRequirement(InventoryItemType.mateWater.toString())],
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mateWater.toString()),
-        SetFlagAction('tobi_gone'),
+        SetFlagAction(_tobiGoneFlag),
         CustomAction((_) => removeFromParent()),
         ShowMessageAction(
           '[b]Tobias:[/b]\n\nUuuuh eine neue Geschmackssorte!!!\n\n*trink, trink* *trink*\n\nDa bring ich doch gleich mal die leere Flasche weg.',
@@ -36,8 +38,13 @@ class Tobi extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[ItemRequirement(InventoryItemType.mate.toString())],
       actions: <GameAction>[
-        ShowMessageAction(
-          '[b]Tobias:[/b]\n\nIch trinke seit 345,3 Tagen keine Mate mehr und gehe regelmäßig zu den Treffen der anonymen Mateholiker.\n\nLass mich in Ruhe!',
+        ShowStackMessageAction(
+          'tobi_mate_dialog_index',
+          <String>[
+            '[b]Tobias:[/b]\n\nIch trinke seit 345,3 Tagen keine Mate mehr und gehe regelmäßig zu den Treffen der anonymen Mateholiker.\n\nLass mich in Ruhe!',
+            '[b]Tobias:[/b]\n\nIch mein... naja .. nein ich bleibe Standhaft!',
+            '[b]Tobias:[/b]\n\nAusserdem kenne ich ja den Geschmack einer Mate eh schon. Ist also nichts Neues für mich.',
+          ],
         ),
       ],
     ),
@@ -67,7 +74,7 @@ class Tobi extends InteractiveObject {
 
   @override
   Future<void> onLoad() async {
-    if (officeGame.state.hasFlag('tobi_gone')) {
+    if (officeGame.state.hasFlag(_tobiGoneFlag)) {
       removeFromParent();
       return;
     }

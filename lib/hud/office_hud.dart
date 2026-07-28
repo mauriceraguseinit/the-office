@@ -31,7 +31,7 @@ class OfficeHud extends PositionComponent with HasGameReference<OfficeGame> {
       text: '',
       position: Vector2(
         GameConfig.resolution.width / 2,
-        GameConfig.resolution.height - 140,
+        GameConfig.resolution.height - 160,
       ),
       anchor: Anchor.center,
       priority: 1001,

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../managers/game_state.dart';
 import 'inventory_item.dart';
 
@@ -72,6 +74,33 @@ class ShowMessageAction extends GameAction {
   @override
   void execute(GameState state) {
     state.setPlayerMessage(message);
+  }
+}
+
+class ShowRandomMessageAction extends GameAction {
+  ShowRandomMessageAction(this.messages);
+  final List<String> messages;
+
+  @override
+  void execute(GameState state) {
+    final Random random = Random();
+    state.setPlayerMessage(messages[random.nextInt(messages.length)]);
+  }
+}
+
+class ShowStackMessageAction extends GameAction {
+  ShowStackMessageAction(this.key, this.messages);
+  final String key;
+  final List<String> messages;
+
+  @override
+  void execute(GameState state) {
+    final int count = state.getVariable(key) as int? ?? 0;
+    state.setPlayerMessage(messages[count]);
+
+    if (count + 1 < messages.length) {
+      state.setVariable(key, count + 1);
+    }
   }
 }
 
