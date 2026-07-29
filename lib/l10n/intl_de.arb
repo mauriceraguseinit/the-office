@@ -33,5 +33,17 @@
   "menu_controls": "Steuerung",
   "welcome_back_title": "WILLKOMMEN ZURÜCK",
   "menu_coffey_text": "[b]Hendrik:[/b]\n\nIch hab auf [color=red]KAFFEE[/color] gedrückt, aber es kam nur eine Fehlermeldung: [i]Error 418: I'm a teapot.[/i]\n\nTypisch IT...",
-  "menu_controls_text": "BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I"
+  "menu_controls_text": "BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I",
+  "game_loaded": "Spiel geladen!",
+  "no_save_game_founded": "Kein Spielstand gefunden.",
+  "save_error": "Fehler beim Speichern!",
+  "game_saved": "Spielstand gespeichert!",
+  "error_while_loading_save_game": "Fehler beim Laden!",
+  "use": "BENUTZE",
+  "with_word": "MIT",
+  "music_on": "Music: An",
+  "music_off": "Music: AUS",
+  "do_not_use": "DAS GEHT SO NICHT!",
+  "inventory": "INVENTAR",
+  "dialogue_too_far_away": "Dafür bin ich zu weit weg."
 }

@@ -33,14 +33,16 @@ class CoffeeMachine extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[AnyItemRequirement()],
       actions: <GameAction>[
-        ShowMessageAction('[b]Kaffeemaschine:[/b]\n\nDas gehört hier nicht rein.'),
+        ShowMessageAction('[b]Hendrik:[/b]\n\nDas gehört hier nicht rein.'),
       ],
     ),
     // Fall 4: Einfache Interaktion
     InteractionRule(
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[
-        ShowMessageAction('[b]Kaffeemaschine:[/b]\n\nDefekt!'),
+        ShowMessageAction(
+          '[b]Hendrik:[/b]\n\nIch weiß nicht, ob das grüne ungeröstete Kaffeebohnen sind, aber der pelzige Überzug erinnert mich daran, vielleicht etwas magen-schohnenderes zu trinken.!',
+        ),
       ],
     ),
   ];

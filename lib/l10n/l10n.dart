@@ -295,6 +295,78 @@ abstract class S {
   /// In de, this message translates to:
   /// **'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I'**
   String get menu_controls_text;
+
+  /// No description provided for @game_loaded.
+  ///
+  /// In de, this message translates to:
+  /// **'Spiel geladen!'**
+  String get game_loaded;
+
+  /// No description provided for @no_save_game_founded.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Spielstand gefunden.'**
+  String get no_save_game_founded;
+
+  /// No description provided for @save_error.
+  ///
+  /// In de, this message translates to:
+  /// **'Fehler beim Speichern!'**
+  String get save_error;
+
+  /// No description provided for @game_saved.
+  ///
+  /// In de, this message translates to:
+  /// **'Spielstand gespeichert!'**
+  String get game_saved;
+
+  /// No description provided for @error_while_loading_save_game.
+  ///
+  /// In de, this message translates to:
+  /// **'Fehler beim Laden!'**
+  String get error_while_loading_save_game;
+
+  /// No description provided for @use.
+  ///
+  /// In de, this message translates to:
+  /// **'BENUTZE'**
+  String get use;
+
+  /// No description provided for @with_word.
+  ///
+  /// In de, this message translates to:
+  /// **'MIT'**
+  String get with_word;
+
+  /// No description provided for @music_on.
+  ///
+  /// In de, this message translates to:
+  /// **'Music: An'**
+  String get music_on;
+
+  /// No description provided for @music_off.
+  ///
+  /// In de, this message translates to:
+  /// **'Music: AUS'**
+  String get music_off;
+
+  /// No description provided for @do_not_use.
+  ///
+  /// In de, this message translates to:
+  /// **'DAS GEHT SO NICHT!'**
+  String get do_not_use;
+
+  /// No description provided for @inventory.
+  ///
+  /// In de, this message translates to:
+  /// **'INVENTAR'**
+  String get inventory;
+
+  /// No description provided for @dialogue_too_far_away.
+  ///
+  /// In de, this message translates to:
+  /// **'Dafür bin ich zu weit weg.'**
+  String get dialogue_too_far_away;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

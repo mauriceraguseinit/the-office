@@ -115,4 +115,40 @@ class SEn extends S {
 
   @override
   String get menu_controls_text => 'MOVEMENT: WASD / Touch (Hold)\nACTION: Key E\nINVENTORY: Key I';
+
+  @override
+  String get game_loaded => 'Game loaded!';
+
+  @override
+  String get no_save_game_founded => 'No save game found.';
+
+  @override
+  String get save_error => 'Error while saving!';
+
+  @override
+  String get game_saved => 'Game saved!';
+
+  @override
+  String get error_while_loading_save_game => 'Error while loading!';
+
+  @override
+  String get use => 'USE';
+
+  @override
+  String get with_word => 'WITH';
+
+  @override
+  String get music_on => 'Music: ON';
+
+  @override
+  String get music_off => 'Music: OFF';
+
+  @override
+  String get do_not_use => 'THAT\'S NOT POSSIBLE!';
+
+  @override
+  String get inventory => 'INVENTORY';
+
+  @override
+  String get dialogue_too_far_away => 'I\'m too far away for that.';
 }

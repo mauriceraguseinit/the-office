@@ -33,6 +33,19 @@
   "menu_controls_text": "MOVEMENT: WASD / Touch (Hold)\nACTION: Key E\nINVENTORY: Key I",
   "welcome_back_title": "WELCOME BACK",
   "continue_button_label": "Continue",
-  "new_game_button_label": "New game"
+  "new_game_button_label": "New game",
+  "dialogue_too_far_away": "I'm too far away for that.",
+  "game_loaded": "Game loaded!",
+  "no_save_game_founded": "No save game found.",
+  "error_while_loading_save_game": "Error while loading!",
+  "save_error": "Error while saving!",
+  "game_saved": "Game saved!",
+  "use": "USE",
+  "with": "WITH",
+  "music_on": "Music: ON",
+  "music_off": "Music: OFF",
+  "with_word": "WITH",
+  "do_not_use": "THAT'S NOT POSSIBLE!",
+  "inventory": "INVENTORY"
 
 }

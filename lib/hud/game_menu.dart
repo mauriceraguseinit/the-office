@@ -140,7 +140,9 @@ class GameMenuOverlay extends StatelessWidget {
                                       listenable: game.state,
                                       builder: (BuildContext context, _) {
                                         return RetroButton(
-                                          title: game.state.isMusicEnabled ? 'Musik: AN' : 'Musik: AUS',
+                                          title: game.state.isMusicEnabled
+                                              ? S.of(context).music_on
+                                              : S.of(context).music_off,
                                           alignment: Alignment.center,
                                           onTap: () async {
                                             game.state.toggleMusic();

@@ -115,4 +115,40 @@ class SDe extends S {
 
   @override
   String get menu_controls_text => 'BEWEGUNG: WASD / Touch (Gedrückthalten)\nAKTION: Taste E\nINVENTAR: Taste I';
+
+  @override
+  String get game_loaded => 'Spiel geladen!';
+
+  @override
+  String get no_save_game_founded => 'Kein Spielstand gefunden.';
+
+  @override
+  String get save_error => 'Fehler beim Speichern!';
+
+  @override
+  String get game_saved => 'Spielstand gespeichert!';
+
+  @override
+  String get error_while_loading_save_game => 'Fehler beim Laden!';
+
+  @override
+  String get use => 'BENUTZE';
+
+  @override
+  String get with_word => 'MIT';
+
+  @override
+  String get music_on => 'Music: An';
+
+  @override
+  String get music_off => 'Music: AUS';
+
+  @override
+  String get do_not_use => 'DAS GEHT SO NICHT!';
+
+  @override
+  String get inventory => 'INVENTAR';
+
+  @override
+  String get dialogue_too_far_away => 'Dafür bin ich zu weit weg.';
 }

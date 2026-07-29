@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../managers/game_state.dart';
 import '../managers/service_locator.dart';
 import '../models/inventory_item.dart';
@@ -28,7 +29,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
     final List<InventoryItem> items = _state.ownedItems;
     final InventoryItem? selectedItem = _state.selectedItem;
     if (_hoverText.isEmpty && selectedItem != null) {
-      _hoverText = 'BENUTZE ${selectedItem.name.toUpperCase()} MIT...';
+      _hoverText = '${S.of(context).use} ${selectedItem.name.toUpperCase()} ${S.of(context).with_word}...';
     }
 
     return LayoutBuilder(
@@ -90,7 +91,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
                                     Text(
-                                      'INVENTAR',
+                                      S.of(context).inventory,
                                       style: GameStyles.inventoryTitleStyle,
                                     ),
                                     Divider(color: Color(0xFF1E1E1E), thickness: 4),
@@ -113,19 +114,20 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
                                               setState(() {
                                                 if (_state.selectedItem != null) {
                                                   if (_state.selectedItem!.id == item.id) {
-                                                    _hoverText = 'BENUTZE ${item.name.toUpperCase()}';
+                                                    _hoverText = '${S.of(context).use} ${item.name.toUpperCase()}';
                                                   } else {
                                                     _hoverText =
-                                                        'BENUTZE ${_state.selectedItem!.name.toUpperCase()} MIT ${item.name.toUpperCase()}';
+                                                        '${S.of(context).use} ${_state.selectedItem!.name.toUpperCase()} ${S.of(context).with_word} ${item.name.toUpperCase()}';
                                                   }
                                                 } else {
-                                                  _hoverText = 'BENUTZE ${item.name.toUpperCase()} MIT...';
+                                                  _hoverText =
+                                                      '${S.of(context).use} ${item.name.toUpperCase()} ${S.of(context).with_word}...';
                                                 }
                                               });
                                             },
                                             onExit: (_) => setState(
                                               () => _hoverText = _state.selectedItem != null
-                                                  ? 'BENUTZE ${_state.selectedItem!.name.toUpperCase()} MIT...'
+                                                  ? '${S.of(context).use} ${_state.selectedItem!.name.toUpperCase()} ${S.of(context).with_word}...'
                                                   : '',
                                             ),
                                             child: GestureDetector(
@@ -229,7 +231,9 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
 
   void _syncHoverTextFromSelection({bool rebuild = true}) {
     final InventoryItem? selected = _state.selectedItem;
-    final String next = selected != null ? 'BENUTZE ${selected.name.toUpperCase()} MIT...' : '';
+    final String next = selected != null
+        ? '${S.of(context).use} ${selected.name.toUpperCase()} ${S.of(context).with_word}...'
+        : '';
     if (rebuild) {
       setState(() => _hoverText = next);
     } else {
@@ -263,7 +267,7 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
         widget.game.closeInventory();
         widget.game.setHighlightedObject(_state.highlightedObject);
       } else {
-        setState(() => _hoverText = 'DAS GEHT SO NICHT!');
+        setState(() => _hoverText = S.of(context).do_not_use);
       }
     }
   }

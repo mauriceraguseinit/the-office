@@ -17,6 +17,7 @@ import 'hendrik.dart';
 import 'hud/office_hud.dart';
 import 'hud/speech_bubble.dart';
 import 'interactiveObjects/interactive_object.dart';
+import 'l10n/l10n.dart';
 import 'lighting_manager.dart';
 import 'managers/audio_manager.dart';
 import 'managers/game_state.dart';
@@ -162,7 +163,7 @@ class OfficeGame extends FlameGame<World>
     overlays.addEntry(
       TriggerZoneDialogs.tooFar.toString(),
       (BuildContext context, Game game) => RetroSpeechBubble(
-        text: 'Dafür bin ich zu weit weg.',
+        text: S.of(context).dialogue_too_far_away,
         onClose: () => game.overlays.remove(TriggerZoneDialogs.tooFar.toString()),
       ),
     );
@@ -296,10 +297,10 @@ class OfficeGame extends FlameGame<World>
       state.playerPosition = player.position.clone();
       await sl<SaveManager>().saveGame(state);
       debugPrint('OfficeGame: saveGame() finished');
-      showPlayerMessage('Spiel gespeichert!');
+      showPlayerMessage(S.of(buildContext!).game_saved);
     } catch (e) {
       debugPrint('OfficeGame: Error in saveGame(): $e');
-      showPlayerMessage('Fehler beim Speichern!');
+      showPlayerMessage(S.of(buildContext!).save_error);
     }
   }
 
@@ -309,19 +310,33 @@ class OfficeGame extends FlameGame<World>
       final SaveManager saveManager = sl<SaveManager>();
       if (await saveManager.hasSaveGame()) {
         await saveManager.loadGame(state);
+
+        // Musik-Einstellung nach dem Laden anwenden
+        sl<AudioManager>().setMusicEnabled(state.isMusicEnabled);
+
         if (state.playerPosition != null) {
           player.position = state.playerPosition!;
           camera.follow(player, snap: true);
         }
         debugPrint('OfficeGame: loadGame() finished');
-        showPlayerMessage('Spiel geladen!');
+
+        final BuildContext? context = buildContext;
+        if (context != null && context.mounted) {
+          showPlayerMessage(S.of(context).game_loaded);
+        }
       } else {
         debugPrint('OfficeGame: No save game to load');
-        showPlayerMessage('Kein Spielstand gefunden.');
+        final BuildContext? context = buildContext;
+        if (context != null && context.mounted) {
+          showPlayerMessage(S.of(context).no_save_game_founded);
+        }
       }
-    } catch (e) {
-      debugPrint('OfficeGame: Error in loadGame(): $e');
-      showPlayerMessage('Fehler beim Laden!');
+    } catch (exception) {
+      debugPrint('OfficeGame: Error in loadGame(): $exception');
+      final BuildContext? context = buildContext;
+      if (context != null && context.mounted) {
+        showPlayerMessage(S.of(context).error_while_loading_save_game);
+      }
     }
   }
 

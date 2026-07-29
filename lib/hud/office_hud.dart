@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/text.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../managers/game_state.dart';
 import '../managers/service_locator.dart';
 import '../models/inventory_item.dart';
@@ -87,8 +88,8 @@ class OfficeHud extends PositionComponent with HasGameReference<OfficeGame> {
     if (item == null) return objectName;
 
     final String itemName = item.name.toUpperCase();
-    if (objectName.isEmpty) return 'BENUTZE $itemName MIT...';
-    return 'BENUTZE $itemName MIT ${objectName.toUpperCase()}';
+    if (objectName.isEmpty) return '${S.of(game.buildContext!).use} $itemName ${S.of(game.buildContext!).with_word}...';
+    return '${S.of(game.buildContext!).use} $itemName ${S.of(game.buildContext!).with_word} ${objectName.toUpperCase()}';
   }
 
   void setupMinimap(CameraComponent minimapCamera, VoidCallback onMinimapPressed) {
