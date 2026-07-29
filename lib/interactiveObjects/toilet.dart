@@ -50,7 +50,9 @@ class Toilet extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[
-        ShowMessageAction('[b]Toilette:[/b]\n\nBesetzt!'),
+        ShowMessageAction(
+          '[b]Hendrik:[/b]\n\nIch weiß nicht, aber irgendwie kommt es mir so vor, als würde ich beobachtet werden!',
+        ),
       ],
     ),
   ];
