@@ -41,7 +41,7 @@ class CoffeeMachine extends InteractiveObject {
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[
         ShowMessageAction(
-          '[b]Hendrik:[/b]\n\nIch weiß nicht, ob das grüne ungeröstete Kaffeebohnen sind, aber der pelzige Überzug erinnert mich daran, vielleicht etwas magen-schohnenderes zu trinken.!',
+          '[b]Hendrik:[/b]\n\nIch weiß nicht, ob das grüne ungeröstete Kaffeebohnen sind, aber der pelzige Überzug erinnert mich daran, vielleicht etwas magen-schohnenderes zu trinken!',
         ),
       ],
     ),
