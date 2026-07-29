@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:the_office/interactiveObjects/elevator_panel.dart';
 import 'package:the_office/interactiveObjects/plant.dart';
 import 'package:the_office/interactiveObjects/toilet.dart';
 import 'package:the_office/interactiveObjects/trash.dart';
@@ -58,6 +59,15 @@ class InteractiveObjectsCatalogue {
 
       case 'Toilet':
         return Toilet(
+          displayName: displayName,
+          renderComponent: finalRenderComponent,
+          position: position,
+          size: size,
+          priorityOffset: priorityOffset,
+        );
+
+      case 'ElevatorPanel':
+        return ElevatorPanel(
           displayName: displayName,
           renderComponent: finalRenderComponent,
           position: position,

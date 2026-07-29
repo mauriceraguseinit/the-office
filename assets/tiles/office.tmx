@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="168">
- <tileset firstgid="1" name="Office" tilewidth="128" tileheight="128" tilecount="28" columns="1" objectalignment="center">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="64" height="49" tilewidth="64" tileheight="64" infinite="0" nextlayerid="19" nextobjectid="170">
+ <tileset firstgid="1" name="Office" tilewidth="128" tileheight="128" tilecount="30" columns="1" objectalignment="center">
   <grid orientation="orthogonal" width="64" height="64"/>
   <tile id="7">
    <image source="../images/wall.png" width="64" height="64"/>
@@ -110,8 +110,14 @@
   <tile id="109">
    <image source="../images/list_ground.png" width="64" height="64"/>
   </tile>
+  <tile id="110">
+   <image source="../images/elevator_wall.png" width="64" height="64"/>
+  </tile>
+  <tile id="111">
+   <image source="../images/elevator_panel.png" width="24" height="60"/>
+  </tile>
  </tileset>
- <tileset firstgid="111" name="laminatRainAnimation" tilewidth="64" tileheight="64" tilecount="4" columns="4">
+ <tileset firstgid="113" name="laminatRainAnimation" tilewidth="64" tileheight="64" tilecount="4" columns="4">
   <image source="../images/laminat_rain.png" width="256" height="64"/>
   <tile id="0">
    <animation>
@@ -122,7 +128,7 @@
    </animation>
   </tile>
  </tileset>
- <tileset firstgid="115" name="windowRainAnimation" tilewidth="64" tileheight="64" tilecount="4" columns="4">
+ <tileset firstgid="117" name="windowRainAnimation" tilewidth="64" tileheight="64" tilecount="4" columns="4">
   <image source="../images/windowRainAnimation.png" width="256" height="64"/>
   <tile id="0">
    <animation>
@@ -133,7 +139,7 @@
    </animation>
   </tile>
  </tileset>
- <tileset firstgid="119" name="daniel" tilewidth="538" tileheight="404" tilecount="4" columns="4" objectalignment="center">
+ <tileset firstgid="121" name="daniel" tilewidth="538" tileheight="404" tilecount="4" columns="4" objectalignment="center">
   <image source="../images/desk_daniel.png" width="2152" height="404"/>
   <tile id="0">
    <animation>
@@ -144,7 +150,7 @@
    </animation>
   </tile>
  </tileset>
- <tileset firstgid="123" name="tobi" tilewidth="372" tileheight="495" tilecount="4" columns="4" objectalignment="center">
+ <tileset firstgid="125" name="tobi" tilewidth="372" tileheight="495" tilecount="4" columns="4" objectalignment="center">
   <image source="../images/tobi_idle.png" width="1488" height="495"/>
   <tile id="0">
    <objectgroup draworder="index" id="2">
@@ -181,7 +187,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,84,84,84,84,84,74,74,111,74,74,111,74,74,111,74,74,111,74,74,111,74,74,74,111,74,74,111,74,74,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,84,84,84,84,84,74,74,113,74,74,113,74,74,113,74,74,113,74,74,113,74,74,74,113,74,74,113,74,74,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,84,84,84,84,84,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,10,84,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,74,74,10,84,84,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,74,74,74,74,74,74,10,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -291,11 +297,11 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,8,8,8,8,8,115,8,8,115,8,8,115,8,8,115,8,8,115,8,8,8,115,8,8,115,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,8,8,8,8,8,117,8,8,117,8,8,117,8,8,117,8,8,117,8,8,8,117,8,8,117,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,0,8,8,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,111,111,111,0,0,0,0,0,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,85,8,8,8,8,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,8,8,8,8,109,0,2147483757,0,0,0,8,8,8,8,8,8,0,8,87,8,0,8,8,75,87,8,8,0,8,88,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -422,8 +428,8 @@
   <object id="121" gid="103" x="1214.57" y="1327.67" width="75.4872" height="69"/>
   <object id="141" gid="105" x="1296.19" y="1142.48" width="96" height="109"/>
   <object id="143" type="Fridge" gid="106" x="1328.5" y="1237.33" width="32" height="83"/>
-  <object id="151" name="Daniel" type="Daniel" gid="119" x="2609.45" y="511.348" width="125.333" height="97.3333" rotation="270"/>
-  <object id="152" name="Tobi" type="Tobi" gid="123" x="2590.66" y="802.333" width="47.3333" height="62.6667"/>
+  <object id="151" name="Daniel" type="Daniel" gid="121" x="2609.45" y="511.348" width="125.333" height="97.3333" rotation="270"/>
+  <object id="152" name="Tobi" type="Tobi" gid="125" x="2590.66" y="802.333" width="47.3333" height="62.6667"/>
   <object id="156" gid="108" x="2496.73" y="510.682" width="128" height="128" rotation="90"/>
   <object id="158" name="Müll-Trennstation" type="Trash" gid="78" x="1312.5" y="1373.75" width="64" height="64"/>
   <object id="159" name="Chuck die Pflanze" type="Plant" gid="79" x="2400" y="1052" width="64" height="64"/>
