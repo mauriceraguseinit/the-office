@@ -9,6 +9,7 @@ class CoffeeMachine extends InteractiveObject {
     super.size,
     required super.displayName,
     super.priorityOffset,
+    super.interactionPadding = 15,
   });
 
   @override

@@ -78,14 +78,13 @@ abstract class InteractiveObject extends PositionComponent
 
     priority = y.toInt() + priorityOffset;
 
-    // Diese Hitbox ist nur für die Spieler-Nähe/Kollision zuständig.
-    // Sie liegt exakt über dem sichtbaren Sprite.
     add(
-      RectangleHitbox(
+      _InteractionZone(
         position: _renderComponent.position.clone(),
         size: _renderComponent.size + Vector2.all(interactionPadding * 2),
         anchor: _renderComponent.anchor,
-        collisionType: CollisionType.passive,
+        onPlayerEnter: () => _playerInside = true,
+        onPlayerLeave: () => _playerInside = false,
       )..debugMode = false,
     );
 
@@ -219,24 +218,56 @@ abstract class InteractiveObject extends PositionComponent
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
-
-    if (other is Hendrik) {
-      _playerInside = true;
-    }
   }
 
   @override
   void onCollisionEnd(PositionComponent other) {
     super.onCollisionEnd(other);
-
-    if (other is Hendrik) {
-      _playerInside = false;
-    }
   }
 
   @override
   void onRemove() {
     game.removeInteractiveObjectFromNavMesh(this);
     super.onRemove();
+  }
+}
+
+/// Hilfsklasse für die Interaktions-Zone.
+/// Sie dient nur dazu, Hendrik zu erkennen, ohne ihn physikalisch zu blockieren.
+class _InteractionZone extends PositionComponent with CollisionCallbacks {
+  _InteractionZone({
+    required super.position,
+    required super.size,
+    required super.anchor,
+    required this.onPlayerEnter,
+    required this.onPlayerLeave,
+  });
+
+  final VoidCallback onPlayerEnter;
+  final VoidCallback onPlayerLeave;
+
+  @override
+  Future<void> onLoad() async {
+    add(
+      RectangleHitbox(
+        collisionType: CollisionType.passive,
+      ),
+    );
+  }
+
+  @override
+  void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollisionStart(intersectionPoints, other);
+    if (other is Hendrik) {
+      onPlayerEnter();
+    }
+  }
+
+  @override
+  void onCollisionEnd(PositionComponent other) {
+    super.onCollisionEnd(other);
+    if (other is Hendrik) {
+      onPlayerLeave();
+    }
   }
 }
