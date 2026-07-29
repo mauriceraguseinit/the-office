@@ -239,7 +239,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     _autoRepathAttempts = 0;
   }
 
-  void _tryRepath() {
+  void _tryRepath() async {
     final Vector2? destination = _autoDestination;
 
     if (destination == null || _autoRepathAttempts >= _maxAutoRepathAttempts) {
@@ -249,7 +249,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     _autoRepathAttempts++;
 
-    final List<Vector2> newPath = game.findPath(
+    final List<Vector2> newPath = await game.findPathAsync(
       _feetAt(position),
       destination,
     );

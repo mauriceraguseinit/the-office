@@ -33,7 +33,7 @@ class ElevatorPanel extends InteractiveObject {
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[
         ShowRandomMessageAction(
-          [
+          <String>[
             '[b]Hendrik:[/b]\n\nIch bin doch gerade erst angekommen.',
             '[b]Hendrik:[/b]\n\nIch glaube ich sollte wenigsten so tun als würde ich arbeiten.',
           ],

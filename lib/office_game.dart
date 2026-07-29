@@ -418,7 +418,7 @@ class OfficeGame extends FlameGame<World>
   }
 
   @override
-  void onDoubleTapDown(DoubleTapDownEvent event) {
+  void onDoubleTapDown(DoubleTapDownEvent event) async {
     super.onDoubleTapDown(event);
 
     // 1. Klick-Position von Bildschirm- in Weltkoordinaten umrechnen
@@ -430,8 +430,8 @@ class OfficeGame extends FlameGame<World>
       player.position.y + (player.size.y * 0.3), // 30% unter der Mitte statt 50%
     );
 
-    // 3. Weg berechnen lassen
-    final List<Vector2> path = findPath(playerFeet, targetWorldPos);
+    // 3. Weg berechnen lassen (Asynchron!)
+    final List<Vector2> path = await findPathAsync(playerFeet, targetWorldPos);
 
     if (path.isNotEmpty) {
       // 4. Hendrik den Pfad zuweisen!
