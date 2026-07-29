@@ -52,6 +52,16 @@ class HasItemRequirement extends Requirement {
   }
 }
 
+class HasNoItemRequirement extends Requirement {
+  HasNoItemRequirement(this.itemId);
+  final String itemId;
+
+  @override
+  bool isSatisfied(GameState state, InventoryItem? activeItem) {
+    return !state.ownedItems.any((InventoryItem item) => item.id == itemId);
+  }
+}
+
 abstract class GameAction {
   void execute(GameState state);
 }
