@@ -9,6 +9,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:the_office/components/item_fly_animation.dart';
 import 'package:the_office/tiled_map_loader.dart';
 import 'package:the_office/utils/assets.dart';
 import 'package:the_office/utils/config.dart';
@@ -50,6 +51,7 @@ class OfficeGame extends FlameGame<World>
   Vector2? _lastMouseWidgetPosition;
   final ValueNotifier<Vector2> mousePositionNotifier = ValueNotifier<Vector2>(Vector2.zero());
   final ValueNotifier<Offset> mousePositionRawNotifier = ValueNotifier<Offset>(Offset.zero);
+  final ValueNotifier<int> inventoryGlowNotifier = ValueNotifier<int>(0);
   bool _shouldLoadOnMount = false;
 
   void setLoadOnMount(bool value) => _shouldLoadOnMount = value;
@@ -360,6 +362,33 @@ class OfficeGame extends FlameGame<World>
 
   void closeInventory() {
     overlays.remove('inventory');
+  }
+
+  void playAddItemAnimation({required InventoryItem item, required Vector2 startWorldPosition}) async {
+    // 1. Umrechnen von Welt- in Viewport-Koordinaten (für HUD-Overlay)
+    final Vector2 globalPos = camera.localToGlobal(startWorldPosition);
+    final Vector2 startViewportPos = camera.viewport.globalToLocal(globalPos);
+
+    // 2. Zielposition: Mitte des Rucksacks oben (fest in der HUD-Auflösung)
+    final Vector2 targetViewportPos = Vector2(
+      GameConfig.resolution.width / 2,
+      32 + 35, // top + halbe Höhe des Buttons
+    );
+
+    final String cleanPath = item.assetPath.replaceFirst('assets/images/', '');
+    final Sprite itemSprite = await loadSprite(cleanPath);
+
+    final ItemFlyComponent anim = ItemFlyComponent(
+      sprite: itemSprite,
+      position: startViewportPos,
+      targetPosition: targetViewportPos,
+      size: Vector2.all(48),
+      onReached: () {
+        inventoryGlowNotifier.value++;
+      },
+    );
+
+    camera.viewport.add(anim);
   }
 
   Vector2 mousePositionWidget = Vector2.zero();

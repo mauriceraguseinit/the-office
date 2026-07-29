@@ -56,6 +56,16 @@ abstract class InteractiveObject extends PositionComponent
 
     activeRule.execute(officeGame.state);
 
+    // Animation triggern, falls ein Item zum Inventar hinzugefügt wurde
+    for (final GameAction action in activeRule.actions) {
+      if (action is AddItemAction) {
+        officeGame.playAddItemAnimation(
+          item: action.item,
+          startWorldPosition: interactionCenter,
+        );
+      }
+    }
+
     if (officeGame.state.playerMessage.isNotEmpty) {
       officeGame.showPlayerMessage(officeGame.state.playerMessage);
     }

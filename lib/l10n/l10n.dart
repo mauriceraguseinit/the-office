@@ -341,13 +341,13 @@ abstract class S {
   /// No description provided for @music_on.
   ///
   /// In de, this message translates to:
-  /// **'Music: An'**
+  /// **'Musik: An'**
   String get music_on;
 
   /// No description provided for @music_off.
   ///
   /// In de, this message translates to:
-  /// **'Music: AUS'**
+  /// **'Musik: AUS'**
   String get music_off;
 
   /// No description provided for @do_not_use.

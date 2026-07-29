@@ -138,10 +138,10 @@ class SDe extends S {
   String get with_word => 'MIT';
 
   @override
-  String get music_on => 'Music: An';
+  String get music_on => 'Musik: An';
 
   @override
-  String get music_off => 'Music: AUS';
+  String get music_off => 'Musik: AUS';
 
   @override
   String get do_not_use => 'DAS GEHT SO NICHT!';
