@@ -213,19 +213,6 @@ abstract class InteractiveObject extends PositionComponent
   }
 
   @override
-  void onCollisionStart(
-    Set<Vector2> intersectionPoints,
-    PositionComponent other,
-  ) {
-    super.onCollisionStart(intersectionPoints, other);
-  }
-
-  @override
-  void onCollisionEnd(PositionComponent other) {
-    super.onCollisionEnd(other);
-  }
-
-  @override
   void onRemove() {
     game.removeInteractiveObjectFromNavMesh(this);
     super.onRemove();

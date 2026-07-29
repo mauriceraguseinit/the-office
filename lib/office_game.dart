@@ -157,11 +157,7 @@ class OfficeGame extends FlameGame<World>
     inputManager = InputManager(this);
     super.onLoad();
     debugMode = false;
-    _bgmPlayer = await sl<AudioManager>().playBgm(
-      GameAudio.background,
-      loop: true,
-      volume: 0.05,
-    );
+
     // inventory.add(InventoryItemCatalogue.itemForId(InventoryItemType.mateWater));
     overlays.addEntry(
       TriggerZoneDialogs.tooFar.toString(),
@@ -235,6 +231,14 @@ class OfficeGame extends FlameGame<World>
       _shouldLoadOnMount = false;
       await loadGame();
     }
+
+    // Wir rufen playBgm IMMER auf. Der AudioManager entscheidet basierend auf
+    // state.isMusicEnabled, ob er wirklich Ton ausgibt oder nur das Lied vormerkt.
+    _bgmPlayer = await sl<AudioManager>().playBgm(
+      GameAudio.background,
+      loop: true,
+      volume: 0.05,
+    );
   }
 
   @override

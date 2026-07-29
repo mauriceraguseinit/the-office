@@ -5,6 +5,8 @@ import '../utils/assets.dart';
 class AudioManager {
   bool _isBgmMuted = false;
   bool _isSfxMuted = false;
+  String? _lastBgmFile;
+  double? _lastBgmVolume;
 
   double bgmVolume = 0.2;
   double sfxVolume = 0.5;
@@ -17,6 +19,9 @@ class AudioManager {
   }
 
   Future<AudioPlayer?> playBgm(String fileName, {bool loop = true, double? volume}) async {
+    _lastBgmFile = fileName;
+    _lastBgmVolume = volume;
+
     if (_isBgmMuted) return null;
 
     if (loop) {
@@ -24,6 +29,17 @@ class AudioManager {
       return null;
     } else {
       return await FlameAudio.play(fileName, volume: volume ?? bgmVolume);
+    }
+  }
+
+  void setMusicEnabled(bool enabled) {
+    if (_isBgmMuted == !enabled) return;
+
+    _isBgmMuted = !enabled;
+    if (_isBgmMuted) {
+      stopBgm();
+    } else if (_lastBgmFile != null) {
+      playBgm(_lastBgmFile!, volume: _lastBgmVolume);
     }
   }
 

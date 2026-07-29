@@ -27,6 +27,7 @@ class GameState extends ChangeNotifier {
 
   bool isDeskLocked = false;
   String playerMessage = '';
+  bool isMusicEnabled = true;
 
   final Set<String> _flags = <String>{};
   final Map<String, dynamic> _variables = <String, dynamic>{};
@@ -71,13 +72,21 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleMusic() {
+    isMusicEnabled = !isMusicEnabled;
+    notifyListeners();
+  }
+
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'ownedItems': ownedItems.map((InventoryItem item) => item.id).toList(),
       'isDeskLocked': isDeskLocked,
+      'isMusicEnabled': isMusicEnabled,
       'playerPosition': playerPosition != null
           ? <String, double>{'x': playerPosition!.x, 'y': playerPosition!.y}
           : null,
+      'flags': _flags.toList(),
+      'variables': _variables,
     };
   }
 
@@ -88,9 +97,20 @@ class GameState extends ChangeNotifier {
       }).toList();
     }
     isDeskLocked = json['isDeskLocked'] as bool? ?? false;
+    isMusicEnabled = json['isMusicEnabled'] as bool? ?? true;
     if (json['playerPosition'] != null) {
       final Map<String, dynamic> pos = json['playerPosition'] as Map<String, dynamic>;
       playerPosition = Vector2(pos['x'] as double, pos['y'] as double);
+    }
+
+    if (json['flags'] != null) {
+      _flags.clear();
+      _flags.addAll((json['flags'] as List<dynamic>).cast<String>());
+    }
+
+    if (json['variables'] != null) {
+      _variables.clear();
+      _variables.addAll(json['variables'] as Map<String, dynamic>);
     }
     notifyListeners();
   }

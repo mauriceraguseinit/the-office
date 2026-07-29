@@ -1,14 +1,17 @@
 import 'dart:math';
 
+import 'package:flame/components.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/hud/retro_button.dart';
+import 'package:the_office/managers/audio_manager.dart';
+import 'package:the_office/managers/service_locator.dart';
 import 'package:the_office/office_game.dart';
 import 'package:the_office/utils/config.dart';
 import 'package:the_office/utils/styles.dart';
-import 'package:vector_math/vector_math.dart';
 
 import '../l10n/l10n.dart';
+import '../managers/save_manager.dart';
 
 class GameMenuButton extends StatelessWidget {
   const GameMenuButton({super.key, required this.game});
@@ -65,7 +68,7 @@ class GameMenuOverlay extends StatelessWidget {
           final double gameScale = min(scaleX, scaleY);
 
           const double baseWidth = 350.0;
-          const double baseHeight = 350.0;
+          const double baseHeight = 400.0;
 
           return MouseRegion(
             cursor: game.isTouchDevice ? SystemMouseCursors.basic : SystemMouseCursors.none,
@@ -129,6 +132,21 @@ class GameMenuOverlay extends StatelessWidget {
                                         game.overlays.remove('gameMenu');
                                         game.showPlayerMessage(
                                           S.of(context).menu_coffey_text,
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    ListenableBuilder(
+                                      listenable: game.state,
+                                      builder: (BuildContext context, _) {
+                                        return RetroButton(
+                                          title: game.state.isMusicEnabled ? 'Musik: AN' : 'Musik: AUS',
+                                          alignment: Alignment.center,
+                                          onTap: () async {
+                                            game.state.toggleMusic();
+                                            sl<AudioManager>().setMusicEnabled(game.state.isMusicEnabled);
+                                            await sl<SaveManager>().saveGame(game.state);
+                                          },
                                         );
                                       },
                                     ),

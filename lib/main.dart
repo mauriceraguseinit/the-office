@@ -20,6 +20,7 @@ import 'hud/start_menu.dart';
 import 'intro/intro_game.dart';
 import 'l10n/l10n.dart';
 import 'managers/audio_manager.dart';
+import 'managers/game_state.dart';
 import 'managers/save_manager.dart';
 import 'managers/service_locator.dart';
 import 'office_game.dart';
@@ -87,9 +88,13 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
 
   Future<void> _checkInitialScene() async {
     final bool hasSave = await sl<SaveManager>().hasSaveGame();
+    if (hasSave) {
+      await sl<SaveManager>().loadGame(sl<GameState>());
+      sl<AudioManager>().setMusicEnabled(sl<GameState>().isMusicEnabled);
+    }
     if (mounted) {
       setState(() {
-       // _showScene = Scenes.beatEmUp;
+        // _showScene = Scenes.beatEmUp;
 
         _showScene = hasSave ? Scenes.startMenu : Scenes.editor;
       });
@@ -231,7 +236,9 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
                 },
               ),
 
-              Scenes.beatEmUp => GameWidget<BeatEmUpGame>(game: _beatEmUpGame,),
+              Scenes.beatEmUp => GameWidget<BeatEmUpGame>(
+                game: _beatEmUpGame,
+              ),
             },
           ),
 
