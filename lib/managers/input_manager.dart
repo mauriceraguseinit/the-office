@@ -206,7 +206,10 @@ class InputManager {
   }
 
   void _handleTouchInput(Vector2 canvasPosition) {
-    if (game.state.selectedItem != null) return;
+    if (game.hasActiveBlockingOverlay || game.state.selectedItem != null) {
+      game.player.stopTouchMovement();
+      return;
+    }
 
     // 1. Die absolute, physikalische Mitte des Fensters/Bildschirms abgreifen
     final Vector2 screenCenter = game.canvasSize / 2;

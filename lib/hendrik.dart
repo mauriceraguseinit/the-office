@@ -267,6 +267,11 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   void update(double dt) {
     _currentDt = dt;
 
+    if (game.hasActiveBlockingOverlay) {
+      _velocity.setZero();
+      _autoPath.clear();
+    }
+
     // Falls manuelle Eingaben aktiv sind, brechen wir den automatischen Weg sofort ab
     if (_velocity.length > 0) {
       _autoPath.clear();

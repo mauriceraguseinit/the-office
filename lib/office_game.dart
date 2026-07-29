@@ -82,6 +82,7 @@ class OfficeGame extends FlameGame<World>
 
   void openOverlay(String id) {
     _closeOtherOverlays(id);
+    player.stopTouchMovement();
     overlays.add(id);
   }
 
