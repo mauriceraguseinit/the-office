@@ -11,7 +11,6 @@ import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'managers/audio_manager.dart';
 import 'managers/game_state.dart';
 import 'managers/service_locator.dart';
-import 'models/interaction_system.dart';
 import 'models/inventory_item.dart';
 import 'office_game.dart';
 import 'utils/assets.dart';
@@ -424,30 +423,35 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       return false;
     }
 
-    _velocity.setZero();
-
     if (keysPressed.contains(LogicalKeyboardKey.keyI)) {
       game.openInventory();
     }
-    if (keysPressed.contains(LogicalKeyboardKey.keyW) || keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
-      _velocity.y = -1;
-      current = Direction.up;
-    }
-    if (keysPressed.contains(LogicalKeyboardKey.keyS) || keysPressed.contains(LogicalKeyboardKey.arrowDown)) {
-      _velocity.y = 1;
-      current = Direction.down;
-    }
-    if (keysPressed.contains(LogicalKeyboardKey.keyA) || keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
-      _velocity.x = -1;
-      current = Direction.left;
-    }
-    if (keysPressed.contains(LogicalKeyboardKey.keyD) || keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
-      _velocity.x = 1;
-      current = Direction.right;
-    }
+
+    // Bewegung sauber berechnen (W/S und A/D heben sich gegenseitig auf)
+    final double vx =
+        (keysPressed.contains(LogicalKeyboardKey.keyD) || keysPressed.contains(LogicalKeyboardKey.arrowRight)
+            ? 1.0
+            : 0.0) -
+        (keysPressed.contains(LogicalKeyboardKey.keyA) || keysPressed.contains(LogicalKeyboardKey.arrowLeft)
+            ? 1.0
+            : 0.0);
+    final double vy =
+        (keysPressed.contains(LogicalKeyboardKey.keyS) || keysPressed.contains(LogicalKeyboardKey.arrowDown)
+            ? 1.0
+            : 0.0) -
+        (keysPressed.contains(LogicalKeyboardKey.keyW) || keysPressed.contains(LogicalKeyboardKey.arrowUp) ? 1.0 : 0.0);
+
+    _velocity.setValues(vx, vy);
 
     if (_velocity.length > 0) {
       _velocity.normalize();
+
+      // Blickrichtung nur bei Bedarf ändern (dominante Achse gewinnt)
+      if (_velocity.x.abs() > _velocity.y.abs()) {
+        current = _velocity.x > 0 ? Direction.right : Direction.left;
+      } else if (_velocity.y.abs() > _velocity.x.abs()) {
+        current = _velocity.y > 0 ? Direction.down : Direction.up;
+      }
     }
 
     if (event is KeyDownEvent && keysPressed.contains(LogicalKeyboardKey.space)) {

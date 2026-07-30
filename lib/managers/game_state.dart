@@ -7,8 +7,9 @@ import '../models/inventory_item.dart';
 
 enum Flags {
   plantHasMate,
-  plantHasWaterMateFlag,
+  plantHasWaterMate,
   fullBladder,
+  tobiGone,
 }
 
 class GameState extends ChangeNotifier {

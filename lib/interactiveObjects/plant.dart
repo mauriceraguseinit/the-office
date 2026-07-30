@@ -21,7 +21,7 @@ class Plant extends InteractiveObject {
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mateWater.toString()),
         AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty)),
-        SetFlagAction(Flags.plantHasWaterMateFlag.name),
+        SetFlagAction(Flags.plantHasWaterMate.name),
         ShowMessageAction(
           '[b]Hendrik:[/b]\n\nPuh... Jetzt riecht die Pflanze nach einer Mischung aus feuchter Erde, Chlor und dem, was die Backend-Entwickler nach dem gestrigen "Scharfe-Tacos-Dienstag" hinterlassen haben. Ein echtes Dufterlebnis..',
         ),
@@ -51,7 +51,7 @@ class Plant extends InteractiveObject {
       requirements: <Requirement>[
         NoItemRequirement(),
         FlagRequirement(Flags.plantHasMate.name, requiredValue: false),
-        FlagRequirement(Flags.plantHasWaterMateFlag.name, requiredValue: false),
+        FlagRequirement(Flags.plantHasWaterMate.name, requiredValue: false),
       ],
       actions: <GameAction>[
         ShowMessageAction(
@@ -63,7 +63,7 @@ class Plant extends InteractiveObject {
       requirements: <Requirement>[
         NoItemRequirement(),
         FlagRequirement(Flags.plantHasMate.name, requiredValue: true),
-        FlagRequirement(Flags.plantHasWaterMateFlag.name, requiredValue: false),
+        FlagRequirement(Flags.plantHasWaterMate.name, requiredValue: false),
       ],
       actions: <GameAction>[
         ShowMessageAction(
@@ -75,7 +75,7 @@ class Plant extends InteractiveObject {
       requirements: <Requirement>[
         NoItemRequirement(),
         FlagRequirement(Flags.plantHasMate.name, requiredValue: false),
-        FlagRequirement(Flags.plantHasWaterMateFlag.name, requiredValue: true),
+        FlagRequirement(Flags.plantHasWaterMate.name, requiredValue: true),
       ],
       actions: <GameAction>[
         ShowMessageAction(
@@ -87,7 +87,7 @@ class Plant extends InteractiveObject {
       requirements: <Requirement>[
         NoItemRequirement(),
         FlagRequirement(Flags.plantHasMate.name),
-        FlagRequirement(Flags.plantHasWaterMateFlag.name),
+        FlagRequirement(Flags.plantHasWaterMate.name),
       ],
       actions: <GameAction>[
         ShowMessageAction(

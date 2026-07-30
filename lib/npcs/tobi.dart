@@ -2,6 +2,8 @@ import 'package:the_office/interactiveObjects/interactive_object.dart';
 import 'package:the_office/interactiveObjects/inventory_item_catalogue.dart';
 import 'package:the_office/models/interaction_system.dart';
 
+import '../managers/game_state.dart';
+
 class Tobi extends InteractiveObject {
   Tobi({
     required super.position,
@@ -18,8 +20,6 @@ class Tobi extends InteractiveObject {
   static double pngHeight = 495;
   static double get frameWidth => pngWidth / frame;
 
-  final String _tobiGoneFlag = 'tobi_gone';
-
   @override
   List<InteractionRule> get rules => <InteractionRule>[
     // Fall 1: Mate-Wasser geben (Tobi verschwindet)
@@ -27,7 +27,7 @@ class Tobi extends InteractiveObject {
       requirements: <Requirement>[ItemRequirement(InventoryItemType.mateWater.toString())],
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mateWater.toString()),
-        SetFlagAction(_tobiGoneFlag),
+        SetFlagAction(Flags.tobiGone.name),
         CustomAction((_) => removeFromParent()),
         ShowMessageAction(
           '[b]Tobias:[/b]\n\nUuuuh eine neue Geschmackssorte!!!\n\n*trink, trink* *trink*\n\nDa bring ich doch gleich mal die leere Flasche weg.',
@@ -74,7 +74,7 @@ class Tobi extends InteractiveObject {
 
   @override
   Future<void> onLoad() async {
-    if (officeGame.state.hasFlag(_tobiGoneFlag)) {
+    if (officeGame.state.hasFlag(Flags.tobiGone.name)) {
       removeFromParent();
       return;
     }
