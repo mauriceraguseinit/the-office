@@ -693,6 +693,12 @@ mixin TiledMapLoader on FlameGame<World> {
     final Vector2 objectSize = Vector2(object.width, object.height);
     final double angle = Units.radFromDegree(object.rotation);
 
+    // Gid extrahieren (untere 28 Bits für die Gid, obere für Flips)
+    final int rawGid = object.gid!;
+    final bool flipX = (rawGid & 0x80000000) != 0;
+    final bool flipY = (rawGid & 0x40000000) != 0;
+    final bool flipDiagonal = (rawGid & 0x20000000) != 0;
+
     final PositionComponent renderComp = _createRenderComponent(tile, tileMap, cleanGid, objectSize);
 
     final InteractiveObject? interactiveObject = InteractiveObjectsCatalogue.interactiveObjectForClassName(
@@ -706,6 +712,13 @@ mixin TiledMapLoader on FlameGame<World> {
 
     if (interactiveObject != null) {
       interactiveObject.angle = angle;
+
+      if (flipDiagonal) {
+        interactiveObject.angle += Units.degree90;
+        interactiveObject.flipHorizontally();
+      }
+      if (flipX) interactiveObject.flipHorizontally();
+      if (flipY) interactiveObject.flipVertically();
 
       _addTileCollisionHitboxes(
         interactiveObject,
@@ -815,6 +828,19 @@ mixin TiledMapLoader on FlameGame<World> {
       ..position = Vector2(object.x, object.y)
       ..angle = angle
       ..priority = object.y.toInt() + priorityOffset;
+
+    // Flip-Flags für Dekorationen
+    final int rawGid = object.gid!;
+    final bool flipX = (rawGid & 0x80000000) != 0;
+    final bool flipY = (rawGid & 0x40000000) != 0;
+    final bool flipDiagonal = (rawGid & 0x20000000) != 0;
+
+    if (flipDiagonal) {
+      renderComp.angle += Units.degree90;
+      renderComp.flipHorizontally();
+    }
+    if (flipX) renderComp.flipHorizontally();
+    if (flipY) renderComp.flipVertically();
 
     _addTileCollisionHitboxes(
       renderComp,
