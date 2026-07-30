@@ -306,6 +306,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     if (_isBusy) {
       animationTicker?.currentIndex = 0;
+      animationTicker?.paused = true;
       super.update(0);
       return;
     }
@@ -317,10 +318,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     // --- AUTOMATISCHES LAUFEN (PATHFINDING) ---
     if (_autoPath.isNotEmpty && _velocity.length == 0) {
-      // Aktualisiert den SpriteAnimationTicker.
-      // Ohne diesen Aufruf bleibt die Laufanimation stehen.
-      super.update(dt);
-
       final Vector2 target = _autoPath.first;
       final Vector2 currentFeet = _feetAt(position);
 
@@ -329,6 +326,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
       if (distance < 8.0) {
         // Wegpunkt erreicht: Nächsten Wegpunkt anlaufen.
         _autoPath.removeAt(0);
+        super.update(dt); // Weiterhin Animation abspielen beim Phasenwechsel
       } else {
         final Vector2 directionToTarget = (target - currentFeet).normalized();
 
@@ -345,10 +343,13 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
         final Vector2 nextPosition = position + movement;
         final Vector2 nextFeet = _feetAt(nextPosition);
 
+        bool moved = false;
+
         // Wichtig: Nicht nur den Endpunkt, sondern die gesamte Strecke testen.
         if (game.canWalkBetween(currentFeet, nextFeet)) {
           position = nextPosition;
           _autoRepathAttempts = 0;
+          moved = true;
         } else {
           // Erst an der Kante entlang gleiten.
           final Vector2 slideX = Vector2(nextPosition.x, position.y);
@@ -357,30 +358,42 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
           final Vector2 slideXFeet = _feetAt(slideX);
           final Vector2 slideYFeet = _feetAt(slideY);
 
-          if (game.canWalkBetween(currentFeet, slideXFeet)) {
+          if (stepLength > 0 && game.canWalkBetween(currentFeet, slideXFeet)) {
             position.x = nextPosition.x;
             _autoRepathAttempts = 0;
-          } else if (game.canWalkBetween(currentFeet, slideYFeet)) {
+            moved = true;
+          } else if (stepLength > 0 && game.canWalkBetween(currentFeet, slideYFeet)) {
             position.y = nextPosition.y;
             _autoRepathAttempts = 0;
+            moved = true;
           } else {
             // Wirklich festgefahren: Pfad vom aktuellen Standort neu planen.
             _tryRepath();
           }
         }
+
+        if (moved) {
+          super.update(dt);
+          animationTicker?.paused = false;
+        } else {
+          animationTicker?.currentIndex = 0;
+          animationTicker?.paused = true;
+          super.update(0);
+        }
       }
     }
     // --- MANUELLES LAUFEN (TASTATUR/JOYSTICK) ---
     else if (_velocity.length > 0) {
-      super.update(dt);
-
       final Vector2 movement = _velocity * _speed * dt;
       final Vector2 currentFeet = _feetAt(position);
       final Vector2 nextPosition = position + movement;
       final Vector2 nextFeet = _feetAt(nextPosition);
 
+      bool moved = false;
+
       if (game.canWalkBetween(currentFeet, nextFeet)) {
         position = nextPosition;
+        moved = true;
       } else {
         // Wall-Sliding: erst nur die X-, dann nur die Y-Achse versuchen.
         final Vector2 slideX = Vector2(nextPosition.x, position.y);
@@ -389,14 +402,27 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
         final Vector2 feetSlideX = _feetAt(slideX);
         final Vector2 feetSlideY = _feetAt(slideY);
 
-        if (game.canWalkBetween(currentFeet, feetSlideX)) {
+        // Nur als "bewegt" zählen, wenn sich die Position auf der jeweiligen Achse auch wirklich ändern würde
+        if (movement.x.abs() > 0 && game.canWalkBetween(currentFeet, feetSlideX)) {
           position.x = nextPosition.x;
-        } else if (game.canWalkBetween(currentFeet, feetSlideY)) {
+          moved = true;
+        } else if (movement.y.abs() > 0 && game.canWalkBetween(currentFeet, feetSlideY)) {
           position.y = nextPosition.y;
+          moved = true;
         }
+      }
+
+      if (moved) {
+        super.update(dt);
+        animationTicker?.paused = false;
+      } else {
+        animationTicker?.currentIndex = 0;
+        animationTicker?.paused = true;
+        super.update(0);
       }
     } else {
       animationTicker?.currentIndex = 0;
+      animationTicker?.paused = true;
       super.update(0); // Stehen bleiben auf dem ersten Frame
     }
 
