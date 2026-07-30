@@ -28,7 +28,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   final Vector2 _velocity = Vector2.zero();
   final double _speed = 200.0;
-  double _currentDt = 0.0;
 
   late RectangleHitbox _hitbox;
 
@@ -269,8 +268,6 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   @override
   void update(double dt) {
-    _currentDt = dt;
-
     if (game.hasActiveBlockingOverlay) {
       _velocity.setZero();
       _autoPath.clear();
