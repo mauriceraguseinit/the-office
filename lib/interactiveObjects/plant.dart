@@ -12,6 +12,9 @@ class Plant extends InteractiveObject {
     required super.displayName,
   });
 
+  late final String _mateFlag = '${displayName}mate';
+  late final String _mateWaterFlag = '${displayName}mateWater';
+
   @override
   List<InteractionRule> get rules => <InteractionRule>[
     // Fall 1: Mit Mate-Wasser gießen
@@ -20,6 +23,7 @@ class Plant extends InteractiveObject {
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mateWater.toString()),
         AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty)),
+        SetFlagAction(_mateWaterFlag),
         ShowMessageAction(
           '[b]Hendrik:[/b]\n\nPuh... Jetzt riecht die Pflanze nach einer Mischung aus feuchter Erde, Chlor und dem, was die Backend-Entwickler nach dem gestrigen "Scharfe-Tacos-Dienstag" hinterlassen haben. Ein echtes Dufterlebnis..',
         ),
@@ -30,6 +34,7 @@ class Plant extends InteractiveObject {
       requirements: <Requirement>[ItemRequirement(InventoryItemType.mate.toString())],
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mate.toString()),
+        SetFlagAction(_mateFlag),
         AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty)),
         ShowMessageAction(
           '[b]Hendrik:[/b]\n\nPerfekt. Jetzt hat sie genug Koffein, um den Release heute Abend durchzustehen.',
@@ -45,10 +50,50 @@ class Plant extends InteractiveObject {
     ),
     // Fall 4: Anschauen / Interaktion ohne Item
     InteractionRule(
-      requirements: <Requirement>[NoItemRequirement()],
+      requirements: <Requirement>[
+        NoItemRequirement(),
+        FlagRequirement(_mateFlag, requiredValue: false),
+        FlagRequirement(_mateWaterFlag, requiredValue: false),
+      ],
       actions: <GameAction>[
         ShowMessageAction(
           '[b]Hendrik:[/b]\n\nDie Blätter hängen ziemlich durch. Ich glaube, sie braucht dringend ein Firmware-Update. Oder Wasser.',
+        ),
+      ],
+    ),
+    InteractionRule(
+      requirements: <Requirement>[
+        NoItemRequirement(),
+        FlagRequirement(_mateFlag, requiredValue: true),
+        FlagRequirement(_mateWaterFlag, requiredValue: false),
+      ],
+      actions: <GameAction>[
+        ShowMessageAction(
+          '[b]Hendrik:[/b]\n\nFit und vital, genauso so wie ich... *zwinker*',
+        ),
+      ],
+    ),
+    InteractionRule(
+      requirements: <Requirement>[
+        NoItemRequirement(),
+        FlagRequirement(_mateFlag, requiredValue: false),
+        FlagRequirement(_mateWaterFlag, requiredValue: true),
+      ],
+      actions: <GameAction>[
+        ShowMessageAction(
+          '[b]Hendrik:[/b]\n\nAuf den ersten Blick sieht sie mittlerweile wieder gut aus, aber ein gewisser übelriechender Dunstnebel umgibt sie jetzt. Vielleicht ist das die Cloud, von der alle reden?!',
+        ),
+      ],
+    ),
+    InteractionRule(
+      requirements: <Requirement>[
+        NoItemRequirement(),
+        FlagRequirement(_mateFlag),
+        FlagRequirement(_mateWaterFlag),
+      ],
+      actions: <GameAction>[
+        ShowMessageAction(
+          '[b]Hendrik:[/b]\n\nSieht aus, als hätte ich neues Leben geschaffen. Das Gemisch aus Mate und Klowasser hat Chuck auf eine neue Stufe der Evolution gebracht. Vielleicht ist das diese künstliche Intelligenz, von der alle reden?!',
         ),
       ],
     ),
