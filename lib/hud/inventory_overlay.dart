@@ -226,7 +226,6 @@ class _InventoryOverlayState extends State<InventoryOverlay> {
   @override
   void initState() {
     super.initState();
-    _syncHoverTextFromSelection(rebuild: false);
   }
 
   void _syncHoverTextFromSelection({bool rebuild = true}) {

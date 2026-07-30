@@ -94,6 +94,10 @@ class OfficeGame extends FlameGame<World>
   }
 
   void openInventory() {
+    if (state.selectedItem != null) {
+      resetSelection();
+      return;
+    }
     openOverlay('inventory');
   }
 
