@@ -1,4 +1,5 @@
 import 'package:the_office/interactiveObjects/inventory_item_catalogue.dart';
+import 'package:the_office/managers/game_state.dart';
 import 'package:the_office/models/interaction_system.dart';
 
 import 'interactive_object.dart';
@@ -12,9 +13,6 @@ class Plant extends InteractiveObject {
     required super.displayName,
   });
 
-  late final String _mateFlag = '${displayName}mate';
-  late final String _mateWaterFlag = '${displayName}mateWater';
-
   @override
   List<InteractionRule> get rules => <InteractionRule>[
     // Fall 1: Mit Klo-Wasser gießen
@@ -23,7 +21,7 @@ class Plant extends InteractiveObject {
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mateWater.toString()),
         AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty)),
-        SetFlagAction(_mateWaterFlag),
+        SetFlagAction(Flags.plantHasWaterMateFlag.name),
         ShowMessageAction(
           '[b]Hendrik:[/b]\n\nPuh... Jetzt riecht die Pflanze nach einer Mischung aus feuchter Erde, Chlor und dem, was die Backend-Entwickler nach dem gestrigen "Scharfe-Tacos-Dienstag" hinterlassen haben. Ein echtes Dufterlebnis..',
         ),
@@ -34,7 +32,7 @@ class Plant extends InteractiveObject {
       requirements: <Requirement>[ItemRequirement(InventoryItemType.mate.toString())],
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mate.toString()),
-        SetFlagAction(_mateFlag),
+        SetFlagAction(Flags.plantHasMate.name),
         AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty)),
         ShowMessageAction(
           '[b]Hendrik:[/b]\n\nPerfekt. Jetzt hat sie genug Koffein, um den Release heute Abend durchzustehen.',
@@ -52,8 +50,8 @@ class Plant extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[
         NoItemRequirement(),
-        FlagRequirement(_mateFlag, requiredValue: false),
-        FlagRequirement(_mateWaterFlag, requiredValue: false),
+        FlagRequirement(Flags.plantHasMate.name, requiredValue: false),
+        FlagRequirement(Flags.plantHasWaterMateFlag.name, requiredValue: false),
       ],
       actions: <GameAction>[
         ShowMessageAction(
@@ -64,8 +62,8 @@ class Plant extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[
         NoItemRequirement(),
-        FlagRequirement(_mateFlag, requiredValue: true),
-        FlagRequirement(_mateWaterFlag, requiredValue: false),
+        FlagRequirement(Flags.plantHasMate.name, requiredValue: true),
+        FlagRequirement(Flags.plantHasWaterMateFlag.name, requiredValue: false),
       ],
       actions: <GameAction>[
         ShowMessageAction(
@@ -76,8 +74,8 @@ class Plant extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[
         NoItemRequirement(),
-        FlagRequirement(_mateFlag, requiredValue: false),
-        FlagRequirement(_mateWaterFlag, requiredValue: true),
+        FlagRequirement(Flags.plantHasMate.name, requiredValue: false),
+        FlagRequirement(Flags.plantHasWaterMateFlag.name, requiredValue: true),
       ],
       actions: <GameAction>[
         ShowMessageAction(
@@ -88,8 +86,8 @@ class Plant extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[
         NoItemRequirement(),
-        FlagRequirement(_mateFlag),
-        FlagRequirement(_mateWaterFlag),
+        FlagRequirement(Flags.plantHasMate.name),
+        FlagRequirement(Flags.plantHasWaterMateFlag.name),
       ],
       actions: <GameAction>[
         ShowMessageAction(

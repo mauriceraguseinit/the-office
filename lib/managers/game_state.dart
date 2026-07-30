@@ -5,6 +5,12 @@ import '../interactiveObjects/interactive_object.dart';
 import '../interactiveObjects/inventory_item_catalogue.dart';
 import '../models/inventory_item.dart';
 
+enum Flags {
+  plantHasMate,
+  plantHasWaterMateFlag,
+  fullBladder,
+}
+
 class GameState extends ChangeNotifier {
   List<InventoryItem> ownedItems = <InventoryItem>[];
   InventoryItem? selectedItem;

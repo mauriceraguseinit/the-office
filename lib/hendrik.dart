@@ -11,6 +11,7 @@ import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'managers/audio_manager.dart';
 import 'managers/game_state.dart';
 import 'managers/service_locator.dart';
+import 'models/interaction_system.dart';
 import 'models/inventory_item.dart';
 import 'office_game.dart';
 import 'utils/assets.dart';
@@ -483,6 +484,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
           '[b]Hendrik:[/b]\n\n'
           'Ahh, eine kalte Mate. Genau das habe ich gebraucht!',
         );
+        _state.setFlag(Flags.fullBladder.name);
         return;
       case InventoryItemType.mateWater:
         game.resetSelection();
