@@ -1,4 +1,3 @@
-import 'package:the_office/interactiveObjects/inventory_item_catalogue.dart';
 import 'package:the_office/models/interaction_system.dart';
 
 import 'interactive_object.dart';
@@ -15,21 +14,14 @@ class ElevatorPanel extends InteractiveObject {
 
   @override
   List<InteractionRule> get rules => <InteractionRule>[
-    // Fall 1: Leere Mate-Flasche (Pfand) wegwerfen wollen
-    InteractionRule(
-      requirements: <Requirement>[ItemRequirement(InventoryItemType.mateEmpty.toString())],
-      actions: <GameAction>[
-        ShowMessageAction('[b]Hendrik:[/b]\n\nLeere Pfand Flaschen gehören hier nicht rein.'),
-      ],
-    ),
-    // Fall 2: Falsches Item
+    // Fall 1: Falsches Item
     InteractionRule(
       requirements: <Requirement>[AnyItemRequirement()],
       actions: <GameAction>[
         ShowMessageAction('[b]Hendrik:[/b]\n\nDas gehört hier nicht rein.'),
       ],
     ),
-    // Fall 3: Einfache Interaktion
+    // Fall 2: Einfache Interaktion
     InteractionRule(
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[

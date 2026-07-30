@@ -13,40 +13,34 @@ class Toilet extends InteractiveObject {
 
   @override
   List<InteractionRule> get rules => <InteractionRule>[
-    // Fall 1: Kaffee in die Toilette schütten
-    InteractionRule(
-      requirements: <Requirement>[ItemRequirement('kaffee')],
-      actions: <GameAction>[
-        RemoveItemAction('kaffee'),
-        ShowMessageAction('[b]Toilette:[/b]\n\nSpült dankbar.'),
-      ],
-    ),
-    // Fall 2: Mate trinken (Mate -> Leere Flasche)
+    // Fall 1: Mate trinken (Mate -> Leere Flasche)
     InteractionRule(
       requirements: <Requirement>[ItemRequirement(InventoryItemType.mate.toString())],
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mate.toString()),
         AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateEmpty)),
-        ShowMessageAction('[b]Hendrik:[/b]\n\nIch trinke eh lieber einen Kaffee.'),
+        ShowMessageAction('[b]Hendrik:[/b]\n\nIch trinke eh viel lieber einen Kaffee.'),
       ],
     ),
-    // Fall 3: Flasche mit Klowasser füllen (Leere Flasche -> Klowasser-Mate)
+    // Fall 2: Flasche mit Klowasser füllen (Leere Flasche -> Klowasser-Mate)
     InteractionRule(
       requirements: <Requirement>[ItemRequirement(InventoryItemType.mateEmpty.toString())],
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mateEmpty.toString()),
         AddItemAction(InventoryItemCatalogue.itemForId(InventoryItemType.mateWater)),
-        ShowMessageAction('[b]Hendrik:[/b]\n\nNichts geht über einen erfrischenden Durstlöscher!'),
+        ShowMessageAction(
+          '[b]Hendrik:[/b]\n\nNichts geht über einen erfrischenden Durstlöscher! Die *NEUE* Mate, jetzt mit einem ganz besonderem Aroma!',
+        ),
       ],
     ),
-    // Fall 4: Falsches Item (beliebiges anderes Item ausgewählt)
+    // Fall 3: Falsches Item (beliebiges anderes Item ausgewählt)
     InteractionRule(
       requirements: <Requirement>[AnyItemRequirement()],
       actions: <GameAction>[
-        ShowMessageAction('[b]Toilette:[/b]\n\nDas gehört hier nicht rein.'),
+        ShowMessageAction('[b]Hendrik:[/b]\n\nDas gehört hier nicht rein.'),
       ],
     ),
-    // Fall 5: Einfache Interaktion ohne Item
+    // Fall 4: Einfache Interaktion ohne Item
     InteractionRule(
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[

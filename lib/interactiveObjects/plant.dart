@@ -17,7 +17,7 @@ class Plant extends InteractiveObject {
 
   @override
   List<InteractionRule> get rules => <InteractionRule>[
-    // Fall 1: Mit Mate-Wasser gießen
+    // Fall 1: Mit Klo-Wasser gießen
     InteractionRule(
       requirements: <Requirement>[ItemRequirement(InventoryItemType.mateWater.toString())],
       actions: <GameAction>[
