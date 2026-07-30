@@ -75,7 +75,10 @@
   <tile id="102">
    <image source="../images/roundTable.png" width="128" height="117"/>
    <objectgroup draworder="index" id="2">
-    <object id="3" x="24" y="38" width="32" height="19"/>
+    <object id="3" x="24" y="38" width="79.25" height="19"/>
+    <object id="4" x="52" y="1" width="28.25" height="34.5"/>
+    <object id="5" x="0.75" y="56" width="37.75" height="57.5"/>
+    <object id="6" x="87.25" y="58" width="39.5" height="58"/>
    </objectgroup>
   </tile>
   <tile id="104">
