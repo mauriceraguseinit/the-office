@@ -95,7 +95,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     if (mounted) {
       setState(() {
         // _showScene = Scenes.beatEmUp;
-
+        // return;
         _showScene = hasSave ? Scenes.startMenu : Scenes.editor;
       });
     }

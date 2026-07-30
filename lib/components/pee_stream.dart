@@ -45,8 +45,8 @@ class PeeStream extends Component {
           lifespan: tHit, // Partikel stirbt exakt am Ziel
           generator: (int i) {
             final Vector2 jitter = Vector2(
-              (_random.nextDouble() - 0.5) * 2,
-              (_random.nextDouble() - 0.5) * 2,
+              (_random.nextDouble() - 0.5) * 1.5,
+              (_random.nextDouble() - 0.5) * 0.2,
             );
 
             return AcceleratedParticle(
@@ -55,7 +55,7 @@ class PeeStream extends Component {
               acceleration: Vector2(0, gravity),
               child: CircleParticle(
                 radius: 0.2 + _random.nextDouble() * 0.2,
-                paint: Paint()..color = const Color(0xFFFFEE00).withAlpha(220),
+                paint: Paint()..color = const Color(0xFFFFdd00).withAlpha(220),
               ),
             );
           },
