@@ -23,9 +23,7 @@ class Pissoir extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[
-        ShowMessageAction(
-          '[b]Hendrik:[/b]\n\nIch weiß nicht, aber irgendwie kommt es mir so vor, als würde ich beobachtet werden!',
-        ),
+        PeeAction(),
       ],
     ),
   ];

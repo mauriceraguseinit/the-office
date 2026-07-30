@@ -45,6 +45,10 @@ abstract class InteractiveObject extends PositionComponent
   List<InteractionRule> get rules => <InteractionRule>[];
 
   void onAction() {
+    // Nachricht vor der Ausführung leeren und Overlay schließen
+    officeGame.overlays.remove('playerMessage');
+    officeGame.state.setPlayerMessage('');
+
     final InteractionRule activeRule = rules.firstWhere(
       (InteractionRule rule) => rule.canExecute(officeGame.state, officeGame.selectedItem),
       orElse: () => InteractionRule(
@@ -56,13 +60,15 @@ abstract class InteractiveObject extends PositionComponent
 
     activeRule.execute(officeGame.state);
 
-    // Animation triggern, falls ein Item zum Inventar hinzugefügt wurde
+    // Spezial-Aktionen behandeln
     for (final GameAction action in activeRule.actions) {
       if (action is AddItemAction) {
         officeGame.playAddItemAnimation(
           item: action.item,
           startWorldPosition: interactionCenter,
         );
+      } else if (action is PeeAction) {
+        officeGame.player.startPeeing(interactionCenter);
       }
     }
 

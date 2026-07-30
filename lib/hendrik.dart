@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/collisions.dart';
@@ -5,6 +6,7 @@ import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/services.dart';
 
+import 'components/pee_stream.dart';
 import 'interactiveObjects/inventory_item_catalogue.dart';
 import 'managers/game_state.dart';
 import 'managers/service_locator.dart';
@@ -28,6 +30,9 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   final Vector2 _velocity = Vector2.zero();
   final double _speed = 200.0;
+
+  bool _isCensored = false;
+  bool _isBusy = false;
 
   late RectangleHitbox _hitbox;
 
@@ -202,6 +207,31 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
         position: Vector2(offsetX, offsetY),
         size: Vector2(renderWidth, renderHeight),
       );
+
+      // --- ZENSU-EFFEKT (MOSAIK) ---
+      if (_isCensored) {
+        final Paint mosaicPaint = Paint()..style = PaintingStyle.fill;
+        const double cellSize = 8.0; // Etwas größere Pixel für besseren Effekt
+        final Random rand = Random();
+
+        for (double y = 0; y < boxSize; y += cellSize) {
+          for (double x = 0; x < boxSize; x += cellSize) {
+            // Zensur-Bereich: Fokus auf die Körpermitte (Hüfte/Beine)
+            if (x > boxSize * 0.2 && x < boxSize * 0.8 && y > boxSize * 0.45 && y < boxSize * 0.85) {
+              // Zufällige Haut-/Kleidungsfarben-Pixel (Hauttöne & dunkle Töne)
+              final int r = 140 + rand.nextInt(60);
+              final int g = 110 + rand.nextInt(50);
+              final int b = 80 + rand.nextInt(40);
+              mosaicPaint.color = Color.fromARGB(255, r, g, b);
+
+              canvas.drawRect(
+                Rect.fromLTWH(x, y, cellSize, cellSize),
+                mosaicPaint,
+              );
+            }
+          }
+        }
+      }
     } else {
       super.render(canvas);
     }
@@ -268,9 +298,14 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   @override
   void update(double dt) {
-    if (game.hasActiveBlockingOverlay) {
+    if (game.hasActiveBlockingOverlay || _isBusy) {
       _velocity.setZero();
       _autoPath.clear();
+    }
+
+    if (_isBusy) {
+      super.update(dt);
+      return;
     }
 
     // Falls manuelle Eingaben aktiv sind, brechen wir den automatischen Weg sofort ab
@@ -374,7 +409,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (game.hasActiveBlockingOverlay) {
+    if (game.hasActiveBlockingOverlay || _isBusy) {
       _velocity.setZero();
       return false;
     }
@@ -432,7 +467,7 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
   void useSelectedItemOnPlayer() {
     final InventoryItem? item = _state.selectedItem;
 
-    if (item == null) {
+    if (item == null || _isBusy) {
       return;
     }
 
@@ -462,5 +497,33 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
         );
         return;
     }
+  }
+
+  Future<void> startPeeing(Vector2 targetPos) async {
+    if (_isBusy) return;
+
+    _isBusy = true;
+    _autoPath.clear();
+    _velocity.setZero();
+
+    // Hendrik zum Pissoir drehen
+    lookAt(targetPos);
+
+    // Zensur an
+    _isCensored = true;
+
+    // Pee-Stream starten: Startposition etwas optimieren (waist area)
+    final Vector2 streamStart = absolutePosition + Vector2(-10, 12);
+
+    // Ziel etwas nach unten korrigieren (in die Schüssel des Pissoirs)
+    final Vector2 correctedTarget = targetPos + Vector2(0, -5);
+
+    game.world.add(PeeStream(startPos: streamStart, targetPos: correctedTarget)..priority = 100000000);
+
+    // Warten (2.5 Sekunden)
+    await Future<void>.delayed(const Duration(milliseconds: 2800));
+
+    _isCensored = false;
+    _isBusy = false;
   }
 }

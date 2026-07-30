@@ -134,6 +134,14 @@ class RemoveItemAction extends GameAction {
   }
 }
 
+class PeeAction extends GameAction {
+  @override
+  void execute(GameState state) {
+    // Diese Action wird im InteractiveObject speziell behandelt,
+    // um die Animation auf Hendrik zu triggern.
+  }
+}
+
 class CustomAction extends GameAction {
   CustomAction(this.callback);
   final void Function(GameState state) callback;

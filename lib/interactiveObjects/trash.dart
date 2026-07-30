@@ -32,7 +32,7 @@ class Trash extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[
-        ShowRandomMessageAction([
+        ShowRandomMessageAction(<String>[
           '[b]Hendrik:[/b]\n\nWir trennen im Büro unseren Müll jetzt vorbildlich nach Papier, Plastik und den unerledigten Aufgaben, die direkt im Schredder landen.',
           '[b]Hendrik:[/b]\n\nIst das dieser "Garbage Collector" von dem ich in der Uni gehört habe?',
           '[b]Hendrik:[/b]\n\nErst sortiere ich hier Plastik von Papier, und danach trenne ich Spaghetti-Code von meiner Rest-Motivation.',
