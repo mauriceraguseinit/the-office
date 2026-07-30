@@ -15,6 +15,7 @@ class AudioManager {
     await FlameAudio.audioCache.loadAll(<String>[
       GameAudio.intro,
       GameAudio.background,
+      GameAudio.pee,
     ]);
   }
 

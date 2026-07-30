@@ -8,7 +8,7 @@ class PeeStream extends Component {
   PeeStream({
     required this.startPos,
     required this.targetPos,
-    this.duration = 2.5,
+    this.duration = 1.8,
   });
 
   final Vector2 startPos;

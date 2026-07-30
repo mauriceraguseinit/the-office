@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 
 import 'components/pee_stream.dart';
 import 'interactiveObjects/inventory_item_catalogue.dart';
+import 'managers/audio_manager.dart';
 import 'managers/game_state.dart';
 import 'managers/service_locator.dart';
 import 'models/inventory_item.dart';
@@ -522,7 +523,12 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
 
     game.world.add(PeeStream(startPos: streamStart, targetPos: correctedTarget)..priority = 100000000);
 
-    // Warten (2.5 Sekunden)
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+
+    // Sound abspielen
+    await sl<AudioManager>().playSfx(GameAudio.pee);
+
+    // Warten (2.8 Sekunden)
     await Future<void>.delayed(const Duration(milliseconds: 2800));
 
     _isCensored = false;
