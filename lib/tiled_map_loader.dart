@@ -15,6 +15,14 @@ import 'interactiveObjects/interactive_objects_catalogue.dart';
 import 'utils/pathfinder.dart';
 
 mixin TiledMapLoader on FlameGame<World> {
+  static const double _tileSize = 64.0;
+
+  // Hier die Namen aller Tile-Layer eintragen, die Wände enthalten.
+  // Wenn dein Layer tatsächlich "Wände" heißt, nichts ändern.
+  static const Set<String> _wallLayerNames = <String>{
+    'Wände',
+  };
+
   // Speichert das berechnete, begehbare NavMesh
   Paths64? _walkableNavMesh;
 
@@ -400,13 +408,18 @@ mixin TiledMapLoader on FlameGame<World> {
     });
 
     alwaysOnTopInteractiveObjects?.objects.forEach((TiledObject object) {
-      // Alle Objekte speichern - auch reine Dekorationen.
+      // Die Priorität wird von der unteren Kante der Wand abgeleitet,
+      // auf der das Objekt platziert wurde.
+      final int priorityOffset = _priorityOffsetForWallMountedObject(
+        tileMap,
+        object,
+      );
 
       final PositionComponent? comp = _processInteractiveObject(
         world,
         object,
         tileMap,
-        priorityOffset: 100000,
+        priorityOffset: priorityOffset,
       );
 
       if (comp != null) {
@@ -556,6 +569,107 @@ mixin TiledMapLoader on FlameGame<World> {
         ]),
       );
     }
+  }
+
+  /// Berechnet den Priority-Offset für Objekte, die an einer Wand montiert sind.
+  ///
+  /// Der Schalter wird direkt NACH der Wand gerendert, aber NICHT immer
+  /// über dem Player. Sobald der Player unterhalb der Wand steht, wird er
+  /// daher korrekt vor dem Schalter gerendert.
+  int _priorityOffsetForWallMountedObject(
+    RenderableTiledMap tileMap,
+    TiledObject object,
+  ) {
+    final int? wallBottomPriority = _findWallBottomPriority(
+      tileMap,
+      object,
+    );
+
+    // Objekt liegt NICHT auf einer Wand:
+    //
+    // Zum Beispiel Kaffeemaschine, Deko oder Objekt auf einem Tisch.
+    // Dieses Verhalten entspricht deinem ursprünglichen
+    // alwaysOnTopInteractiveObjects-Layer.
+    if (wallBottomPriority == null) {
+      return 100000;
+    }
+
+    // Objekt liegt auf einer Wand:
+    //
+    // Zum Beispiel Lichtschalter, Wandpanel, Steckdose.
+    // Es wird direkt vor der Wand gerendert, kann aber vom Player
+    // überdeckt werden, wenn dieser unterhalb der Wand steht.
+    final int targetPriority = wallBottomPriority + 1;
+
+    // InteractiveObject berechnet später:
+    // priority = y.toInt() + priorityOffset;
+    return targetPriority - object.y.toInt();
+  }
+
+  /// Sucht unter einem Object-Layer-Objekt eine Wand-Kachel und gibt deren
+  /// untere Kante als Render-Priority zurück.
+  int? _findWallBottomPriority(
+    RenderableTiledMap tileMap,
+    TiledObject object,
+  ) {
+    int? wallBottomPriority;
+
+    // Dein Object-Layer-System behandelt object.x / object.y praktisch
+    // als Mittelpunkt. Deshalb wird der Bereich um diesen Punkt herum
+    // in Tile-Koordinaten ermittelt.
+    final double left = object.x - (object.width / 2);
+    final double right = object.x + (object.width / 2);
+    final double top = object.y - (object.height / 2);
+    final double bottom = object.y + (object.height / 2);
+
+    final int minTileX = (left / _tileSize).floor();
+    final int maxTileX = (right / _tileSize).floor();
+    final int minTileY = (top / _tileSize).floor();
+    final int maxTileY = (bottom / _tileSize).floor();
+
+    for (final dynamic renderableLayer in tileMap.renderableLayers) {
+      final Layer layer = renderableLayer.layer;
+
+      // Nur explizit als Wand definierte Tile-Layer beachten.
+      if (layer is! TileLayer || !_wallLayerNames.contains(layer.name)) {
+        continue;
+      }
+
+      for (int tileY = minTileY; tileY <= maxTileY; tileY++) {
+        for (int tileX = minTileX; tileX <= maxTileX; tileX++) {
+          // Schutz gegen Objekte außerhalb der Map.
+          if (tileX < 0 || tileY < 0 || tileX >= tileMap.map.width || tileY >= tileMap.map.height) {
+            continue;
+          }
+
+          final Gid? tileData = tileMap.getTileData(
+            layerId: layer.id!,
+            x: tileX,
+            y: tileY,
+          );
+
+          // Kein Wand-Tile an dieser Stelle.
+          if (tileData == null || tileData.tile == 0) {
+            continue;
+          }
+
+          // Muss exakt zur bestehenden Wand-Render-Logik passen:
+          //
+          // priority: (y * 64 + 64).toInt()
+          //
+          // Die untere Kante eines Tiles in Pixeln:
+          final int currentWallBottom = ((tileY + 1) * _tileSize).toInt();
+
+          // Falls ein Objekt mehrere Tiles überschneidet, gewinnt die
+          // unterste gefundene Wandkante.
+          if (wallBottomPriority == null || currentWallBottom > wallBottomPriority) {
+            wallBottomPriority = currentWallBottom;
+          }
+        }
+      }
+    }
+
+    return wallBottomPriority;
   }
 
   PositionComponent? _processInteractiveObject(

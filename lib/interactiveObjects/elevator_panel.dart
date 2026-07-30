@@ -10,6 +10,7 @@ class ElevatorPanel extends InteractiveObject {
     super.size,
     super.priorityOffset,
     required super.displayName,
+    super.interactionPadding = 15,
   });
 
   @override
