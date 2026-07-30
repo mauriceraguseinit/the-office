@@ -73,18 +73,22 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     super.onCollision(intersectionPoints, other);
 
     final Iterable<ShapeHitbox> hitboxes = other.children.whereType<ShapeHitbox>();
+
     final bool hasActiveCollision = hitboxes.any(
       (ShapeHitbox hitbox) => hitbox.collisionType == CollisionType.active,
     );
 
-    if (hasActiveCollision) {
-      if (_velocity.length > 0) {
-        // Manuelle Bewegung zurücknehmen.
-        position -= _velocity * _speed * _currentDt;
-      } else if (_autoPath.isNotEmpty) {
-        // Auto-Pfad nicht sofort abbrechen, sondern neu berechnen.
-        _tryRepath();
-      }
+    if (!hasActiveCollision) {
+      return;
+    }
+
+    // Die tatsächliche Bewegung wird in update() über das NavMesh
+    // inklusive Wall-Sliding entschieden.
+    //
+    // Hier NICHT position zurücksetzen, sonst wird bei diagonaler
+    // Bewegung auch die erlaubte Achse wieder rückgängig gemacht.
+    if (_autoPath.isNotEmpty && _velocity.length == 0) {
+      _tryRepath();
     }
   }
 

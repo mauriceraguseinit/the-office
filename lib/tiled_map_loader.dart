@@ -361,7 +361,7 @@ mixin TiledMapLoader on FlameGame<World> {
           width: object.width,
           height: object.height,
           rotationDegrees: object.rotation,
-          padding: 5.0,
+          padding: 20.0,
         ),
       );
 
