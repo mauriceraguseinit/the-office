@@ -1,7 +1,9 @@
 # the_office
 
-The Office is a flutter flame game. 
+The Office is a flutter [flame](https://flame-engine.org/) game. 
+
 Check out the current playable version here: [Play Game](https://mauriceraguseinit.github.io/the-office/)
+
 The Map is created with [Tiled](https://www.mapeditor.org/). Tiled is an graphic editor for game maps. 
  
 
