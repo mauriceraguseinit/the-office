@@ -304,7 +304,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
     }
 
     if (_isBusy) {
-      super.update(dt);
+      animationTicker?.currentIndex = 0;
+      super.update(0);
       return;
     }
 
@@ -394,7 +395,8 @@ class Hendrik extends SpriteAnimationGroupComponent<Direction>
         }
       }
     } else {
-      super.update(0); // Stehen bleiben (Animation einfrieren)
+      animationTicker?.currentIndex = 0;
+      super.update(0); // Stehen bleiben auf dem ersten Frame
     }
 
     priority = (y + height / 2).toInt();
