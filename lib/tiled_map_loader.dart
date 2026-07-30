@@ -378,7 +378,9 @@ mixin TiledMapLoader on FlameGame<World> {
 
     // interactive objects layers instanziieren und zur Welt hinzufügen
     final ObjectGroup? interactiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects');
-    final ObjectGroup? interactiveObjects2 = mapComponent.tileMap.getLayer<ObjectGroup>('interactiveObjects2');
+    final ObjectGroup? alwaysOnTopInteractiveObjects = mapComponent.tileMap.getLayer<ObjectGroup>(
+      'alwaysOnTopInteractiveObjects',
+    );
 
     _interactiveTiledObjects.clear(); // Map leeren vor dem Neubefüllen
 
@@ -397,7 +399,7 @@ mixin TiledMapLoader on FlameGame<World> {
       }
     });
 
-    interactiveObjects2?.objects.forEach((TiledObject object) {
+    alwaysOnTopInteractiveObjects?.objects.forEach((TiledObject object) {
       // Alle Objekte speichern - auch reine Dekorationen.
 
       final PositionComponent? comp = _processInteractiveObject(

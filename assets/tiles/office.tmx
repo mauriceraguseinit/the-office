@@ -446,7 +446,7 @@
   <object id="162" gid="103" x="1049.5" y="1287" width="78" height="74"/>
   <object id="163" gid="103" x="929" y="1332.5" width="78" height="74"/>
  </objectgroup>
- <objectgroup id="18" name="interactiveObjects2">
+ <objectgroup id="18" name="alwaysOnTopInteractiveObjects">
   <object id="146" type="CoffeeMachine" gid="107" x="1328.92" y="1115.42" width="26" height="34"/>
   <object id="172" type="ElevatorPanel" gid="112" x="258" y="92.5" width="13" height="32.5"/>
  </objectgroup>
