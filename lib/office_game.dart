@@ -195,7 +195,7 @@ class OfficeGame extends FlameGame<World>
     }
 
     // --- MAP LADEN ÜBER MIXIN ---
-    final (Hendrik loadedPlayer, List<Vector2> sources) = await loadTiledMap(world, mapComponent);
+    final (Hendrik loadedPlayer, List<TiledObject> sources) = await loadTiledMap(world, mapComponent);
     player = loadedPlayer;
 
     overlays.add('intro');

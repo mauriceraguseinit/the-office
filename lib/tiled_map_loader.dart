@@ -100,7 +100,7 @@ mixin TiledMapLoader on FlameGame<World> {
     ]);
   }
 
-  Future<(Hendrik player, List<Vector2> lightSources)> loadTiledMap(
+  Future<(Hendrik player, List<TiledObject> lightSources)> loadTiledMap(
     World world,
     TiledComponent<FlameGame<World>> mapComponent,
   ) async {
@@ -438,10 +438,12 @@ mixin TiledMapLoader on FlameGame<World> {
     // light points
     final List<TiledObject> lightPoints =
         mapComponent.tileMap.getLayer<ObjectGroup>('lights')?.objects ?? <TiledObject>[];
-    final List<Vector2> sources = lightPoints.map((TiledObject obj) => Vector2(obj.x, obj.y)).toList();
+    final List<TiledObject> sources = lightPoints.map((TiledObject obj) {
+      return obj;
+    }).toList();
     if (sources.isEmpty) {
       debugPrint('⚠️  WARNUNG: Keine Lichter in Tiled gefunden! Nutze Fallback-Licht.');
-      sources.add(Vector2(500, 500));
+      sources.add(TiledObject(id: 151651, x: 500, y: 500));
     }
 
     // --- NavMesh initial dynamisch backen ---

@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 
 import 'office_game.dart';
@@ -9,7 +10,7 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
     required this.targetCamera,
   });
 
-  final List<Vector2> lightSources;
+  final List<TiledObject> lightSources;
   final CameraComponent targetCamera;
   double ambientDarkness = 0.75;
 
@@ -46,26 +47,39 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
     );
 
     // Lichtkegel in die Dunkelheit stanzen
-    for (final Vector2 lightWorldPos in lightSources) {
+    for (final TiledObject lightWorldPos in lightSources) {
       _renderLightCircle(canvas, lightWorldPos);
     }
 
     canvas.restore();
   }
 
-  void _renderLightCircle(Canvas canvas, Vector2 worldPos) {
+  void _renderLightCircle(Canvas canvas, TiledObject worldPos) {
     final double radius = 250.0;
-    final Offset centerOffset = Offset(worldPos.x, worldPos.y);
+    final Offset centerOffset = Offset(
+      worldPos.width != 0 ? worldPos.x + worldPos.width / 2 : worldPos.x,
+      worldPos.height != 0 ? worldPos.y + worldPos.height / 2 : worldPos.y,
+    );
+    final double maxBrightness = worldPos.properties.byName.keys.contains('brightness')
+        ? ((worldPos.properties.byName['brightness']!) as FloatProperty).value
+        : 1.0;
 
     final List<Color> colors = <Color>[
-      Colors.white.withValues(alpha: 1.0),
-      Colors.white.withValues(alpha: 0.5),
+      Colors.white.withValues(alpha: maxBrightness),
+      Colors.white.withValues(alpha: maxBrightness / 2),
       Colors.white.withValues(alpha: 0.0),
     ];
 
-    final Shader gradient = RadialGradient(
-      colors: colors,
-    ).createShader(Rect.fromCircle(center: centerOffset, radius: radius));
+    final Shader gradient =
+        RadialGradient(
+          colors: colors,
+        ).createShader(
+          Rect.fromCenter(
+            center: centerOffset,
+            width: worldPos.width != 0 ? worldPos.width : radius * 2,
+            height: worldPos.height != 0 ? worldPos.height : radius * 2,
+          ),
+        );
 
     final Paint paint = Paint()
       ..shader = gradient
