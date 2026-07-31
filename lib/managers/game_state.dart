@@ -10,6 +10,7 @@ enum Flags {
   plantHasWaterMate,
   fullBladder,
   tobiGone,
+  fishCanGone,
 }
 
 class GameState extends ChangeNotifier {

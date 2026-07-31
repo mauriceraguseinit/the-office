@@ -142,6 +142,14 @@ class PeeAction extends GameAction {
   }
 }
 
+class RemoveObjectAction extends GameAction {
+  @override
+  void execute(GameState state) {
+    // Diese Action wird im InteractiveObject speziell behandelt,
+    // um das Objekt aus der Welt zu entfernen.
+  }
+}
+
 class CustomAction extends GameAction {
   CustomAction(this.callback);
   final void Function(GameState state) callback;

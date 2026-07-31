@@ -7,6 +7,7 @@ enum InventoryItemType {
   mate,
   mateEmpty,
   mateWater,
+  fishCan,
 }
 
 class InventoryItemCatalogue {
@@ -42,6 +43,12 @@ class InventoryItemCatalogue {
           id: InventoryItemType.mateWater.toString(),
           name: 'Klowasser-Mate',
           assetPath: 'assets/images/${GameImages.mateWater}',
+        );
+      case InventoryItemType.fishCan:
+        return InventoryItem(
+          id: InventoryItemType.fishCan.toString(),
+          name: 'rote Dose mit Heringen',
+          assetPath: 'assets/images/${GameImages.fishCan}',
         );
     }
   }

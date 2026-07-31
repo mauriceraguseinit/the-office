@@ -8,6 +8,7 @@ import 'package:the_office/interactiveObjects/trash.dart';
 import '../npcs/desk_daniel.dart';
 import '../npcs/tobi.dart';
 import 'coffee_machine.dart';
+import 'fish_can.dart';
 import 'fridge.dart';
 import 'interactive_object.dart';
 
@@ -60,6 +61,14 @@ class InteractiveObjectsCatalogue {
 
       case 'Toilet':
         return Toilet(
+          displayName: displayName,
+          renderComponent: finalRenderComponent,
+          position: position,
+          size: size,
+          priorityOffset: priorityOffset,
+        );
+      case 'FishCan':
+        return FishCan(
           displayName: displayName,
           renderComponent: finalRenderComponent,
           position: position,

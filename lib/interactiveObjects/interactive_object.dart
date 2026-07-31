@@ -18,7 +18,7 @@ abstract class InteractiveObject extends PositionComponent
     super.size,
     required this.displayName,
     this.priorityOffset = 0,
-    this.interactionPadding = 5,
+    this.interactionPadding = 10,
   }) : _renderComponent = renderComponent {
     add(renderComponent);
   }
@@ -69,6 +69,8 @@ abstract class InteractiveObject extends PositionComponent
         );
       } else if (action is PeeAction) {
         officeGame.player.startPeeing(interactionCenter);
+      } else if (action is RemoveObjectAction) {
+        removeFromParent();
       }
     }
 

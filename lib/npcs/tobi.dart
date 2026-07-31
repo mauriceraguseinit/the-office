@@ -28,7 +28,7 @@ class Tobi extends InteractiveObject {
       actions: <GameAction>[
         RemoveItemAction(InventoryItemType.mateWater.toString()),
         SetFlagAction(Flags.tobiGone.name),
-        CustomAction((_) => removeFromParent()),
+        RemoveObjectAction(),
         ShowMessageAction(
           '[b]Tobias:[/b]\n\nUuuuh eine neue Geschmackssorte!!!\n\n*trink, trink* *trink*\n\nDa bring ich doch gleich mal die leere Flasche weg.',
         ),
@@ -48,14 +48,7 @@ class Tobi extends InteractiveObject {
         ),
       ],
     ),
-    // Fall 3: Kaffee geben
-    InteractionRule(
-      requirements: <Requirement>[ItemRequirement('kaffee')],
-      actions: <GameAction>[
-        RemoveItemAction('kaffee'),
-        ShowMessageAction('[b]Tobias:[/b]\n\nOh danke! Der Kaffee rettet meinen Tag!'),
-      ],
-    ),
+
     // Fall 4: Falsches Item
     InteractionRule(
       requirements: <Requirement>[AnyItemRequirement()],

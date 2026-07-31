@@ -3,6 +3,7 @@ class GameImages {
   static const String mateFull = 'mate_full.png';
   static const String mateEmpty = 'mate_empty.png';
   static const String mateWater = 'mate_water.png';
+  static const String fishCan = 'hering.png';
   static const String wall = 'wall.png';
   static const String tobiIdle = 'tobi_idle.png';
   static const String deskDaniel = 'desk_daniel.png';
