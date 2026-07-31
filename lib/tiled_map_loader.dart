@@ -20,7 +20,7 @@ mixin TiledMapLoader on FlameGame<World> {
   // Hier die Namen aller Tile-Layer eintragen, die Wände enthalten.
   // Wenn dein Layer tatsächlich "Wände" heißt, nichts ändern.
   static const Set<String> _wallLayerNames = <String>{
-    'Wände',
+    'Walls',
   };
 
   // Speichert das berechnete, begehbare NavMesh
@@ -113,7 +113,7 @@ mixin TiledMapLoader on FlameGame<World> {
     // --- BODEN MANUELL RENDERN ---
     final Layer? bodenLayer =
         tileMap.renderableLayers
-                .where((dynamic layer) => layer.layer is TileLayer && layer.layer.name == 'Boden')
+                .where((dynamic layer) => layer.layer is TileLayer && layer.layer.name == 'Floor')
                 .firstOrNull
                 ?.layer
             as TileLayer?;
@@ -212,7 +212,7 @@ mixin TiledMapLoader on FlameGame<World> {
     for (int layerIndex = 0; layerIndex < totalMapLayers; layerIndex++) {
       final Layer layer = tileMap.renderableLayers[layerIndex].layer;
 
-      if (layer is TileLayer && layer.name != 'Boden' && layer.visible) {
+      if (layer is TileLayer && layer.name != 'Floor' && layer.visible) {
         final TileLayer tileLayer = layer;
         final int mapWidth = tileMap.map.width;
         final int mapHeight = tileMap.map.height;
