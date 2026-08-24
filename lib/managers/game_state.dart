@@ -11,9 +11,14 @@ enum Flags {
   fullBladder,
   tobiGone,
   fishCanGone,
+  notebookOnDesk,
 }
 
 class GameState extends ChangeNotifier {
+  GameState() {
+    reset();
+  }
+
   List<InventoryItem> ownedItems = <InventoryItem>[];
   InventoryItem? selectedItem;
   Vector2? playerPosition;
@@ -86,7 +91,9 @@ class GameState extends ChangeNotifier {
   }
 
   void reset() {
-    ownedItems.clear();
+    ownedItems = <InventoryItem>[
+      InventoryItemCatalogue.itemForId(InventoryItemType.notebook),
+    ];
     selectedItem = null;
     playerPosition = null;
     _highlightedObject = null;

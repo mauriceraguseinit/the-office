@@ -8,6 +8,7 @@ enum InventoryItemType {
   mateEmpty,
   mateWater,
   fishCan,
+  notebook,
 }
 
 class InventoryItemCatalogue {
@@ -26,6 +27,12 @@ class InventoryItemCatalogue {
 
   static InventoryItem itemForId(InventoryItemType inventoryItemType) {
     switch (inventoryItemType) {
+      case InventoryItemType.notebook:
+        return InventoryItem(
+          id: InventoryItemType.notebook.toString(),
+          name: 'Notebook',
+          assetPath: 'assets/images/${GameImages.notebook}',
+        );
       case InventoryItemType.mate:
         return InventoryItem(
           id: InventoryItemType.mate.toString(),

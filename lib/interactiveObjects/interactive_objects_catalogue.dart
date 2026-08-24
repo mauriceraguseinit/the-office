@@ -11,6 +11,7 @@ import 'coffee_machine.dart';
 import 'fish_can.dart';
 import 'fridge.dart';
 import 'gym_ball.dart';
+import 'hendrik_desk.dart';
 import 'interactive_object.dart';
 
 class InteractiveObjectsCatalogue {
@@ -137,7 +138,14 @@ class InteractiveObjectsCatalogue {
           size: size,
           priorityOffset: priorityOffset,
         );
-
+      case 'HendrikDesk':
+        return HendrikDesk(
+          displayName: displayName,
+          renderComponent: finalRenderComponent,
+          position: position,
+          size: size,
+          priorityOffset: priorityOffset,
+        );
       default:
         return null;
     }

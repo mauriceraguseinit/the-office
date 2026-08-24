@@ -5,6 +5,7 @@ class GameImages {
   static const String mateWater = 'mate_water.png';
   static const String fishCan = 'hering.png';
   static const String wall = 'wall.png';
+  static const String notebook = 'notebook.png';
   static const String tobiIdle = 'tobi_idle.png';
   static const String deskDaniel = 'desk_daniel.png';
   static const String backpack = 'backpack.png';
