@@ -1,6 +1,8 @@
+import 'package:flame/components.dart';
 import 'package:the_office/models/interaction_system.dart';
 
 import '../managers/game_state.dart';
+import '../utils/assets.dart';
 import 'interactive_object.dart';
 import 'inventory_item_catalogue.dart';
 
@@ -13,6 +15,40 @@ class HendrikDesk extends InteractiveObject {
     super.priorityOffset,
     super.interactionPadding = 15,
   });
+
+  Sprite? _deskSprite;
+  Sprite? _deskEmptySprite;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    // Sprites laden
+    _deskSprite = await game.loadSprite(GameImages.desk);
+    _deskEmptySprite = await game.loadSprite(GameImages.deskEmpty);
+
+    // Initiales Bild setzen
+    _updateVisuals();
+
+    // Auf Änderungen im GameState hören
+    officeGame.state.addListener(_updateVisuals);
+  }
+
+  @override
+  void onRemove() {
+    officeGame.state.removeListener(_updateVisuals);
+    super.onRemove();
+  }
+
+  void _updateVisuals() {
+    if (_deskSprite == null || _deskEmptySprite == null) return;
+
+    if (renderComponent is SpriteComponent) {
+      final SpriteComponent spriteComp = renderComponent as SpriteComponent;
+      final bool hasNotebook = officeGame.state.hasFlag(Flags.notebookOnDesk.name);
+      spriteComp.sprite = hasNotebook ? _deskSprite : _deskEmptySprite;
+    }
+  }
 
   @override
   List<InteractionRule> get rules => <InteractionRule>[

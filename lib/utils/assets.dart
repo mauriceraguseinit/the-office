@@ -1,5 +1,7 @@
 class GameImages {
   static const String coffeeMachine = 'coffeeMachine.png';
+  static const String desk = 'desk.png';
+  static const String deskEmpty = 'desk_empty.png';
   static const String mateFull = 'mate_full.png';
   static const String mateEmpty = 'mate_empty.png';
   static const String mateWater = 'mate_water.png';
@@ -19,6 +21,8 @@ class GameImages {
 
   static const List<String> preloadList = <String>[
     coffeeMachine,
+    desk,
+    deskEmpty,
     mateFull,
     mateEmpty,
     mateWater,

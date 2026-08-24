@@ -125,7 +125,7 @@ class _GymBallRenderer extends PositionComponent {
           // Riefen/Streifen zeichnen
           // Die Streifen sind im Schatten dunkler
           if ((y % 8.0).abs() < pixelScale) {
-            paint.color = Colors.lightBlue.shade100;
+            paint.color = Colors.lightBlue.shade300;
           }
 
           // Glanzpunkt (noch heller als die Palette)
