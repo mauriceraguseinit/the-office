@@ -324,6 +324,10 @@ class OfficeGame extends FlameGame<World>
           player.position = state.playerPosition!;
           camera.follow(player, snap: true);
         }
+
+        // NavMesh neu berechnen, da sich Flags (z.B. tobiGone) geändert haben könnten
+        rebuildNavMesh();
+
         debugPrint('OfficeGame: loadGame() finished');
 
         final BuildContext? context = buildContext;

@@ -10,6 +10,7 @@ import '../npcs/tobi.dart';
 import 'coffee_machine.dart';
 import 'fish_can.dart';
 import 'fridge.dart';
+import 'gym_ball.dart';
 import 'interactive_object.dart';
 
 class InteractiveObjectsCatalogue {
@@ -121,6 +122,15 @@ class InteractiveObjectsCatalogue {
 
       case 'CoffeeMachine':
         return CoffeeMachine(
+          displayName: displayName,
+          renderComponent: finalRenderComponent,
+          position: position,
+          size: size,
+          priorityOffset: priorityOffset,
+        );
+
+      case 'GymBall':
+        return GymBall(
           displayName: displayName,
           renderComponent: finalRenderComponent,
           position: position,

@@ -12,6 +12,8 @@ import 'components/nav_mesh_visualizer.dart';
 import 'hendrik.dart';
 import 'interactiveObjects/interactive_object.dart';
 import 'interactiveObjects/interactive_objects_catalogue.dart';
+import 'managers/game_state.dart';
+import 'managers/service_locator.dart';
 import 'utils/pathfinder.dart';
 
 mixin TiledMapLoader on FlameGame<World> {
@@ -680,67 +682,90 @@ mixin TiledMapLoader on FlameGame<World> {
     RenderableTiledMap tileMap, {
     int priorityOffset = 0,
   }) {
-    if (object.gid == null || object.gid! <= 0) return null;
-
-    final int cleanGid = object.gid! & 0x0FFFFFFF;
-    final Tile? tile = tileMap.map.tileByGid(cleanGid);
-
-    if (tile == null) {
-      return null;
-    }
-
-    final Tileset tileset = tileMap.map.tilesetByTileGId(cleanGid);
-    final Vector2 sourceTileSize = _getSourceTileSize(tile, tileset);
-
     final Vector2 objectSize = Vector2(object.width, object.height);
     final double angle = Units.radFromDegree(object.rotation);
+    final Vector2 position = _getTiledObjectCenter(object: object);
 
-    // Gid extrahieren (untere 28 Bits für die Gid, obere für Flips)
-    final int rawGid = object.gid!;
-    final bool flipX = (rawGid & 0x80000000) != 0;
-    final bool flipY = (rawGid & 0x40000000) != 0;
-    final bool flipDiagonal = (rawGid & 0x20000000) != 0;
+    // --- FLAG CHECK: Soll das Objekt überhaupt existieren? ---
+    final GameState state = sl<GameState>();
+    if (object.class_ == 'Tobi' && state.hasFlag(Flags.tobiGone.name)) return null;
+    if (object.class_ == 'FishCan' && state.hasFlag(Flags.fishCanGone.name)) return null;
 
-    final PositionComponent renderComp = _createRenderComponent(tile, tileMap, cleanGid, objectSize);
+    // Fall 1: Objekt hat eine GID (Tile-Objekt)
+    if (object.gid != null && object.gid! > 0) {
+      final int rawGid = object.gid!;
+      final int cleanGid = rawGid & 0x0FFFFFFF;
+      final Tile? tile = tileMap.map.tileByGid(cleanGid);
 
-    final InteractiveObject? interactiveObject = InteractiveObjectsCatalogue.interactiveObjectForClassName(
-      className: object.class_,
-      displayName: object.name,
-      renderComponent: renderComp,
-      position: _getTiledObjectCenter(object: object),
-      size: objectSize,
-      priorityOffset: priorityOffset,
-    );
+      if (tile == null) return null;
 
-    if (interactiveObject != null) {
-      interactiveObject.angle = angle;
+      final Tileset tileset = tileMap.map.tilesetByTileGId(cleanGid);
+      final Vector2 sourceTileSize = _getSourceTileSize(tile, tileset);
 
-      if (flipDiagonal) {
-        interactiveObject.angle += Units.degree90;
-        interactiveObject.flipHorizontally();
+      final bool flipX = (rawGid & 0x80000000) != 0;
+      final bool flipY = (rawGid & 0x40000000) != 0;
+      final bool flipDiagonal = (rawGid & 0x20000000) != 0;
+
+      final PositionComponent renderComp = _createRenderComponent(tile, tileMap, cleanGid, objectSize);
+
+      final InteractiveObject? interactiveObject = InteractiveObjectsCatalogue.interactiveObjectForClassName(
+        className: object.class_,
+        displayName: object.name,
+        renderComponent: renderComp,
+        position: position,
+        size: objectSize,
+        priorityOffset: priorityOffset,
+      );
+
+      if (interactiveObject != null) {
+        interactiveObject.angle = angle;
+
+        if (flipDiagonal) {
+          interactiveObject.angle += Units.degree90;
+          interactiveObject.flipHorizontally();
+        }
+        if (flipX) interactiveObject.flipHorizontally();
+        if (flipY) interactiveObject.flipVertically();
+
+        _addTileCollisionHitboxes(
+          interactiveObject,
+          tile,
+          sourceTileSize,
+        );
+
+        world.add(interactiveObject);
+        return interactiveObject;
+      } else {
+        return _setupAsDecoration(
+          world,
+          renderComp,
+          object,
+          angle,
+          priorityOffset,
+          tile,
+          sourceTileSize,
+        );
       }
-      if (flipX) interactiveObject.flipHorizontally();
-      if (flipY) interactiveObject.flipVertically();
-
-      _addTileCollisionHitboxes(
-        interactiveObject,
-        tile,
-        sourceTileSize,
-      );
-
-      world.add(interactiveObject);
-      return interactiveObject;
-    } else {
-      return _setupAsDecoration(
-        world,
-        renderComp,
-        object,
-        angle,
-        priorityOffset,
-        tile,
-        sourceTileSize,
-      );
     }
+    // Fall 2: Objekt hat KEINE GID (Rechteck/Punkt/etc.), aber eine Klasse
+    else if (object.class_.isNotEmpty) {
+      final InteractiveObject? interactiveObject = InteractiveObjectsCatalogue.interactiveObjectForClassName(
+        className: object.class_,
+        displayName: object.name,
+        renderComponent: PositionComponent(), // Dummy-Komponente
+        position: position,
+        size: objectSize,
+        priorityOffset: priorityOffset,
+      );
+
+      if (interactiveObject != null) {
+        interactiveObject.angle = angle;
+        world.add(interactiveObject);
+        return interactiveObject;
+      }
+    }
+
+    return null;
   }
 
   void removeInteractiveObjectFromNavMesh(InteractiveObject object) {
