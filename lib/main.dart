@@ -116,6 +116,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
 
   void _onNewGame() async {
     await sl<SaveManager>().deleteSaveGame();
+    sl<GameState>().reset();
     setState(() {
       _showScene = Scenes.editor;
     });

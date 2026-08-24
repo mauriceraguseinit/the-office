@@ -85,6 +85,20 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void reset() {
+    ownedItems.clear();
+    selectedItem = null;
+    playerPosition = null;
+    _highlightedObject = null;
+    _isPlayerHighlighted = false;
+    isDeskLocked = false;
+    playerMessage = '';
+    isMusicEnabled = true;
+    _flags.clear();
+    _variables.clear();
+    notifyListeners();
+  }
+
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'ownedItems': ownedItems.map((InventoryItem item) => item.id).toList(),
