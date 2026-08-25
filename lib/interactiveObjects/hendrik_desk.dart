@@ -98,9 +98,9 @@ class HendrikDesk extends InteractiveObject {
         FlagRequirement(Flags.notebookOnDesk.name),
       ],
       actions: <GameAction>[
-        ShowMessageAction(
-          '[b]Hendrik:[/b]\n\nTipp Tipp Tipp!',
-        ),
+        CustomAction((state) {
+          officeGame.openOverlay('tetris');
+        }),
       ],
     ),
   ];

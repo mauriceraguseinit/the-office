@@ -47,4 +47,6 @@ class GameAudio {
   static const String intro = 'intro.mp3';
   static const String background = 'background.mp3';
   static const String pee = 'pee.wav';
+  static const String fan = 'fan.mp3';
+  static const String buildFailed = 'build_failed.wav';
 }

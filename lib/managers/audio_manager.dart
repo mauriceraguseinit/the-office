@@ -16,6 +16,8 @@ class AudioManager {
       GameAudio.intro,
       GameAudio.background,
       GameAudio.pee,
+      GameAudio.fan,
+      GameAudio.buildFailed,
     ]);
   }
 
