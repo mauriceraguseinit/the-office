@@ -4,6 +4,7 @@ import 'package:flame/camera.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flame/text.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/office_game.dart';
@@ -59,7 +60,7 @@ class DeskMenuGame extends FlameGame<World> with HasGameReference<OfficeGame>, M
 
   late TiledComponent<FlameGame<World>> deskMap;
   String? hoveredObjectName;
-  late TextComponent label;
+  late TextComponent<TextRenderer> label;
 
   @override
   Future<void> onLoad() async {
@@ -104,7 +105,7 @@ class DeskMenuGame extends FlameGame<World> with HasGameReference<OfficeGame>, M
     }
 
     // Label als HUD Element hinzufügen
-    label = TextComponent(
+    label = TextComponent<TextRenderer>(
       text: '',
       position: Vector2(GameConfig.resolution.width / 2, GameConfig.resolution.height - 80),
       anchor: Anchor.center,
@@ -156,7 +157,7 @@ class _ClickableRegion extends PositionComponent with HoverCallbacks, TapCallbac
       paint: Paint()
         ..color = Colors.transparent
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 3,
+        ..strokeWidth = 20,
     );
     add(visual);
   }
@@ -175,7 +176,7 @@ class _ClickableRegion extends PositionComponent with HoverCallbacks, TapCallbac
   void onHoverEnter() {
     onHoverChanged(true);
     visual.paint.color = Colors.yellowAccent.withValues(alpha: 0.3);
-    visual.paint.style = PaintingStyle.fill;
+    visual.paint.style = PaintingStyle.stroke;
   }
 
   @override
