@@ -19,11 +19,12 @@ import 'hud/speech_bubble.dart';
 import 'hud/start_menu.dart';
 import 'intro/intro_game.dart';
 import 'l10n/l10n.dart';
-import 'minigames/tetris/tetris_overlay.dart';
 import 'managers/audio_manager.dart';
 import 'managers/game_state.dart';
 import 'managers/save_manager.dart';
 import 'managers/service_locator.dart';
+import 'minigames/tetris/tetris_overlay.dart';
+import 'hud/desk_overlay/desk_menu_overlay.dart';
 import 'office_game.dart';
 
 enum Scenes {
@@ -136,6 +137,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     'inventory': (BuildContext context, OfficeGame game) => InventoryOverlay(game: game),
     'gameMenu': (BuildContext context, OfficeGame game) => GameMenuOverlay(game: game),
     'tetris': (BuildContext context, OfficeGame game) => TetrisOverlay(game: game),
+    'desk_menu': (BuildContext context, OfficeGame game) => DeskMenuOverlay(game: game),
     'gameMenuButton': (BuildContext context, OfficeGame game) => GameMenuButton(game: game),
     'mobileInventoryButton': (BuildContext context, OfficeGame game) => MobileInventoryButton(game: game),
     'intro': (BuildContext context, OfficeGame game) => RetroSpeechBubble(

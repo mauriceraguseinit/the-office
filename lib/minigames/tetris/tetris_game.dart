@@ -13,7 +13,7 @@ import 'package:the_office/utils/styles.dart';
 
 enum TetrominoType { I, J, L, O, S, T, Z }
 
-class MergeConflictTetris extends FlameGame with HasKeyboardHandlerComponents {
+class MergeConflictTetris extends FlameGame<World> with HasKeyboardHandlerComponents<World> {
   static const int gridWidth = 10;
   static const int gridHeight = 20;
   static const double blockSize = 30.0;
@@ -32,11 +32,11 @@ class MergeConflictTetris extends FlameGame with HasKeyboardHandlerComponents {
 
   @override
   Future<void> onLoad() async {
-    grid = List.generate(gridHeight, (_) => List.filled(gridWidth, null));
+    grid = List<List<Color?>>.generate(gridHeight, (_) => List<Color?>.filled(gridWidth, null));
     _spawnNewPiece();
 
     add(
-      TextComponent(
+      TextComponent<TextPaint>(
         text: 'IDE: MERGE CONFLICT TETRIS',
         textRenderer: TextPaint(style: GameStyles.buttonStyle.copyWith(fontSize: 14, color: Colors.blueAccent)),
         position: Vector2(10, 10),
@@ -116,7 +116,7 @@ class MergeConflictTetris extends FlameGame with HasKeyboardHandlerComponents {
     for (int y = gridHeight - 1; y >= 0; y--) {
       if (grid[y].every((Color? c) => c != null)) {
         grid.removeAt(y);
-        grid.insert(0, List.filled(gridWidth, null));
+        grid.insert(0, List<Color?>.filled(gridWidth, null));
         clearedThisTurn++;
         y++; // Re-check the same index
       }
@@ -253,11 +253,6 @@ class MergeConflictTetris extends FlameGame with HasKeyboardHandlerComponents {
 }
 
 class Tetromino {
-  final TetrominoType type;
-  late List<List<int>> shape;
-  late Color color;
-  Vector2 position = Vector2.zero();
-
   Tetromino(this.type) {
     switch (type) {
       case TetrominoType.I:
@@ -310,11 +305,15 @@ class Tetromino {
         break;
     }
   }
+  final TetrominoType type;
+  late List<List<int>> shape;
+  late Color color;
+  Vector2 position = Vector2.zero();
 
   List<List<int>> getRotated() {
     final int rows = shape.length;
     final int cols = shape[0].length;
-    final List<List<int>> rotated = List.generate(cols, (_) => List.filled(rows, 0));
+    final List<List<int>> rotated = List<List<int>>.generate(cols, (_) => List<int>.filled(rows, 0));
 
     for (int y = 0; y < rows; y++) {
       for (int x = 0; x < cols; x++) {

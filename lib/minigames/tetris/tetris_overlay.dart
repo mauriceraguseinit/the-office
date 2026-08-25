@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:the_office/hud/retro_button.dart';
 import 'package:the_office/minigames/tetris/tetris_game.dart';
 import 'package:the_office/office_game.dart';
+import 'package:the_office/utils/config.dart';
 import 'package:the_office/utils/styles.dart';
 
 class TetrisOverlay extends StatefulWidget {
@@ -24,72 +27,92 @@ class _TetrisOverlayState extends State<TetrisOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 600,
-        height: 750,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2D2D2D),
-          border: Border.all(color: Colors.blueAccent, width: 4),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 20),
-          ],
-        ),
-        child: Column(
-          children: [
-            // Window Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'TERMINAL - MERGE CONFLICT TETRIS',
-                  style: GameStyles.buttonStyle.copyWith(color: Colors.blueAccent, fontSize: 12),
-                ),
-                GestureDetector(
-                  onTap: () => widget.game.overlays.remove('tetris'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    color: Colors.redAccent,
-                    child: const Text(
-                      'X',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(color: Colors.blueAccent),
-            const SizedBox(height: 10),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        // Skalierung wie im restlichen Spiel berechnen
+        final double scaleX = constraints.maxWidth / GameConfig.resolution.width;
+        final double scaleY = constraints.maxHeight / GameConfig.resolution.height;
+        final double gameScale = min(scaleX, scaleY);
 
-            // Game Area
-            Expanded(
-              child: ClipRect(
-                child: GameWidget(
-                  game: _tetrisGame,
-                  autofocus: true,
+        // Basis-Maße des Fensters
+        const double baseWidth = 600.0;
+        const double baseHeight = 750.0;
+
+        return Center(
+          child: SizedBox(
+            width: baseWidth * gameScale,
+            height: baseHeight * gameScale,
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Container(
+                width: baseWidth,
+                height: baseHeight,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2D2D2D),
+                  border: Border.all(color: Colors.blueAccent, width: 4),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 20),
+                  ],
+                ),
+                child: Column(
+                  children: <Widget>[
+                    // Window Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          'TERMINAL - MERGE CONFLICT TETRIS',
+                          style: GameStyles.buttonStyle.copyWith(color: Colors.blueAccent, fontSize: 12),
+                        ),
+                        GestureDetector(
+                          onTap: () => widget.game.overlays.remove('tetris'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            color: Colors.redAccent,
+                            child: const Text(
+                              'X',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(color: Colors.blueAccent),
+                    const SizedBox(height: 10),
+
+                    // Game Area
+                    Expanded(
+                      child: ClipRect(
+                        child: GameWidget<MergeConflictTetris>(
+                          game: _tetrisGame,
+                          autofocus: true,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+                    // Footer / Instructions
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        _instructionText('ARROWS/WASD: MOVE'),
+                        _instructionText('UP/W: ROTATE'),
+                        _instructionText('SPACE: DROP'),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    RetroButton(
+                      title: 'CLOSE IDE',
+                      onTap: () => widget.game.overlays.remove('tetris'),
+                    ),
+                  ],
                 ),
               ),
             ),
-
-            const SizedBox(height: 10),
-            // Footer / Instructions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _instructionText('ARROWS/WASD: MOVE'),
-                _instructionText('UP/W: ROTATE'),
-                _instructionText('SPACE: DROP'),
-              ],
-            ),
-            const SizedBox(height: 10),
-            RetroButton(
-              title: 'CLOSE IDE',
-              onTap: () => widget.game.overlays.remove('tetris'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

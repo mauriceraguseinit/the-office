@@ -98,8 +98,8 @@ class HendrikDesk extends InteractiveObject {
         FlagRequirement(Flags.notebookOnDesk.name),
       ],
       actions: <GameAction>[
-        CustomAction((state) {
-          officeGame.openOverlay('tetris');
+        CustomAction((GameState state) {
+          officeGame.openOverlay('desk_menu');
         }),
       ],
     ),

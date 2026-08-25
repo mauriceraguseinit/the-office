@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="1280" tileheight="720" infinite="0" nextlayerid="3" nextobjectid="2">
+ <tileset firstgid="1" name="bg" tilewidth="1280" tileheight="720" tilecount="1" columns="1">
+  <image source="../images/dektop_frontal.png" width="1280" height="720"/>
+ </tileset>
+ <layer id="1" name="Kachelebene 1" width="1" height="1">
+  <data encoding="csv">
+1
+</data>
+ </layer>
+ <objectgroup id="2" name="clickable">
+  <object id="1" name="Merge Requests" x="483.333" y="208.333">
+   <polygon points="0,0 294,-1.33333 289.667,162 5.33333,162.333"/>
+  </object>
+ </objectgroup>
+</map>
