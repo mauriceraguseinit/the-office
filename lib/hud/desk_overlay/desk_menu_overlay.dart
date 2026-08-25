@@ -89,7 +89,8 @@ class DeskMenuGame extends FlameGame<World> with HasGameReference<OfficeGame>, M
             position: Vector2(obj.x, obj.y),
             onPressed: () {
               if (obj.name == 'Merge Requests') {
-                mainGame.openOverlay('tetris', closeOthers: false);
+                mainGame.overlays.remove('desk_menu'); // Menü schließen
+                mainGame.openOverlay('tetris'); // Tetris öffnen
               }
             },
             onHoverChanged: (bool isHovered) {
