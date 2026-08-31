@@ -46,6 +46,6 @@
   "music_off": "Music: OFF",
   "with_word": "WITH",
   "do_not_use": "THAT'S NOT POSSIBLE!",
-  "inventory": "INVENTORY"
-
+  "inventory": "INVENTORY",
+  "elevator_refusal": "[b]Hendrik:[/b]\n\nI don't want to go to this floor. There is nothing for me to do there."
 }

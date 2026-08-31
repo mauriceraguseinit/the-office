@@ -25,12 +25,9 @@ class ElevatorPanel extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[
-        ShowRandomMessageAction(
-          <String>[
-            '[b]Hendrik:[/b]\n\nIch bin doch gerade erst angekommen.',
-            '[b]Hendrik:[/b]\n\nIch glaube ich sollte wenigsten so tun als würde ich arbeiten.',
-          ],
-        ),
+        CustomAction((state) {
+          officeGame.openOverlay('elevator');
+        }),
       ],
     ),
   ];

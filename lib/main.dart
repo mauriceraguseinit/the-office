@@ -10,6 +10,8 @@ import 'package:the_office/utils/web_helper.dart' as web_helper;
 
 import 'beat_em_up.dart';
 import 'hud/character_editor.dart';
+import 'hud/desk_overlay/desk_menu_overlay.dart';
+import 'hud/elevator_overlay/elevator_overlay.dart';
 import 'hud/game_menu.dart';
 import 'hud/inventory_overlay.dart';
 import 'hud/mobile_inventory_button.dart';
@@ -24,7 +26,6 @@ import 'managers/game_state.dart';
 import 'managers/save_manager.dart';
 import 'managers/service_locator.dart';
 import 'minigames/tetris/tetris_overlay.dart';
-import 'hud/desk_overlay/desk_menu_overlay.dart';
 import 'office_game.dart';
 
 enum Scenes {
@@ -138,6 +139,7 @@ class _TheOfficeAppState extends State<TheOfficeApp> {
     'gameMenu': (BuildContext context, OfficeGame game) => GameMenuOverlay(game: game),
     'tetris': (BuildContext context, OfficeGame game) => TetrisOverlay(game: game),
     'desk_menu': (BuildContext context, OfficeGame game) => DeskMenuOverlay(game: game),
+    'elevator': (BuildContext context, OfficeGame game) => ElevatorOverlay(game: game),
     'gameMenuButton': (BuildContext context, OfficeGame game) => GameMenuButton(game: game),
     'mobileInventoryButton': (BuildContext context, OfficeGame game) => MobileInventoryButton(game: game),
     'intro': (BuildContext context, OfficeGame game) => RetroSpeechBubble(

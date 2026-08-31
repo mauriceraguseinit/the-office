@@ -7,6 +7,8 @@ class GameImages {
   static const String mateWater = 'mate_water.png';
   static const String fishCan = 'hering.png';
   static const String wall = 'wall.png';
+  static const String wall1 = 'wall_1.png';
+  static const String floor1 = 'floor_1.png';
   static const String notebook = 'notebook.png';
   static const String tobiIdle = 'tobi_idle.png';
   static const String deskDaniel = 'desk_daniel.png';
@@ -27,6 +29,8 @@ class GameImages {
     mateEmpty,
     mateWater,
     wall,
+    wall1,
+    floor1,
     tobiIdle,
     deskDaniel,
     backpack,
@@ -40,6 +44,7 @@ class GameImages {
 
 class GameTiles {
   static const String office = 'office.tmx';
+  static const String officeCellar = 'office_cellar.tmx';
   static const String intro = 'intro.tmx';
 }
 

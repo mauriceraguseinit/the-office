@@ -150,5 +150,9 @@ class SDe extends S {
   String get inventory => 'INVENTAR';
 
   @override
+  String get elevator_refusal =>
+      '[b]Hendrik:[/b]\n\nIch möchte nicht in dieses Stockwerk fahren. Da gibt es nichts für mich zu tun.';
+
+  @override
   String get dialogue_too_far_away => 'Dafür bin ich zu weit weg.';
 }

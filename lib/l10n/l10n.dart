@@ -362,6 +362,12 @@ abstract class S {
   /// **'INVENTAR'**
   String get inventory;
 
+  /// No description provided for @elevator_refusal.
+  ///
+  /// In de, this message translates to:
+  /// **'[b]Hendrik:[/b]\n\nIch möchte nicht in dieses Stockwerk fahren. Da gibt es nichts für mich zu tun.'**
+  String get elevator_refusal;
+
   /// No description provided for @dialogue_too_far_away.
   ///
   /// In de, this message translates to:

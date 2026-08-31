@@ -150,5 +150,9 @@ class SEn extends S {
   String get inventory => 'INVENTORY';
 
   @override
+  String get elevator_refusal =>
+      '[b]Hendrik:[/b]\n\nI don\'t want to go to this floor. There is nothing for me to do there.';
+
+  @override
   String get dialogue_too_far_away => 'I\'m too far away for that.';
 }

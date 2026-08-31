@@ -13,6 +13,7 @@ import 'package:the_office/components/item_fly_animation.dart';
 import 'package:the_office/tiled_map_loader.dart';
 import 'package:the_office/utils/assets.dart';
 import 'package:the_office/utils/config.dart';
+import 'package:tiled/tiled.dart' as tiled;
 
 import 'hendrik.dart';
 import 'hud/office_hud.dart';
@@ -182,16 +183,156 @@ class OfficeGame extends FlameGame<World>
         onClose: () => game.overlays.remove('playerMessage'),
       ),
     );
+
     // 1. Assets vorab in den Cache laden
     await images.loadAll(GameImages.preloadList);
 
-    mapComponent = await TiledComponent.load(GameTiles.office, Vector2.all(64));
+    // --- INITIAL LEVEL LADEN ---
+    await loadLevel(GameTiles.office, isInitial: true);
+
+    overlays.add('intro');
+    overlays.add('gameMenuButton');
+    overlays.add('mobileInventoryButton');
+
+    if (_shouldLoadOnMount) {
+      _shouldLoadOnMount = false;
+      await loadGame();
+    }
+
+    // Wir rufen playBgm IMMER auf. Der AudioManager entscheidet basierend auf
+    // state.isMusicEnabled, ob er wirklich Ton ausgibt oder nur das Lied vormerkt.
+    _bgmPlayer = await sl<AudioManager>().playBgm(
+      GameAudio.background,
+      loop: true,
+      volume: 0.05,
+    );
+  }
+
+  Future<void> loadLevel(String mapAsset, {bool isInitial = false}) async {
+    // Falls wir ein Level neu laden, räumen wir die Welt auf
+    if (!isInitial) {
+      world.removeAll(world.children);
+      camera.viewport.removeAll(camera.viewport.children.whereType<OfficeHud>());
+    }
+
+    // --- MANUELLES LADEN & FIXEN DER MAP-DATEN ---
+    // Wir laden den String-Inhalt der TMX-Datei
+    final String mapString = await assets.readFile('tiles/$mapAsset');
+    // Wir parsen den String manuell in ein TiledMap-Objekt
+    final tiled.TiledMap mapData = tiled.TileMapParser.parseTmx(mapString);
+
+    // 1. Fix tileCount für Bild-Kollektionen. Tiled-Dateien können nicht-kontinuierliche IDs haben,
+    // aber flame_tiled verlässt sich oft auf tileCount für den GID-Bereich.
+    for (final ts in mapData.tilesets) {
+      if (ts.image == null && ts.tiles.isNotEmpty) {
+        int maxId = 0;
+        for (final t in ts.tiles) {
+          if (t.localId > maxId) maxId = t.localId;
+        }
+        if (ts.tileCount == null || ts.tileCount! < maxId + 1) {
+          debugPrint('  Fixing tileCount for ${ts.name}: ${ts.tileCount} -> ${maxId + 1}');
+          ts.tileCount = maxId + 1;
+        }
+      }
+    }
+
+    // 2. Robuste GID-Bereinigung und Tile-Reparatur
+    const int FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
+    const int FLIPPED_VERTICALLY_FLAG = 0x40000000;
+    const int FLIPPED_DIAGONALLY_FLAG = 0x20000000;
+    const int FLIPPED_ANTICLOCKWISE_FLAG = 0x10000000;
+    const int ALL_FLIPS =
+        FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG | FLIPPED_ANTICLOCKWISE_FLAG;
+
+    for (final tiled.Layer layer in mapData.layers) {
+      if (layer is tiled.TileLayer) {
+        final data = layer.data;
+        if (data == null) continue;
+        for (int i = 0; i < data.length; i++) {
+          final int rawGid = data[i];
+          if (rawGid == 0) continue;
+
+          final int gid = rawGid & ~ALL_FLIPS;
+
+          bool found = false;
+          for (final ts in mapData.tilesets) {
+            if (ts.firstGid != null && gid >= ts.firstGid!) {
+              int? nextFirstGid;
+              for (final otherTs in mapData.tilesets) {
+                if (otherTs.firstGid != null && otherTs.firstGid! > ts.firstGid!) {
+                  if (nextFirstGid == null || otherTs.firstGid! < nextFirstGid) {
+                    nextFirstGid = otherTs.firstGid;
+                  }
+                }
+              }
+
+              if (nextFirstGid == null || gid < nextFirstGid) {
+                if (ts.image != null) {
+                  if (gid < ts.firstGid! + (ts.tileCount ?? 0)) {
+                    found = true;
+                  }
+                } else {
+                  final int tileId = gid - ts.firstGid!;
+                  // Wir suchen nach der Kachel
+                  final existingTile = ts.tiles.where((t) => t.localId == tileId).firstOrNull;
+                  if (existingTile != null) {
+                    found = true;
+                  } else {
+                    // Kachel fehlt im Tileset-Objekt, wir versuchen sie aus dem TMX zu extrahieren
+                    final tileBlockRegex = RegExp('<tile id="$tileId"[^>]*>(.*?)</tile>', dotAll: true);
+                    final tileBlockMatch = tileBlockRegex.firstMatch(mapString);
+                    if (tileBlockMatch != null) {
+                      final block = tileBlockMatch.group(1)!;
+                      final sourceMatch = RegExp('source=["\']([^"\']+)["\']').firstMatch(block);
+                      if (sourceMatch != null) {
+                        final source = sourceMatch.group(1)!;
+                        final wMatch = RegExp('width=["\'](\\d+)["\']').firstMatch(block);
+                        final hMatch = RegExp('height=["\'](\\d+)["\']').firstMatch(block);
+
+                        final newTile = tiled.Tile(localId: tileId);
+                        newTile.image = tiled.TiledImage(
+                          source: source,
+                          width: wMatch != null ? int.parse(wMatch.group(1)!) : null,
+                          height: hMatch != null ? int.parse(hMatch.group(1)!) : null,
+                        );
+                        ts.tiles.add(newTile);
+                        found = true;
+                        debugPrint('🛠️ Reparierte fehlende Kachel $tileId in Tileset ${ts.name} (Source: $source)');
+                      }
+                    }
+                  }
+                }
+                break;
+              }
+            }
+          }
+
+          if (!found) {
+            debugPrint('⚠️ Crash-Protection: GID $gid (raw: $rawGid) in Layer ${layer.name} ungültig. Auf 0 gesetzt.');
+            data[i] = 0;
+          }
+        }
+      }
+    }
+
+    // Tilesets nach dem Hinzufügen von Kacheln sortieren und säubern, damit flame_tiled nicht verwirrt ist
+    for (final ts in mapData.tilesets) {
+      if (ts.image == null) {
+        // Nur Kacheln behalten, die ein Bild haben (flame_tiled crasht sonst im Atlas-Sort)
+        ts.tiles.removeWhere((t) => t.image == null || t.image!.source == null);
+        ts.tiles.sort((a, b) => a.localId.compareTo(b.localId));
+      }
+    }
+
+    // Jetzt erstellen wir die RenderableMap und die Komponente aus den fixierten Daten
+    final RenderableTiledMap renderableMap = await RenderableTiledMap.fromTiledMap(mapData, Vector2.all(64));
+    mapComponent = TiledComponent<FlameGame<World>>(renderableMap);
     final RenderableTiledMap tileMap = mapComponent.tileMap;
 
-    // 2. Alle Tiled-Tilesets vorab laden
-    for (final Tileset ts in tileMap.map.tilesets) {
+    // Alle Tiled-Tilesets vorab laden (für den Image-Cache)
+    for (final tiled.Tileset ts in tileMap.map.tilesets) {
       if (ts.image?.source != null) await images.load(ts.image!.source!);
-      for (final Tile t in ts.tiles) {
+      for (final tiled.Tile t in ts.tiles) {
         if (t.image?.source != null) await images.load(t.image!.source!);
       }
     }
@@ -200,11 +341,7 @@ class OfficeGame extends FlameGame<World>
     final (Hendrik loadedPlayer, List<TiledObject> sources) = await loadTiledMap(world, mapComponent);
     player = loadedPlayer;
 
-    overlays.add('intro');
-    overlays.add('gameMenuButton');
-    overlays.add('mobileInventoryButton');
-
-    //camera configuration
+    // Camera configuration
     camera.viewport = FixedResolutionViewport(
       resolution: Vector2(GameConfig.resolution.width, GameConfig.resolution.height),
     );
@@ -235,19 +372,6 @@ class OfficeGame extends FlameGame<World>
       targetCamera: rawMinimapCamera,
     )..priority = 999999;
     world.add(lighting2);
-
-    if (_shouldLoadOnMount) {
-      _shouldLoadOnMount = false;
-      await loadGame();
-    }
-
-    // Wir rufen playBgm IMMER auf. Der AudioManager entscheidet basierend auf
-    // state.isMusicEnabled, ob er wirklich Ton ausgibt oder nur das Lied vormerkt.
-    _bgmPlayer = await sl<AudioManager>().playBgm(
-      GameAudio.background,
-      loop: true,
-      volume: 0.05,
-    );
   }
 
   @override

@@ -45,5 +45,6 @@
   "music_off": "Musik: AUS",
   "do_not_use": "DAS GEHT SO NICHT!",
   "inventory": "INVENTAR",
+  "elevator_refusal": "[b]Hendrik:[/b]\n\nIch möchte nicht in dieses Stockwerk fahren. Da gibt es nichts für mich zu tun.",
   "dialogue_too_far_away": "Dafür bin ich zu weit weg."
 }

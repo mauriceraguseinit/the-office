@@ -448,6 +448,12 @@ mixin TiledMapLoader on FlameGame<World> {
       sources.add(TiledObject(id: 151651, x: 500, y: 500));
     }
 
+    // --- ALTEN VISUALIZER ENTFERNEN ---
+    if (_activeVisualizer != null && _activeVisualizer!.isMounted) {
+      _activeVisualizer!.removeFromParent();
+    }
+    _activeVisualizer = null;
+
     // --- NavMesh initial dynamisch backen ---
     rebuildNavMesh();
 
