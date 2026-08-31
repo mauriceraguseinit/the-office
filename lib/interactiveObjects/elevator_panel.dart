@@ -1,3 +1,4 @@
+import 'package:the_office/managers/game_state.dart';
 import 'package:the_office/models/interaction_system.dart';
 
 import 'interactive_object.dart';
@@ -25,7 +26,7 @@ class ElevatorPanel extends InteractiveObject {
     InteractionRule(
       requirements: <Requirement>[NoItemRequirement()],
       actions: <GameAction>[
-        CustomAction((state) {
+        CustomAction((GameState state) {
           officeGame.openOverlay('elevator');
         }),
       ],

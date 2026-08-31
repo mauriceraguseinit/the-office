@@ -223,10 +223,10 @@ class OfficeGame extends FlameGame<World>
 
     // 1. Fix tileCount für Bild-Kollektionen. Tiled-Dateien können nicht-kontinuierliche IDs haben,
     // aber flame_tiled verlässt sich oft auf tileCount für den GID-Bereich.
-    for (final ts in mapData.tilesets) {
+    for (final Tileset ts in mapData.tilesets) {
       if (ts.image == null && ts.tiles.isNotEmpty) {
         int maxId = 0;
-        for (final t in ts.tiles) {
+        for (final Tile t in ts.tiles) {
           if (t.localId > maxId) maxId = t.localId;
         }
         if (ts.tileCount == null || ts.tileCount! < maxId + 1) {
@@ -237,28 +237,28 @@ class OfficeGame extends FlameGame<World>
     }
 
     // 2. Robuste GID-Bereinigung und Tile-Reparatur
-    const int FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
-    const int FLIPPED_VERTICALLY_FLAG = 0x40000000;
-    const int FLIPPED_DIAGONALLY_FLAG = 0x20000000;
-    const int FLIPPED_ANTICLOCKWISE_FLAG = 0x10000000;
-    const int ALL_FLIPS =
-        FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG | FLIPPED_ANTICLOCKWISE_FLAG;
+    const int flippedHorizontallyFlag = 0x80000000;
+    const int flippedVerticallyFlag = 0x40000000;
+    const int flippedDiagonallyFlag = 0x20000000;
+    const int flippedAnticlockwiseFlag = 0x10000000;
+    const int allFlips =
+        flippedHorizontallyFlag | flippedVerticallyFlag | flippedDiagonallyFlag | flippedAnticlockwiseFlag;
 
     for (final tiled.Layer layer in mapData.layers) {
       if (layer is tiled.TileLayer) {
-        final data = layer.data;
+        final List<int>? data = layer.data;
         if (data == null) continue;
         for (int i = 0; i < data.length; i++) {
           final int rawGid = data[i];
           if (rawGid == 0) continue;
 
-          final int gid = rawGid & ~ALL_FLIPS;
+          final int gid = rawGid & ~allFlips;
 
           bool found = false;
-          for (final ts in mapData.tilesets) {
+          for (final Tileset ts in mapData.tilesets) {
             if (ts.firstGid != null && gid >= ts.firstGid!) {
               int? nextFirstGid;
-              for (final otherTs in mapData.tilesets) {
+              for (final Tileset otherTs in mapData.tilesets) {
                 if (otherTs.firstGid != null && otherTs.firstGid! > ts.firstGid!) {
                   if (nextFirstGid == null || otherTs.firstGid! < nextFirstGid) {
                     nextFirstGid = otherTs.firstGid;
@@ -274,22 +274,22 @@ class OfficeGame extends FlameGame<World>
                 } else {
                   final int tileId = gid - ts.firstGid!;
                   // Wir suchen nach der Kachel
-                  final existingTile = ts.tiles.where((t) => t.localId == tileId).firstOrNull;
+                  final Tile? existingTile = ts.tiles.where((Tile t) => t.localId == tileId).firstOrNull;
                   if (existingTile != null) {
                     found = true;
                   } else {
                     // Kachel fehlt im Tileset-Objekt, wir versuchen sie aus dem TMX zu extrahieren
-                    final tileBlockRegex = RegExp('<tile id="$tileId"[^>]*>(.*?)</tile>', dotAll: true);
-                    final tileBlockMatch = tileBlockRegex.firstMatch(mapString);
+                    final RegExp tileBlockRegex = RegExp('<tile id="$tileId"[^>]*>(.*?)</tile>', dotAll: true);
+                    final RegExpMatch? tileBlockMatch = tileBlockRegex.firstMatch(mapString);
                     if (tileBlockMatch != null) {
-                      final block = tileBlockMatch.group(1)!;
-                      final sourceMatch = RegExp('source=["\']([^"\']+)["\']').firstMatch(block);
+                      final String block = tileBlockMatch.group(1)!;
+                      final RegExpMatch? sourceMatch = RegExp('source=["\']([^"\']+)["\']').firstMatch(block);
                       if (sourceMatch != null) {
-                        final source = sourceMatch.group(1)!;
-                        final wMatch = RegExp('width=["\'](\\d+)["\']').firstMatch(block);
-                        final hMatch = RegExp('height=["\'](\\d+)["\']').firstMatch(block);
+                        final String source = sourceMatch.group(1)!;
+                        final RegExpMatch? wMatch = RegExp('width=["\'](\\d+)["\']').firstMatch(block);
+                        final RegExpMatch? hMatch = RegExp('height=["\'](\\d+)["\']').firstMatch(block);
 
-                        final newTile = tiled.Tile(localId: tileId);
+                        final Tile newTile = tiled.Tile(localId: tileId);
                         newTile.image = tiled.TiledImage(
                           source: source,
                           width: wMatch != null ? int.parse(wMatch.group(1)!) : null,
@@ -316,11 +316,11 @@ class OfficeGame extends FlameGame<World>
     }
 
     // Tilesets nach dem Hinzufügen von Kacheln sortieren und säubern, damit flame_tiled nicht verwirrt ist
-    for (final ts in mapData.tilesets) {
+    for (final Tileset ts in mapData.tilesets) {
       if (ts.image == null) {
         // Nur Kacheln behalten, die ein Bild haben (flame_tiled crasht sonst im Atlas-Sort)
-        ts.tiles.removeWhere((t) => t.image == null || t.image!.source == null);
-        ts.tiles.sort((a, b) => a.localId.compareTo(b.localId));
+        ts.tiles.removeWhere((Tile t) => t.image == null || t.image!.source == null);
+        ts.tiles.sort((Tile a, Tile b) => a.localId.compareTo(b.localId));
       }
     }
 
