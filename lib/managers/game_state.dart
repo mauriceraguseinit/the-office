@@ -12,6 +12,7 @@ enum Flags {
   tobiGone,
   fishCanGone,
   notebookOnDesk,
+  isRaining,
 }
 
 class GameState extends ChangeNotifier {
@@ -102,6 +103,7 @@ class GameState extends ChangeNotifier {
     playerMessage = '';
     isMusicEnabled = true;
     _flags.clear();
+    _flags.add(Flags.isRaining.name);
     _variables.clear();
     notifyListeners();
   }
