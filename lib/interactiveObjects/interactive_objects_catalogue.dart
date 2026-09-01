@@ -6,6 +6,7 @@ import 'package:the_office/interactiveObjects/toilet.dart';
 import 'package:the_office/interactiveObjects/trash.dart';
 
 import '../npcs/desk_daniel.dart';
+import '../npcs/kim.dart';
 import '../npcs/tobi.dart';
 import 'coffee_machine.dart';
 import 'fish_can.dart';
@@ -45,6 +46,15 @@ class InteractiveObjectsCatalogue {
     switch (className) {
       case 'Daniel':
         return DeskDaniel(
+          displayName: displayName,
+          renderComponent: finalRenderComponent,
+          position: position,
+          size: size,
+          priorityOffset: priorityOffset,
+        );
+
+      case 'Kim':
+        return Kim(
           displayName: displayName,
           renderComponent: finalRenderComponent,
           position: position,
