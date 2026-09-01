@@ -115,7 +115,7 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
     // 1. SCHRITT: Loch in die Dunkelheit stanzen
     final Paint maskPaint = Paint()
       ..shader = RadialGradient(
-        colors: [
+        colors: <Color>[
           Colors.white.withValues(alpha: currentBrightness),
           Colors.white.withValues(alpha: 0.0),
         ],
@@ -132,7 +132,7 @@ class LightingManager extends PositionComponent with HasGameReference<OfficeGame
     if (tintOpacity > 0) {
       final Paint tintPaint = Paint()
         ..shader = RadialGradient(
-          colors: [
+          colors: <Color>[
             color.withValues(alpha: currentBrightness * tintOpacity),
             color.withValues(alpha: 0.0),
           ],
